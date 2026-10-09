@@ -1,0 +1,36 @@
+﻿@using ClothingShop.Services
+@model ClothingShop.Models.Product
+
+@{
+    var img = string.IsNullOrWhiteSpace(Model.ImageUrl) ? "~/Content/images/products/default.jpg" : Model.ImageUrl;
+    var onSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
+}
+<a class="product-card" href="@Url.Action("Details", "Product", new { area = "", id = Model.ProductId })">
+    <div class="product-card__media">
+        <img src="@Url.Content(img)" alt="@Model.Name" loading="lazy" />
+        @if (onSale)
+        {
+            <span class="tag">Giảm giá</span>
+        }
+        else if (Model.IsFeatured)
+        {
+            <span class="tag">Nổi bật</span>
+        }
+        else if (Model.IsNew)
+        {
+            <span class="tag">Mới</span>
+        }
+    </div>
+    <h3 class="product-card__name" title="@Model.Name">@Model.Name</h3>
+    <p class="product-card__price">
+        @if (onSale)
+        {
+            <span class="price-now">@PriceFormatter.Vnd(Model.DiscountPrice)</span>
+            <s class="price-old">@PriceFormatter.Vnd(Model.Price)</s>
+        }
+        else
+        {
+            <span class="price-now">@PriceFormatter.Vnd(Model.Price)</span>
+        }
+    </p>
+</a>

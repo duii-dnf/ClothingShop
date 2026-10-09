@@ -1,0 +1,26 @@
+﻿@model IEnumerable<ClothingShop.ViewModels.MenuItemViewModel>
+
+@{
+    int activeId;
+    int.TryParse(Request.QueryString["categoryId"], out activeId);
+}
+
+@foreach (var parent in Model)
+{
+    bool isActive = activeId != 0 && (activeId == parent.Id || parent.Children.Any(c => c.Id == activeId));
+    <li class="main-nav__item">
+        <a class="main-nav__link @(isActive ? "is-active" : "")" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">@parent.Name</a>
+        @if (parent.Children.Any())
+        {
+            <div class="mega">
+                <ul class="mega__list">
+                    <li><a class="mega__all" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">Tất cả @parent.Name</a></li>
+                    @foreach (var child in parent.Children)
+                    {
+                        <li><a href="@Url.Action("Index", "Product", new { area = "", categoryId = child.Id })">@child.Name</a></li>
+                    }
+                </ul>
+            </div>
+        }
+    </li>
+}

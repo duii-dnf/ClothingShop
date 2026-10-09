@@ -1,0 +1,7 @@
+﻿@model IEnumerable<ClothingShop.ViewModels.MenuItemViewModel>
+
+<li><a href="@Url.Action("Index", "Product", new { area = "" })">Tất cả sản phẩm</a></li>
+@foreach (var parent in Model)
+{
+    <li><a href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">@parent.Name</a></li>
+}

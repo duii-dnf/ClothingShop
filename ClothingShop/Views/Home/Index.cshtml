@@ -1,33 +1,101 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+﻿@model ClothingShop.ViewModels.HomeViewModel
+
+@{
+    ViewBag.Title = "Trang chủ";
+    ViewBag.FullWidth = true;   // hero và khối ảnh trải hết chiều ngang
+    ViewBag.PromoWine = true;   // dải thông báo màu đỏ rượu như mẫu
+
+    var heroUrl = Url.Content("~/Content/images/hero.jpg");
+    var ed1 = Url.Content("~/Content/images/editorial-1.jpg");
+    var ed2 = Url.Content("~/Content/images/editorial-2.jpg");
+    var defaultImg = "~/Content/images/products/default.jpg";
+
+    string link1 = Model.Categories.Count > 0
+        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[0].Id })
+        : Url.Action("Index", "Product", new { area = "" });
+    string link2 = Model.Categories.Count > 1
+        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[1].Id })
+        : link1;
 }
 
-<main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
-    </section>
-
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
+<section class="hero-banner" style="background-image:url('@heroUrl')">
+    <h1 class="hero-banner__title">Bộ sưu tập mới</h1>
+    <div class="hero-banner__caption">
+        Thời trang cho mọi phong cách.<br />
+        <a href="@Url.Action("Index", "Product", new { area = "" })">Khám phá ngay</a>
     </div>
-</main>
+</section>
+
+@if (Model.Categories.Any())
+{
+    <section class="section container">
+        <div class="section-head">
+            <h2 class="section-title">Danh mục</h2>
+            <div class="arrow-btns" id="catArrows">
+                <button type="button" data-scroll="-1" aria-label="Trước"><i class="bi bi-arrow-left"></i></button>
+                <button type="button" data-scroll="1" aria-label="Sau"><i class="bi bi-arrow-right"></i></button>
+            </div>
+        </div>
+        <div class="cat-strip" id="catStrip">
+            @foreach (var c in Model.Categories)
+            {
+                <a class="cat-tile" href="@Url.Action("Index", "Product", new { area = "", categoryId = c.Id })">
+                    <img src="@Url.Content(string.IsNullOrWhiteSpace(c.ImageUrl) ? defaultImg : c.ImageUrl)" alt="@c.Name" loading="lazy" />
+                    <span class="cat-tile__label">@c.Name</span>
+                </a>
+            }
+        </div>
+    </section>
+}
+
+@if (Model.NewProducts.Any())
+{
+    <section class="section container">
+        <div class="product-grid product-grid--4">
+            @foreach (var p in Model.NewProducts)
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    </section>
+}
+
+<section class="section-wide">
+    <div class="split">
+        <a class="split__panel" style="background-image:url('@ed1')" href="@link1" aria-label="Xem bộ sưu tập"></a>
+        <a class="split__panel" style="background-image:url('@ed2')" href="@link2" aria-label="Xem bộ sưu tập"></a>
+    </div>
+</section>
+
+@if (Model.FeaturedProducts.Any())
+{
+    <section class="section container">
+        <div class="product-grid product-grid--4">
+            @foreach (var p in Model.FeaturedProducts)
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script>(function () {
+            var strip = document.getElementById('catStrip');
+            var arrows = document.getElementById('catArrows');
+            if (!strip) return;
+
+            // Ẩn mũi tên khi dải danh mục không cần cuộn
+            function toggleArrows() {
+                if (arrows) arrows.style.visibility = strip.scrollWidth > strip.clientWidth + 2 ? 'visible' : 'hidden';
+            }
+            toggleArrows();
+            window.addEventListener('resize', toggleArrows);
+
+            document.querySelectorAll('[data-scroll]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    strip.scrollBy({ left: parseInt(btn.getAttribute('data-scroll'), 10) * strip.clientWidth * 0.8, behavior: 'smooth' });
+                });
+            });
+        })();</script>
+}

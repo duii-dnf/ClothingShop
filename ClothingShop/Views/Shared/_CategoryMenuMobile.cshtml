@@ -1,0 +1,36 @@
+﻿@model IEnumerable<ClothingShop.ViewModels.MenuItemViewModel>
+
+<div class="accordion accordion-flush mobile-menu" id="mobileCats">
+    @foreach (var parent in Model)
+    {
+        if (parent.Children.Any())
+        {
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mc-@parent.Id" aria-expanded="false">
+                        @parent.Name
+                    </button>
+                </h2>
+                <div id="mc-@parent.Id" class="accordion-collapse collapse" data-bs-parent="#mobileCats">
+                    <div class="accordion-body">
+                        <ul class="list-unstyled mb-0">
+                            <li><a class="fw-semibold" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">Tất cả @parent.Name</a></li>
+                            @foreach (var child in parent.Children)
+                            {
+                                <li><a href="@Url.Action("Index", "Product", new { area = "", categoryId = child.Id })">@child.Name</a></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <a class="mobile-menu__single" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">@parent.Name</a>
+                </h2>
+            </div>
+        }
+    }
+</div>
