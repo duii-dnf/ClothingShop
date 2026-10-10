@@ -1,33 +1,137 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+﻿@using ClothingShop.Services
+@model ClothingShop.ViewModels.HomeViewModel
+
+@{
+    ViewBag.Title = "Trang chủ";
+    ViewBag.FullWidth = true;   // banner trải hết chiều ngang
+    ViewBag.PromoWine = true;   // dải thông báo màu đỏ rượu như mẫu
+
+    var defaultImg = "~/Content/images/products/default.jpg";
+
+    string allUrl = Url.Action("Index", "Product", new { area = "" });
+    string link1 = Model.Categories.Count > 0
+        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[0].Id }) : allUrl;
+    string link2 = Model.Categories.Count > 1
+        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[1].Id }) : allUrl;
+
+    // DANH SÁCH BANNER: thêm/bớt một dòng để thêm/bớt slide (ảnh đặt trong Content/images/hero/)
+    var slides = new[]
+    {
+        new { Img = "~/Content/images/hero/hero-1.jpg", Alt = "Bộ sưu tập mới", Url = allUrl },
+        new { Img = "~/Content/images/hero/hero-2.jpg", Alt = "Ưu đãi thành viên", Url = link1 },
+        new { Img = "~/Content/images/hero/hero-3.jpg", Alt = "Xu hướng mới", Url = link2 }
+    };
 }
 
-<main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
-    </section>
+<!-- ===== Hero Banner Carousel ===== -->
+<section class="hero-carousel" aria-label="Banner nổi bật">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-inner">
+            @for (int i = 0; i < slides.Length; i++)
+            {
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <a class="hero-slide" href="@slides[i].Url" aria-label="@slides[i].Alt"
+                       style="background-image:url('@Url.Content(slides[i].Img)')"></a>
+                </div>
+            }
+        </div>
 
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
+        @if (slides.Length > 1)
+        {
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <span class="hero-arrow" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+                <span class="visually-hidden">Banner trước</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <span class="hero-arrow" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                <span class="visually-hidden">Banner sau</span>
+            </button>
+
+            <div class="carousel-indicators">
+                @for (int i = 0; i < slides.Length; i++)
+                {
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="@i"
+                            class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : null)"
+                            aria-label="Banner @(i + 1)"></button>
+                }
+            </div>
+        }
     </div>
-</main>
+</section>
+
+<!-- ===== Hàng danh mục ===== -->
+@if (Model.Categories.Any())
+{
+    <section class="section container">
+        <div class="section-head">
+            <h2 class="section-title">Danh mục</h2>
+            <div class="arrow-btns" id="catArrows">
+                <button type="button" data-scroll="-1" aria-label="Trước"><i class="bi bi-arrow-left"></i></button>
+                <button type="button" data-scroll="1" aria-label="Sau"><i class="bi bi-arrow-right"></i></button>
+            </div>
+        </div>
+        <div class="cat-strip" id="catStrip">
+            @foreach (var c in Model.Categories)
+            {
+                <a class="cat-tile" href="@Url.Action("Index", "Product", new { area = "", categoryId = c.Id })">
+                    <img src="@Url.Content(string.IsNullOrWhiteSpace(c.ImageUrl) ? defaultImg : c.ImageUrl)" alt="@c.Name" loading="lazy" />
+                    <span class="cat-tile__label">@c.Name</span>
+                </a>
+            }
+        </div>
+    </section>
+}
+
+<!-- ===== Lưới sản phẩm + sắp xếp ===== -->
+<section class="section container" id="products">
+    @Html.Partial("_SortDropdown", Model.Sort)
+
+    @if (Model.NewProducts.Any())
+    {
+        <div class="product-grid product-grid--4">
+            @foreach (var p in Model.NewProducts)
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center text-muted py-5">Chưa có sản phẩm nào.</p>
+    }
+</section>
+
+@if (Model.FeaturedProducts.Any())
+{
+    <section class="section container">
+        <div class="product-grid product-grid--4">
+            @foreach (var p in Model.FeaturedProducts)
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var strip = document.getElementById('catStrip');
+            var arrows = document.getElementById('catArrows');
+            if (!strip) return;
+
+            // Ẩn mũi tên khi dải danh mục không cần cuộn
+            function toggleArrows() {
+                if (arrows) arrows.style.visibility = strip.scrollWidth > strip.clientWidth + 2 ? 'visible' : 'hidden';
+            }
+            toggleArrows();
+            window.addEventListener('resize', toggleArrows);
+
+            document.querySelectorAll('[data-scroll]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    strip.scrollBy({ left: parseInt(btn.getAttribute('data-scroll'), 10) * strip.clientWidth * 0.8, behavior: 'smooth' });
+                });
+            });
+        })();
+    </script>
+}
