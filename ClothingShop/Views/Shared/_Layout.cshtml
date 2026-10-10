@@ -160,19 +160,6 @@
 
     <footer class="site-footer">
         <div class="container">
-            <div class="footer-cta">
-                <span class="footer-cta__word">Thành viên</span>
-                @if (currentUser == null)
-                {
-                    <a class="btn btn-lime" href="@Url.Action("Register", "Account", new { area = "" })">Đăng ký</a>
-                }
-                else
-                {
-                    <a class="btn btn-lime" href="@Url.Action("Index", "Product", new { area = "" })">Mua sắm</a>
-                }
-            </div>
-            <p class="footer-note">Đăng ký tài khoản để theo dõi đơn hàng và sử dụng mã giảm giá.</p>
-
             <div class="footer-grid">
                 <div class="footer-col--contact">
                     <p class="footer-label">Liên hệ</p>

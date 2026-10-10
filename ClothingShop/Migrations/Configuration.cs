@@ -68,7 +68,7 @@
                 new Category { Name = "Đầm dự tiệc", ParentId = vay.CategoryId },
                 new Category { Name = "Nón", ParentId = phuKien.CategoryId },
                 new Category { Name = "Thắt lưng", ParentId = phuKien.CategoryId },
-                new Category { Name = "Túi xách", ParentId = phuKien.CategoryId }
+                new Category { Name = "Túi xách", ParentId = phuKien.CategoryId }  
             });
             context.SaveChanges();
         }

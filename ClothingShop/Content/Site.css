@@ -410,57 +410,79 @@ body {
     }
 
 /* ---------- Trang chủ ---------- */
-.hero-banner {
-    position: relative;
+/* ---------- Hero banner carousel ---------- */
+.hero-carousel {
+    background: #fff;
+}
+
+.hero-slide {
+    display: block;
     height: clamp(340px, 50vw, 720px);
-    background: #d7d3cb center / cover no-repeat;
-    overflow: hidden;
+    background: #d7d3cb center / cover no-repeat; /* nền be khi chưa có ảnh */
+}
+/* Mũi tên trái/phải: ô vuông trắng như mẫu */
+.hero-carousel .carousel-control-prev,
+.hero-carousel .carousel-control-next {
+    bottom: 30px; /* chừa chỗ cho hàng chấm bên dưới */
+    width: auto;
+    padding: 0 clamp(14px, 3vw, 40px);
+    opacity: 1;
 }
 
-.hero-banner__title {
-    position: absolute;
-    top: clamp(16px, 4vw, 56px);
-    left: 0;
-    right: 0;
-    margin: 0;
-    text-align: center;
-    font-family: var(--font-serif);
-    font-weight: 400;
-    color: var(--taupe);
-    font-size: clamp(1.8rem, 6vw, 5rem);
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    line-height: 1.05;
+.hero-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,.14);
+    transition: background .2s, color .2s;
 }
 
-.hero-banner__caption {
-    position: absolute;
-    right: clamp(14px, 3vw, 40px);
-    bottom: clamp(14px, 4vw, 48px);
-    max-width: 260px;
-    color: var(--taupe);
-    font-family: var(--font-serif);
-    font-size: .9rem;
-    letter-spacing: .02em;
-    text-transform: uppercase;
-    line-height: 1.5;
-}
-
-    .hero-banner__caption a {
-        text-decoration: underline;
-        text-underline-offset: 4px;
-    }
-/* Nếu dùng ảnh hero tối màu, thêm class hero-banner--dark vào thẻ section */
-.hero-banner--dark .hero-banner__title, .hero-banner--dark .hero-banner__caption {
+.hero-carousel .carousel-control-prev:hover .hero-arrow,
+.hero-carousel .carousel-control-next:hover .hero-arrow {
+    background: var(--ink);
     color: #fff;
+}
+/* Chấm điều hướng nằm DƯỚI banner */
+.hero-carousel .carousel-indicators {
+    position: static;
+    margin: 0;
+    padding: 0;
+    height: 30px;
+    align-items: center;
+}
+
+    .hero-carousel .carousel-indicators [data-bs-target] {
+        box-sizing: border-box;
+        width: 9px;
+        height: 9px;
+        margin: 0 5px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background-color: var(--ink);
+        background-clip: border-box;
+        opacity: .25;
+        text-indent: -999px;
+    }
+
+    .hero-carousel .carousel-indicators .active {
+        opacity: 1;
+    }
+
+@media (max-width: 575px) {
+    .hero-arrow {
+        width: 34px;
+        height: 34px;
+    }
 }
 
 .section {
     padding-top: clamp(28px, 4vw, 48px);
-}
-
-.section-wide {
-    margin-top: clamp(32px, 4vw, 56px);
 }
 
 .section-head {
@@ -566,29 +588,6 @@ body {
     }
 }
 
-/* Khối 2 ảnh editorial (sạch, không chữ, không lớp phủ) */
-.split {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-}
-
-.split__panel {
-    display: block;
-    aspect-ratio: 5 / 6;
-    max-height: 85vh;
-    background: #cbbfb1 center / cover no-repeat;
-}
-
-@media (max-width: 767px) {
-    .split {
-        grid-template-columns: 1fr;
-    }
-
-    .split__panel {
-        aspect-ratio: 4 / 5;
-    }
-}
-
 /* ---------- Lưới & thẻ sản phẩm ---------- */
 .product-grid {
     display: grid;
@@ -669,6 +668,52 @@ body {
     color: var(--muted);
     font-size: .78rem;
     margin-left: 6px;
+}
+
+/* Thanh sắp xếp sản phẩm */
+.sort-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px;
+}
+
+.sort-bar__label {
+    margin: 0;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.sort-select {
+    width: auto;
+    min-width: 190px;
+    padding: .4rem 2.25rem .4rem .75rem;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background-color: #fff;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink);
+}
+
+    .sort-select:focus {
+        border-color: var(--ink);
+        box-shadow: none;
+    }
+
+@media (max-width: 575px) {
+    .sort-bar {
+        justify-content: space-between;
+    }
+
+    .sort-select {
+        flex: 1;
+        min-width: 0;
+    }
 }
 
 /* ---------- Trang danh sách sản phẩm (dựng view ở Bước 4) ---------- */
@@ -1118,30 +1163,6 @@ body {
     .site-footer a:hover {
         color: var(--lime);
     }
-
-.footer-cta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-    padding-bottom: 22px;
-    border-bottom: 1px solid rgba(255,255,255,.14);
-}
-
-.footer-cta__word {
-    font-size: clamp(2.2rem, 7vw, 5.2rem);
-    letter-spacing: .01em;
-    text-transform: uppercase;
-    color: #4b4448;
-    line-height: 1;
-}
-
-.footer-note {
-    font-size: .68rem;
-    color: #9a9195;
-    padding: 12px 0 40px;
-    margin: 0;
-}
 
 .footer-grid {
     display: grid;

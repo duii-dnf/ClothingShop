@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using ClothingShop.Models;
 using ClothingShop.ViewModels;
+using ClothingShop.Services;
 
 namespace ClothingShop.Controllers
 {
@@ -12,9 +13,9 @@ namespace ClothingShop.Controllers
     {
         private readonly ShopDbContext db = new ShopDbContext();
 
-        public ActionResult Index()
+        public ActionResult Index(string sort = null)
         {
-            var vm = new HomeViewModel();
+            var vm = new HomeViewModel { Sort = ProductSorting.Normalize(sort) };
 
             // Ô danh mục: mỗi loại cha lấy ảnh của sản phẩm mới nhất thuộc loại đó (hoặc loại con)
             var cats = db.Categories.Where(c => c.IsActive).ToList();
@@ -32,20 +33,20 @@ namespace ClothingShop.Controllers
                 vm.Categories.Add(new HomeCategoryTile { Id = parent.CategoryId, Name = parent.Name, ImageUrl = image });
             }
 
-            // Lưới 1: 12 sản phẩm mới nhất
-            vm.NewProducts = db.Products
-                               .Where(p => p.IsActive)
-                               .OrderByDescending(p => p.CreatedAt)
-                               .Take(12).ToList();
+            // Lưới chính: sắp xếp toàn bộ sản phẩm đang bán rồi lấy 12 sản phẩm đầu
+            vm.NewProducts = ProductSorting.Apply(db.Products.Where(p => p.IsActive), vm.Sort)
+                                           .Take(12).ToList();
 
-            var shownIds = vm.NewProducts.Select(p => p.ProductId).ToList();
-
-            // Lưới 2: 8 sản phẩm, ưu tiên "nổi bật", không trùng lưới 1
-            vm.FeaturedProducts = db.Products
-                                    .Where(p => p.IsActive && !shownIds.Contains(p.ProductId))
-                                    .OrderByDescending(p => p.IsFeatured)
-                                    .ThenByDescending(p => p.CreatedAt)
-                                    .Take(8).ToList();
+            // Lưới phụ "nổi bật" chỉ hiện khi để sắp xếp mặc định (tránh lẫn với danh sách người dùng đã chọn)
+            if (vm.Sort == ProductSorting.Newest)
+            {
+                var shownIds = vm.NewProducts.Select(p => p.ProductId).ToList();
+                vm.FeaturedProducts = db.Products
+                                        .Where(p => p.IsActive && !shownIds.Contains(p.ProductId))
+                                        .OrderByDescending(p => p.IsFeatured)
+                                        .ThenByDescending(p => p.CreatedAt)
+                                        .Take(8).ToList();
+            }
 
             return View(vm);
         }

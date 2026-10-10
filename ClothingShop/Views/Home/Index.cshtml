@@ -1,31 +1,65 @@
-﻿@model ClothingShop.ViewModels.HomeViewModel
+﻿@using ClothingShop.Services
+@model ClothingShop.ViewModels.HomeViewModel
 
 @{
     ViewBag.Title = "Trang chủ";
-    ViewBag.FullWidth = true;   // hero và khối ảnh trải hết chiều ngang
+    ViewBag.FullWidth = true;   // banner trải hết chiều ngang
     ViewBag.PromoWine = true;   // dải thông báo màu đỏ rượu như mẫu
 
-    var heroUrl = Url.Content("~/Content/images/hero.jpg");
-    var ed1 = Url.Content("~/Content/images/editorial-1.jpg");
-    var ed2 = Url.Content("~/Content/images/editorial-2.jpg");
     var defaultImg = "~/Content/images/products/default.jpg";
 
+    string allUrl = Url.Action("Index", "Product", new { area = "" });
     string link1 = Model.Categories.Count > 0
-        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[0].Id })
-        : Url.Action("Index", "Product", new { area = "" });
+        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[0].Id }) : allUrl;
     string link2 = Model.Categories.Count > 1
-        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[1].Id })
-        : link1;
+        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[1].Id }) : allUrl;
+
+    // DANH SÁCH BANNER: thêm/bớt một dòng để thêm/bớt slide (ảnh đặt trong Content/images/hero/)
+    var slides = new[]
+    {
+        new { Img = "~/Content/images/hero/hero-1.jpg", Alt = "Bộ sưu tập mới", Url = allUrl },
+        new { Img = "~/Content/images/hero/hero-2.jpg", Alt = "Ưu đãi thành viên", Url = link1 },
+        new { Img = "~/Content/images/hero/hero-3.jpg", Alt = "Xu hướng mới", Url = link2 }
+    };
 }
 
-<section class="hero-banner" style="background-image:url('@heroUrl')">
-    <h1 class="hero-banner__title">Bộ sưu tập mới</h1>
-    <div class="hero-banner__caption">
-        Thời trang cho mọi phong cách.<br />
-        <a href="@Url.Action("Index", "Product", new { area = "" })">Khám phá ngay</a>
+<!-- ===== Hero Banner Carousel ===== -->
+<section class="hero-carousel" aria-label="Banner nổi bật">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-inner">
+            @for (int i = 0; i < slides.Length; i++)
+            {
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <a class="hero-slide" href="@slides[i].Url" aria-label="@slides[i].Alt"
+                       style="background-image:url('@Url.Content(slides[i].Img)')"></a>
+                </div>
+            }
+        </div>
+
+        @if (slides.Length > 1)
+        {
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <span class="hero-arrow" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+                <span class="visually-hidden">Banner trước</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <span class="hero-arrow" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                <span class="visually-hidden">Banner sau</span>
+            </button>
+
+            <div class="carousel-indicators">
+                @for (int i = 0; i < slides.Length; i++)
+                {
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="@i"
+                            class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : null)"
+                            aria-label="Banner @(i + 1)"></button>
+                }
+            </div>
+        }
     </div>
 </section>
 
+<!-- ===== Hàng danh mục ===== -->
 @if (Model.Categories.Any())
 {
     <section class="section container">
@@ -48,23 +82,23 @@
     </section>
 }
 
-@if (Model.NewProducts.Any())
-{
-    <section class="section container">
+<!-- ===== Lưới sản phẩm + sắp xếp ===== -->
+<section class="section container" id="products">
+    @Html.Partial("_SortDropdown", Model.Sort)
+
+    @if (Model.NewProducts.Any())
+    {
         <div class="product-grid product-grid--4">
             @foreach (var p in Model.NewProducts)
             {
                 @Html.Partial("_ProductCard", p)
             }
         </div>
-    </section>
-}
-
-<section class="section-wide">
-    <div class="split">
-        <a class="split__panel" style="background-image:url('@ed1')" href="@link1" aria-label="Xem bộ sưu tập"></a>
-        <a class="split__panel" style="background-image:url('@ed2')" href="@link2" aria-label="Xem bộ sưu tập"></a>
-    </div>
+    }
+    else
+    {
+        <p class="text-center text-muted py-5">Chưa có sản phẩm nào.</p>
+    }
 </section>
 
 @if (Model.FeaturedProducts.Any())
@@ -80,7 +114,8 @@
 }
 
 @section Scripts {
-    <script>(function () {
+    <script>
+        (function () {
             var strip = document.getElementById('catStrip');
             var arrows = document.getElementById('catArrows');
             if (!strip) return;
@@ -97,5 +132,6 @@
                     strip.scrollBy({ left: parseInt(btn.getAttribute('data-scroll'), 10) * strip.clientWidth * 0.8, behavior: 'smooth' });
                 });
             });
-        })();</script>
+        })();
+    </script>
 }

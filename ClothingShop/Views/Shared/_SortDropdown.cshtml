@@ -1,0 +1,24 @@
+﻿@using ClothingShop.Services
+@model string
+
+@{
+    var current = ProductSorting.Normalize(Model);
+    var action = Request.Url.AbsolutePath + "#products"; // quay lại đúng vị trí lưới sản phẩm
+}
+
+<form class="sort-bar" method="get" action="@action">
+    @* Giữ nguyên các tham số khác trên URL (categoryId, keyword...), bỏ sort và page để về trang 1 *@
+    @foreach (var key in Request.QueryString.AllKeys.Where(k => !string.IsNullOrEmpty(k) && k != "sort" && k != "page"))
+    {
+        <input type="hidden" name="@key" value="@Request.QueryString[key]" />
+    }
+
+    <label class="sort-bar__label" for="sortSelect">Sắp xếp</label>
+    <select id="sortSelect" name="sort" class="form-select form-select-sm sort-select" onchange="this.form.submit()">
+        @foreach (var o in ProductSorting.Options)
+        {
+            <option value="@o.Key" selected="@(o.Key == current ? "selected" : null)">@o.Value</option>
+        }
+    </select>
+    <noscript><button type="submit" class="btn btn-primary btn-sm">Áp dụng</button></noscript>
+</form>
