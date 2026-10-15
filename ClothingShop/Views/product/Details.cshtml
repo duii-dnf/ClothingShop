@@ -1,0 +1,211 @@
+﻿@model ClothingShop.Models.Product
+
+@{
+    ViewBag.Title = Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .product-detail-img {
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .product-detail-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #222;
+        letter-spacing: -0.5px;
+    }
+
+    .price-tag {
+        font-size: 2.2rem;
+        color: #e53935;
+        font-weight: 700;
+    }
+
+    .description-box {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        line-height: 1.8;
+        color: #555;
+    }
+
+    .btn-add-cart {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+    }
+
+        .btn-add-cart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(34, 34, 34, 0.2);
+        }
+
+    .section-title {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 10px;
+        margin-bottom: 2rem;
+    }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            background-color: #222;
+            bottom: 0;
+            left: 0;
+        }
+
+    .product-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+
+    .img-wrapper {
+        overflow: hidden;
+        position: relative;
+    }
+
+    .product-img {
+        object-fit: cover;
+        height: 300px;
+        width: 100%;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .product-card:hover .product-img {
+        transform: scale(1.08);
+    }
+
+    .btn-details {
+        border-radius: 30px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        border: 2px solid #222;
+        color: #222;
+        background: transparent;
+        transition: all 0.3s ease;
+        display: inline-block;
+        width: 100%;
+        text-decoration: none;
+    }
+
+        .btn-details:hover {
+            background: #222;
+            color: #fff;
+        }
+</style>
+
+<div class="container mt-5 mb-5">
+
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" class="text-dark text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Product")" class="text-dark text-decoration-none">Sản phẩm</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-6 mb-4 mb-md-0 pe-md-5">
+            <img src="@Url.Content(string.IsNullOrEmpty(Model.ImageUrl) ? "~/Content/images/products/default.jpg" : "~/Content/images/products/" + Model.ImageUrl)"
+                 alt="@Model.Name" class="product-detail-img" />
+        </div>
+
+        <div class="col-md-6">
+            <h1 class="product-detail-title mb-3">@Model.Name</h1>
+
+            <p class="price-tag mb-4">@string.Format("{0:N0} ₫", Model.Price)</p>
+
+            <div class="description-box mb-4">
+                <h6 class="font-weight-bold mb-2">Mô tả sản phẩm:</h6>
+                <span>
+                    @(string.IsNullOrEmpty(Model.Description) ? "Sản phẩm này hiện chưa có mô tả chi tiết." : Model.Description)
+                </span>
+            </div>
+
+            <div class="mb-4">
+                <p class="mb-2"><strong>Danh mục:</strong> <span class="text-muted">@(Model.Category != null ? Model.Category.Name : "Chưa phân loại")</span></p>
+                <p class="mb-2">
+                    <strong>Tình trạng:</strong>
+                    @if (Model.Stock > 0)
+                    {
+                        <span class="badge bg-success px-3 py-2 rounded-pill">Còn hàng (@Model.Stock)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger px-3 py-2 rounded-pill">Hết hàng</span>
+                    }
+                </p>
+            </div>
+
+            <div class="d-flex mt-5">
+                <button class="btn btn-dark btn-add-cart w-100">
+                    <i class="bi bi-bag-plus me-2"></i> Thêm vào giỏ hàng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewBag.RelatedProducts != null)
+    {
+        var relatedList = ViewBag.RelatedProducts as IEnumerable<ClothingShop.Models.Product>;
+        if (relatedList != null && relatedList.Any())
+        {
+            <div class="mt-5 pt-5 border-top">
+                <h3 class="section-title">Sản phẩm liên quan</h3>
+
+                <div class="row mt-4">
+                    @foreach (var item in relatedList)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <div class="card product-card h-100">
+                                <div class="img-wrapper">
+                                    <img src="@Url.Content(string.IsNullOrEmpty(item.ImageUrl) ? "~/Content/images/products/default.jpg" : "~/Content/images/products/" + item.ImageUrl)"
+                                         class="product-img" alt="@item.Name">
+                                </div>
+
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-truncate" title="@item.Name">@item.Name</h5>
+
+                                    <p class="text-danger font-weight-bold mb-3">
+                                        @string.Format("{0:N0} ₫", item.Price)
+                                    </p>
+
+                                    <a href="@Url.Action("Details", "Product", new { id = item.ProductId })" class="btn-details">
+                                        Xem chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

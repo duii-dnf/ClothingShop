@@ -1,0 +1,66 @@
+﻿@model IEnumerable<ClothingShop.Models.Category>
+
+@{
+    ViewBag.Title = "Quản lý Loại Sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-tags me-2"></i>Danh sách Danh mục</h5>
+        <!-- Sửa Link Tạo mới -->
+        <a href="@Url.Action("Create", "Category", new { area = "Admin" })" class="btn btn-primary btn-sm rounded-pill px-3 fw-medium">
+            <i class="bi bi-plus-lg me-1"></i> Tạo mới
+        </a>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Tên danh mục</th>
+                        <th>Danh mục cha</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4" style="width: 250px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-medium text-dark">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td class="text-muted">
+                                @(item.Parent != null ? item.Parent.Name : "-- Trống --")
+                            </td>
+                            <td>
+                                @if (item.IsActive == true)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded-pill">Tạm ẩn</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <!-- SỬA CÁC NÚT ACTION LINK Ở ĐÂY, SỬ DỤNG URL.ACTION -->
+                                <a href="@Url.Action("Edit", "Category", new { id = item.CategoryId, area = "Admin" })" class="btn btn-sm btn-outline-warning" title="Sửa">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="@Url.Action("Details", "Category", new { id = item.CategoryId, area = "Admin" })" class="btn btn-sm btn-outline-info" title="Chi tiết">
+                                    <i class="bi bi-info-circle"></i>
+                                </a>
+                                <a href="@Url.Action("Delete", "Category", new { id = item.CategoryId, area = "Admin" })" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

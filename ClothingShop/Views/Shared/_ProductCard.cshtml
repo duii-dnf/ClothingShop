@@ -7,7 +7,7 @@
 }
 <a class="product-card" href="@Url.Action("Details", "Product", new { area = "", id = Model.ProductId })">
     <div class="product-card__media">
-        <img src="@Url.Content(img)" alt="@Model.Name" loading="lazy" />
+        <img src="@Url.Content(string.IsNullOrEmpty(Model.ImageUrl) ? "~/Content/images/products/default.jpg" : "~/Content/images/products/" + Model.ImageUrl)" alt="@Model.Name" loading="lazy" />
         @if (onSale)
         {
             <span class="tag">Giảm giá</span>

@@ -1,0 +1,252 @@
+﻿@model IEnumerable<ClothingShop.Models.Product>
+
+@{
+    ViewBag.Title = "Danh sách Sản phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml"; 
+}
+
+<style>
+    .catalog-header {
+        position: relative;
+        padding-bottom: 1rem;
+        margin-bottom: 2.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .catalog-title {
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #222;
+        margin-bottom: 0;
+    }
+
+    .search-filter-box {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        margin-bottom: 3rem;
+        transition: all 0.3s ease;
+    }
+
+        .search-filter-box:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+
+    .custom-input {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 0.6rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .custom-input:focus {
+            border-color: #333;
+            box-shadow: 0 0 0 0.2rem rgba(51, 51, 51, 0.15);
+        }
+
+    .btn-search {
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+
+    .product-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+        }
+
+    .img-wrapper {
+        overflow: hidden;
+        position: relative;
+    }
+
+    .product-img {
+        object-fit: cover;
+        height: 320px;
+        width: 100%;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .product-card:hover .product-img {
+        transform: scale(1.08);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .product-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-price {
+        font-size: 1.15rem;
+        color: #e53935;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+    }
+
+    .btn-details {
+        border-radius: 30px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: 2px solid #222;
+        color: #222;
+        background: transparent;
+        transition: all 0.3s ease;
+        display: inline-block;
+        width: 100%;
+    }
+
+        .btn-details:hover {
+            background: #222;
+            color: #fff;
+            text-decoration: none;
+        }
+
+    .custom-pagination .page-item .page-link {
+        color: #333;
+        border: none;
+        margin: 0 5px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .custom-pagination .page-item.active .page-link,
+        .custom-pagination .page-item .page-link:hover {
+            background-color: #222;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+</style>
+
+<div class="container mt-5 mb-5">
+
+    <div class="catalog-header d-flex justify-content-between align-items-end">
+        <h2 class="catalog-title">Tất cả sản phẩm</h2>
+        <span class="text-muted small">Khám phá bộ sưu tập mới nhất</span>
+    </div>
+
+    <div class="search-filter-box">
+        @using (Html.BeginForm("Index", "Product", FormMethod.Get, new { @class = "row g-3 align-items-center" }))
+        {
+            <div class="col-md-4 col-12">
+                <label class="visually-hidden" for="CategoryId">Danh mục</label>
+                @Html.DropDownList("CategoryId", null, "Tất cả danh mục", new { @class = "form-select custom-input" })
+            </div>
+
+            <div class="col-md-6 col-12">
+                <label class="visually-hidden" for="searchString">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 custom-input" style="border-right: none;">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    @Html.TextBox("searchString", ViewBag.CurrentFilter as string, new { @class = "form-control custom-input border-start-0", placeholder = "Nhập tên sản phẩm bạn muốn tìm...", style = "border-left: none;" })
+                </div>
+            </div>
+
+            <div class="col-md-2 col-12 d-grid">
+                <button type="submit" class="btn btn-dark btn-search">Tìm kiếm</button>
+            </div>
+        }
+    </div>
+
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-5">
+                    <div class="card product-card">
+                        <div class="img-wrapper">
+                            <img src="@Url.Content(string.IsNullOrEmpty(item.ImageUrl) ? "~/Content/images/products/default.jpg" : "~/Content/images/products/" + item.ImageUrl)"
+                                 class="product-img"
+                                 alt="@item.Name">
+                        </div>
+
+                        <div class="card-body text-center">
+                            <h5 class="product-title" title="@item.Name">@item.Name</h5>
+
+                            <p class="product-price">
+                                @string.Format("{0:N0} ₫", item.Price)
+                            </p>
+
+                            <a href="@Url.Action("Details", "Product", new { id = item.ProductId })" class="btn-details">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5 my-5">
+                <div class="text-muted mb-3">
+                    <i class="bi bi-box-seam" style="font-size: 3rem; opacity: 0.5;"></i>
+                </div>
+                <h4 class="text-secondary">Chưa tìm thấy sản phẩm nào!</h4>
+                <p class="text-muted">Vui lòng thử lại với từ khóa khác hoặc quay lại sau.</p>
+                <a href="@Url.Action("Index", "Product")" class="btn btn-outline-dark mt-3 px-4">Xóa bộ lọc</a>
+            </div>
+        }
+    </div>
+
+    @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+    {
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <ul class="pagination custom-pagination justify-content-center">
+
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="@(ViewBag.CurrentPage == 1 ? "#" : Url.Action("Index", new { page = ViewBag.CurrentPage - 1, searchString = ViewBag.CurrentFilter, categoryId = ViewBag.CurrentCategory }))" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = i, searchString = ViewBag.CurrentFilter, categoryId = ViewBag.CurrentCategory })">@i</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="@(ViewBag.CurrentPage == ViewBag.TotalPages ? "#" : Url.Action("Index", new { page = ViewBag.CurrentPage + 1, searchString = ViewBag.CurrentFilter, categoryId = ViewBag.CurrentCategory }))" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    }
+</div>
