@@ -3,15 +3,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container text-center" style="margin-top: 50px; margin-bottom: 50px;">
-    <div class="alert alert-success" style="display: inline-block; padding: 40px; border-radius: 10px;">
-        <h1 style="font-size: 50px;"><i class="glyphicon glyphicon-ok-circle"></i></h1>
-        <h2>Cảm ơn bạn đã đặt hàng!</h2>
-        <p style="font-size: 1.2em;">Mã đơn hàng của bạn là: <strong>#@ViewBag.OrderId</strong></p>
-        <p>Chúng tôi sẽ sớm liên hệ với bạn để xác nhận đơn hàng.</p>
+<div class="container text-center my-5 py-5">
+    <div class="alert alert-success d-inline-block p-5 rounded-4 shadow-sm border-0" style="background-color: #f0fdf4;">
+        <div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+        <h2 class="mb-3 text-dark">Cảm ơn bạn đã đặt hàng!</h2>
+        <p class="fs-5 text-dark">Mã đơn hàng của bạn là: <strong>#@ViewBag.OrderId</strong></p>
+        <p class="text-muted mb-4">Chúng tôi sẽ sớm liên hệ qua điện thoại để xác nhận đơn hàng của bạn.</p>
 
-        <br />
-        <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Về trang chủ</a>
-        <a href="@Url.Action("Index", "Product")" class="btn btn-default">Tiếp tục mua sắm</a>
+        <div class="d-flex justify-content-center gap-3 mt-2">
+            <a href="@Url.Action("Index", "Home")" class="btn btn-success px-4">Về trang chủ</a>
+            <a href="@Url.Action("Index", "Product")" class="btn btn-outline-secondary px-4">Tiếp tục mua sắm</a>
+        </div>
     </div>
 </div>
