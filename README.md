@@ -45,7 +45,7 @@ Website thương mại điện tử thời trang xây dựng trên nền tảng 
   <tr>
     <td colspan="3" align="center">
       <b>🌐 Trình duyệt (Client)</b><br>
-      HTML5 · CSS3 · Bootstrap 5 · JavaScript (AJAX)
+      HTML5 · CSS3 · Bootstrap 5 · JavaScript 
     </td>
   </tr>
   <tr>
