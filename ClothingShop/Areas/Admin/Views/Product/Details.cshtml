@@ -1,0 +1,30 @@
+@using ClothingShop.Services
+@model ClothingShop.Models.Product
+
+@{
+    ViewBag.Title = "Chi tiết sản phẩm";
+    var imgSrc = string.IsNullOrEmpty(Model.ImageUrl) ? "/Content/images/products/default.jpg"
+        : (Model.ImageUrl.StartsWith("/") ? Model.ImageUrl : "/Content/images/products/" + Model.ImageUrl);
+}
+
+<h4 class="fw-bold mb-3">Chi tiết sản phẩm #@Model.ProductId</h4>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <img src="@imgSrc" alt="@Model.Name" class="img-fluid rounded border" />
+    </div>
+    <div class="col-md-8">
+        <table class="table table-bordered">
+            <tr><th style="width: 160px;">Tên sản phẩm</th><td>@Model.Name</td></tr>
+            <tr><th>Loại</th><td>@(Model.Category != null ? Model.Category.Name : "")</td></tr>
+            <tr><th>Giá gốc</th><td>@PriceFormatter.Vnd(Model.Price)</td></tr>
+            <tr><th>Giá KM</th><td>@PriceFormatter.Vnd(Model.DiscountPrice)</td></tr>
+            <tr><th>Giới tính</th><td>@Model.Gender</td></tr>
+            <tr><th>Kích cỡ / Màu</th><td>@Model.Sizes | @Model.Colors</td></tr>
+            <tr><th>Tồn kho</th><td>@Model.Stock</td></tr>
+            <tr><th>Mô tả</th><td>@Model.Description</td></tr>
+        </table>
+        <a href="@Url.Action("Edit", new { id = Model.ProductId })" class="btn btn-warning">Sửa</a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+    </div>
+</div>

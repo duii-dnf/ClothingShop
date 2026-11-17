@@ -10,6 +10,9 @@ namespace ClothingShop
         public static void Register(HttpConfiguration config)
         {
             // Web API configuration and services
+            var json = config.Formatters.JsonFormatter;
+            json.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            config.Formatters.Remove(config.Formatters.XmlFormatter);
 
             // Web API routes
             config.MapHttpAttributeRoutes();

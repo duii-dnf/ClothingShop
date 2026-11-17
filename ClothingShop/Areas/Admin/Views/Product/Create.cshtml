@@ -1,0 +1,102 @@
+@model ClothingShop.Models.Product
+
+@{
+    ViewBag.Title = "Thêm sản phẩm";
+}
+
+<h4 class="fw-bold mb-3">Thêm sản phẩm mới</h4>
+
+@using (Html.BeginForm("Create", "Product", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.Name, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.CategoryId, new { @class = "form-label fw-semibold" })
+            @Html.DropDownList("CategoryId", null, "-- Chọn loại sản phẩm --", new { @class = "form-select" })
+            @Html.ValidationMessageFor(m => m.CategoryId, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-md-4">
+            @Html.LabelFor(m => m.Price, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", min = "0" })
+            @Html.ValidationMessageFor(m => m.Price, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-md-4">
+            @Html.LabelFor(m => m.DiscountPrice, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.DiscountPrice, new { @class = "form-control", type = "number", min = "0" })
+            @Html.ValidationMessageFor(m => m.DiscountPrice, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-md-4">
+            @Html.LabelFor(m => m.Stock, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.Stock, new { @class = "form-control", type = "number", min = "0" })
+            @Html.ValidationMessageFor(m => m.Stock, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.Sizes, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.Sizes, new { @class = "form-control", placeholder = "S,M,L,XL" })
+        </div>
+
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.Colors, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.Colors, new { @class = "form-control", placeholder = "Đen,Trắng" })
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold d-block">Giới tính</label>
+            <div class="form-check form-check-inline">
+                @Html.RadioButtonFor(m => m.Gender, "Nam", new { @class = "form-check-input", id = "gNam" })
+                <label class="form-check-label" for="gNam">Nam</label>
+            </div>
+            <div class="form-check form-check-inline">
+                @Html.RadioButtonFor(m => m.Gender, "Nữ", new { @class = "form-check-input", id = "gNu" })
+                <label class="form-check-label" for="gNu">Nữ</label>
+            </div>
+            <div class="form-check form-check-inline">
+                @Html.RadioButtonFor(m => m.Gender, "Unisex", new { @class = "form-check-input", id = "gUnisex" })
+                <label class="form-check-label" for="gUnisex">Unisex</label>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold d-block">Tùy chọn</label>
+            <div class="form-check form-check-inline">
+                @Html.CheckBoxFor(m => m.IsNew, new { @class = "form-check-input" })
+                @Html.LabelFor(m => m.IsNew, new { @class = "form-check-label" })
+            </div>
+            <div class="form-check form-check-inline">
+                @Html.CheckBoxFor(m => m.IsFeatured, new { @class = "form-check-input" })
+                @Html.LabelFor(m => m.IsFeatured, new { @class = "form-check-label" })
+            </div>
+            <div class="form-check form-check-inline">
+                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input" })
+                @Html.LabelFor(m => m.IsActive, new { @class = "form-check-label" })
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Hình ảnh</label>
+            <input type="file" name="fileUpload" class="form-control" accept="image/*" />
+        </div>
+
+        <div class="col-12">
+            @Html.LabelFor(m => m.Description, new { @class = "form-label fw-semibold" })
+            @Html.TextAreaFor(m => m.Description, 4, 40, new { @class = "form-control" })
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+    </div>
+}

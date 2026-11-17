@@ -1,0 +1,15 @@
+@model ClothingShop.Models.Coupon
+
+@{
+    ViewBag.Title = "Xóa mã khuyến mãi";
+}
+
+<h4 class="fw-bold text-danger mb-3">Xác nhận xóa mã khuyến mãi</h4>
+<p>Bạn có chắc chắn muốn xóa mã <strong>@Model.Code</strong> (-@Model.DiscountPercent%)?</p>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+}
