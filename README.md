@@ -26,7 +26,7 @@ Website thương mại điện tử thời trang xây dựng trên nền tảng 
 
 | Trang | Controller | Chức năng chính |
 |:------|:-----------|:----------------|
-| **Trang chủ** | `Home` | Banner động mượt mà, lọc danh mục sản phẩm bằng AJAX (không tải lại trang), khối sản phẩm mới và nổi bật. |
+| **Trang chủ** | `Home` | Banner động mượt mà, lọc danh mục sản phẩm (không tải lại trang), khối sản phẩm mới và nổi bật. |
 | **Danh mục & Tìm kiếm** | `Product` | Kệ hàng có phân trang, lọc kết hợp danh mục, tìm kiếm từ khóa, sắp xếp theo giá / ngày tạo. |
 | **Chi tiết sản phẩm** | `Details` | Hiển thị trực quan, quản lý số lượng tồn kho, thêm giỏ hàng bất đồng bộ, gợi ý sản phẩm liên quan. |
 | **Giỏ hàng & Thanh toán** | `Cart` / `Checkout` | Giỏ hàng theo phiên (`Session`), tăng giảm số lượng cập nhật thành tiền và tổng cộng ngay lập tức bằng AJAX, xử lý an toàn dữ liệu nhạy cảm (`Request.Form`). |
