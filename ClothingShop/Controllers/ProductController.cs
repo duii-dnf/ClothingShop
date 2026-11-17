@@ -1,5 +1,7 @@
-﻿using ClothingShop.Models;
+using ClothingShop.Models;
+using ClothingShop.Services;
 using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -7,75 +9,91 @@ namespace ClothingShop.Controllers
 {
     public class ProductController : Controller
     {
-        private ShopDbContext db = new ShopDbContext();
+        private readonly ShopDbContext db = new ShopDbContext();
 
 
-        public ActionResult Search(string keyword, int? page)
+        public ActionResult Search(string keyword, int? page = null)
         {
-            return RedirectToAction("Index", new { searchString = keyword, page = page });
+            return RedirectToAction("Index", new { keyword = keyword, searchString = keyword, page = page });
         }
 
-        public ActionResult Index(string searchString, int? categoryId, int? page)
+        public ActionResult Index(int? categoryId, string keyword, string searchString, string sort, int? page)
         {
-            var products = db.Products.AsQueryable();
+            string term = !string.IsNullOrWhiteSpace(keyword) ? keyword.Trim() : (searchString ?? string.Empty).Trim();
+            string currentSort = ProductSorting.Normalize(sort);
 
+            var query = db.Products.Include(p => p.Category).Where(p => p.IsActive);
+
+            Category activeCategory = null;
             if (categoryId.HasValue)
             {
-                var catId = categoryId.Value;
-                var childIds = db.Categories.Where(c => c.ParentId == catId).Select(c => c.CategoryId).ToList();
-                if (childIds.Any())
-                {
-                    childIds.Add(catId);
-                    products = products.Where(p => childIds.Contains(p.CategoryId));
-                }
-                else
-                {
-                    products = products.Where(p => p.CategoryId == catId);
-                }
+                activeCategory = db.Categories.FirstOrDefault(c => c.CategoryId == categoryId.Value && c.IsActive);
+                var catIds = db.Categories
+                    .Where(c => c.IsActive && (c.CategoryId == categoryId.Value || c.ParentId == categoryId.Value))
+                    .Select(c => c.CategoryId)
+                    .ToList();
+
+                query = query.Where(p => catIds.Contains(p.CategoryId));
             }
 
-            if (!string.IsNullOrEmpty(searchString))
+            if (!string.IsNullOrEmpty(term))
             {
-                products = products.Where(p => p.Name.Contains(searchString));
+                query = query.Where(p => p.Name.Contains(term) || (p.Description != null && p.Description.Contains(term)));
             }
 
-            ViewBag.categoryId = new SelectList(db.Categories, "CategoryId", "Name", categoryId);
-            ViewBag.CurrentFilter = searchString;
-            ViewBag.CurrentCategory = categoryId;
+            query = ProductSorting.Apply(query, currentSort);
 
-            // Sắp xếp
-            products = products.OrderByDescending(p => p.CreatedAt);
+            int pageSize = 12;
+            int pageNumber = (page.HasValue && page.Value > 0) ? page.Value : 1;
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && pageNumber > totalPages) pageNumber = totalPages;
 
-            // Tính toán phân trang thủ công
-            int pageSize = 8;
-            int pageNumber = (page ?? 1);
+            var products = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
-            int totalItems = products.Count();
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            ViewBag.Categories = db.Categories
+                .Include(c => c.Children)
+                .Where(c => c.IsActive && c.ParentId == null)
+                .OrderBy(c => c.CategoryId)
+                .ToList();
+
+            ViewBag.CurrentCategory = activeCategory;
+            ViewBag.CategoryId = categoryId;
+            ViewBag.Keyword = term;
+            ViewBag.Sort = currentSort;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
             ViewBag.CurrentPage = pageNumber;
 
-            // Lấy dữ liệu của trang hiện tại
-            var pagedProducts = products.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-
-            return View(pagedProducts);
+            return View(products);
         }
 
-        public ActionResult Details(int id)
+        public ActionResult Details(int? id)
         {
-            var product = db.Products.FirstOrDefault(p => p.ProductId == id);
-            if (product == null)
-            {
-                return HttpNotFound();
-            }
+            if (!id.HasValue) return HttpNotFound();
+
+            var product = db.Products
+                .Include(p => p.Category)
+                .FirstOrDefault(p => p.ProductId == id.Value && p.IsActive);
+
+            if (product == null) return HttpNotFound();
 
             var relatedProducts = db.Products
-                                    .Where(p => p.CategoryId == product.CategoryId && p.ProductId != product.ProductId)
-                                    .Take(4)
-                                    .ToList();
+                .Where(p => p.IsActive && p.CategoryId == product.CategoryId && p.ProductId != product.ProductId)
+                .OrderByDescending(p => p.IsFeatured)
+                .ThenByDescending(p => p.CreatedAt)
+                .Take(4)
+                .ToList();
 
             ViewBag.RelatedProducts = relatedProducts;
 
             return View(product);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) db.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

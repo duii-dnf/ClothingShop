@@ -1,54 +1,47 @@
 ﻿@model ClothingShop.Models.Category
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Thêm loại sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2>Create</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0 fw-semibold">Thêm loại sản phẩm mới</h5>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
 
-@using (Html.BeginForm()) 
+@using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
-    
-    <div class="form-horizontal">
-        <h4>Category</h4>
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <div class="form-group">
-            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+    @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+    <div class="row g-3" style="max-width: 600px;">
+        <div class="col-12">
+            <label class="form-label fw-medium">Tên loại sản phẩm</label>
+            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Ví dụ: Áo thun, Quần jeans..." })
+            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-medium">Danh mục cha (nếu có)</label>
+            @Html.DropDownList("ParentId", null, "-- Là danh mục gốc --", new { @class = "form-select" })
+            @Html.ValidationMessageFor(m => m.ParentId, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-12">
+            <div class="form-check form-switch">
+                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", id = "IsActive" })
+                <label class="form-check-label" for="IsActive">Hiển thị trên cửa hàng</label>
             </div>
         </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.ParentId, "ParentId", htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.DropDownList("ParentId", null, htmlAttributes: new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.ParentId, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.IsActive, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.EditorFor(model => model.IsActive)
-                    @Html.ValidationMessageFor(model => model.IsActive, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
-            </div>
+        <div class="col-12 pt-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i> Lưu lại
+            </button>
+            <a href="@Url.Action("Index")" class="btn btn-light">Hủy</a>
         </div>
     </div>
 }
-
-<div>
-    @Html.ActionLink("Back to List", "Index")
-</div>

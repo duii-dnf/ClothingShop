@@ -1,12 +1,10 @@
-﻿@using ClothingShop.Services
+@using ClothingShop.Services
 @model ClothingShop.ViewModels.HomeViewModel
 
 @{
     ViewBag.Title = "Trang chủ";
-    ViewBag.FullWidth = true;   // banner trải hết chiều ngang
-    ViewBag.PromoWine = true;   // dải thông báo màu đỏ rượu như mẫu
-
-    var defaultImg = "~/Content/images/products/default.jpg";
+    ViewBag.FullWidth = true;
+    ViewBag.PromoWine = true;
 
     string allUrl = Url.Action("Index", "Product", new { area = "" });
     string link1 = Model.Categories.Count > 0
@@ -14,7 +12,6 @@
     string link2 = Model.Categories.Count > 1
         ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[1].Id }) : allUrl;
 
-    // DANH SÁCH BANNER: thêm/bớt một dòng để thêm/bớt slide (ảnh đặt trong Content/images/hero/)
     var slides = new[]
     {
         new { Img = "~/Content/images/hero/hero-1.jpg", Alt = "Bộ sưu tập mới", Url = allUrl },
@@ -23,9 +20,8 @@
     };
 }
 
-<!-- ===== Hero Banner Carousel ===== -->
-<section class="hero-carousel" aria-label="Banner nổi bật">
-    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+<section class="hero-carousel container" aria-label="Banner nổi bật">
+    <div id="heroCarousel" class="carousel slide hero-frame" data-bs-ride="carousel" data-bs-interval="4800" data-bs-pause="hover">
         <div class="carousel-inner">
             @for (int i = 0; i < slides.Length; i++)
             {
@@ -59,52 +55,57 @@
     </div>
 </section>
 
-<!-- ===== Hàng danh mục ===== -->
 @if (Model.Categories.Any())
 {
     <section class="section container">
         <div class="section-head">
             <h2 class="section-title">Danh mục</h2>
-            <div class="arrow-btns" id="catArrows">
-                <button type="button" data-scroll="-1" aria-label="Trước"><i class="bi bi-arrow-left"></i></button>
-                <button type="button" data-scroll="1" aria-label="Sau"><i class="bi bi-arrow-right"></i></button>
-            </div>
         </div>
-        <div class="cat-strip" id="catStrip">
+        <div class="cat-pills">
+            <button type="button" class="cat-pill cat-pill--all is-active" data-category-id="">
+                <span>Tất cả</span>
+                <i class="bi bi-arrow-up-right"></i>
+            </button>
             @foreach (var c in Model.Categories)
             {
-                var catImg = string.IsNullOrWhiteSpace(c.ImageUrl) ? defaultImg
-                    : (c.ImageUrl.StartsWith("/") || c.ImageUrl.StartsWith("~") ? c.ImageUrl : "~/Content/images/products/" + c.ImageUrl);
-                <a class="cat-tile" href="@Url.Action("Index", "Product", new { area = "", categoryId = c.Id })">
-                    <img src="@Url.Content(catImg)" alt="@c.Name" loading="lazy" />
-                </a>
+                <button type="button" class="cat-pill" data-category-id="@c.Id">
+                    <span>@c.Name</span>
+                    <i class="bi bi-arrow-up-right"></i>
+                </button>
             }
         </div>
     </section>
 }
 
-<!-- ===== Lưới sản phẩm + sắp xếp ===== -->
 <section class="section container" id="products">
-    @Html.Partial("_SortDropdown", Model.Sort)
+    <div class="section-head">
+        <h2 class="section-title" id="productGridTitle">Sản phẩm mới</h2>
+        @Html.Partial("_SortDropdown", Model.Sort)
+    </div>
 
-    @if (Model.NewProducts.Any())
-    {
-        <div class="product-grid product-grid--4">
-            @foreach (var p in Model.NewProducts)
-            {
-                @Html.Partial("_ProductCard", p)
-            }
-        </div>
-    }
-    else
-    {
-        <p class="text-center text-muted py-5">Chưa có sản phẩm nào.</p>
-    }
+    <div id="ajaxProductContainer" style="transition: opacity 0.3s ease;">
+        @if (Model.NewProducts.Any())
+        {
+            <div class="product-grid product-grid--4">
+                @foreach (var p in Model.NewProducts)
+                {
+                    @Html.Partial("_ProductCard", p)
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-center text-muted py-5">Chưa có sản phẩm nào.</p>
+        }
+    </div>
 </section>
 
 @if (Model.FeaturedProducts.Any())
 {
     <section class="section container">
+        <div class="section-head">
+            <h2 class="section-title">Sản phẩm nổi bật</h2>
+        </div>
         <div class="product-grid product-grid--4">
             @foreach (var p in Model.FeaturedProducts)
             {
@@ -117,22 +118,88 @@
 @section Scripts {
     <script>
         (function () {
-            var strip = document.getElementById('catStrip');
-            var arrows = document.getElementById('catArrows');
-            if (!strip) return;
-
-            // Ẩn mũi tên khi dải danh mục không cần cuộn
-            function toggleArrows() {
-                if (arrows) arrows.style.visibility = strip.scrollWidth > strip.clientWidth + 2 ? 'visible' : 'hidden';
+            var heroEl = document.getElementById('heroCarousel');
+            if (heroEl && window.bootstrap && bootstrap.Carousel) {
+                bootstrap.Carousel.getOrCreateInstance(heroEl, {
+                    interval: 4800,
+                    pause: 'hover',
+                    ride: 'carousel',
+                    wrap: true
+                });
             }
-            toggleArrows();
-            window.addEventListener('resize', toggleArrows);
 
-            document.querySelectorAll('[data-scroll]').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    strip.scrollBy({ left: parseInt(btn.getAttribute('data-scroll'), 10) * strip.clientWidth * 0.8, behavior: 'smooth' });
+            var pills = document.querySelectorAll('.cat-pill');
+            var container = document.getElementById('ajaxProductContainer');
+            var titleEl = document.getElementById('productGridTitle');
+            var sortSelect = document.getElementById('catalogSort') || document.querySelector('.sort-select');
+
+            function loadCategoryProducts(categoryId, sortValue) {
+                if (!container) return;
+                container.style.opacity = '0.4';
+
+                var url = '@Url.Action("Index", "Product")';
+                var data = { page: 1 };
+                if (categoryId) data.categoryId = categoryId;
+                if (sortValue) data.sort = sortValue;
+
+                $.get(url, data, function (html) {
+                    var tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+
+                    var newGrid = tempDiv.querySelector('.product-grid');
+                    var emptyCatalog = tempDiv.querySelector('.empty-catalog');
+
+                    container.innerHTML = '';
+                    if (newGrid) {
+                        container.appendChild(newGrid);
+                    } else if (emptyCatalog) {
+                        container.innerHTML = '<p class="text-center text-muted py-5">Chưa có sản phẩm nào thuộc danh mục này.</p>';
+                    } else {
+                        container.innerHTML = '<p class="text-center text-muted py-5">Chưa có sản phẩm nào.</p>';
+                    }
+                    container.style.opacity = '1';
+                }).fail(function () {
+                    container.style.opacity = '1';
+                });
+            }
+
+            pills.forEach(function (pill) {
+                pill.addEventListener('click', function () {
+                    pills.forEach(function (p) { p.classList.remove('is-active'); });
+                    pill.classList.add('is-active');
+
+                    var catId = pill.getAttribute('data-category-id');
+                    var catName = pill.querySelector('span').textContent;
+                    titleEl.textContent = catId ? 'Khám phá ' + catName : 'Sản phẩm mới';
+
+                    var currentSort = sortSelect ? sortSelect.value : '';
+                    if (currentSort.includes('sort=')) {
+                        var urlParams = new URLSearchParams(currentSort.substring(currentSort.indexOf('?')));
+                        currentSort = urlParams.get('sort');
+                    }
+
+                    loadCategoryProducts(catId, currentSort);
                 });
             });
+
+            if (sortSelect) {
+                var oldOnChange = sortSelect.onchange;
+                sortSelect.onchange = null;
+
+                sortSelect.addEventListener('change', function () {
+                    var activePill = document.querySelector('.cat-pill.is-active');
+                    var catId = activePill ? activePill.getAttribute('data-category-id') : '';
+
+                    var val = sortSelect.value;
+                    var sortParam = val;
+                    if (val.includes('sort=')) {
+                        var urlParams = new URLSearchParams(val.substring(val.indexOf('?')));
+                        sortParam = urlParams.get('sort');
+                    }
+
+                    loadCategoryProducts(catId, sortParam);
+                });
+            }
         })();
     </script>
 }

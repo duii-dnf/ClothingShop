@@ -1,252 +1,167 @@
-﻿@model IEnumerable<ClothingShop.Models.Product>
+﻿@using ClothingShop.Models
+@using ClothingShop.Services
+@model IEnumerable<ClothingShop.Models.Product>
 
 @{
-    ViewBag.Title = "Danh sách Sản phẩm";
-    Layout = "~/Views/Shared/_Layout.cshtml"; 
+    var activeCategory = ViewBag.CurrentCategory as Category;
+    var categories = ViewBag.Categories as IEnumerable<Category> ?? Enumerable.Empty<Category>();
+    int? categoryId = ViewBag.CategoryId as int?;
+    string keyword = ViewBag.Keyword as string ?? string.Empty;
+    string sort = ViewBag.Sort as string ?? ProductSorting.Newest;
+    int totalItems = ViewBag.TotalItems ?? 0;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+
+    ViewBag.Title = activeCategory != null ? activeCategory.Name : "Tất cả sản phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .catalog-header {
-        position: relative;
-        padding-bottom: 1rem;
-        margin-bottom: 2.5rem;
-        border-bottom: 2px solid #f0f0f0;
+<nav class="breadcrumb-lite" aria-label="Breadcrumb">
+    <a class="back" href="@Url.Action("Index", "Home")"><i class="bi bi-arrow-left"></i> Trang chủ</a>
+    <span class="sep">/</span>
+    <a href="@Url.Action("Index", "Product")">Sản phẩm</a>
+    @if (activeCategory != null)
+    {
+        <span class="sep">/</span>
+        <span>@activeCategory.Name</span>
     }
+</nav>
 
-    .catalog-title {
-        font-weight: 700;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: #222;
-        margin-bottom: 0;
+<h1 class="page-title">@(activeCategory != null ? activeCategory.Name : "Tất cả sản phẩm")</h1>
+<p class="page-intro">
+    @if (!string.IsNullOrEmpty(keyword))
+    {
+        <span>Kết quả tìm kiếm cho "@keyword" — @totalItems sản phẩm</span>
     }
-
-    .search-filter-box {
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        margin-bottom: 3rem;
-        transition: all 0.3s ease;
+    else
+    {
+        <span>Bộ sưu tập thiết kế tối giản, chất liệu chọn lọc — @totalItems sản phẩm</span>
     }
+</p>
 
-        .search-filter-box:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-        }
+<div class="listing">
+    <aside class="listing__side">
+        <form action="@Url.Action("Index", "Product")" method="get" class="side-search">
+            @if (categoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@categoryId" />
+            }
+            <input type="hidden" name="sort" value="@sort" />
+            <input type="text" name="keyword" value="@keyword" placeholder="Tìm sản phẩm..." aria-label="Tìm sản phẩm" />
+            <button type="submit" aria-label="Tìm"><i class="bi bi-search"></i></button>
+        </form>
 
-    .custom-input {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        padding: 0.6rem 1rem;
-        transition: all 0.3s ease;
-    }
+        <details class="filter-group" open>
+            <summary>Danh mục</summary>
+            <ul class="filter-list">
+                <li>
+                    <a class="@(!categoryId.HasValue ? "is-active" : "")"
+                       href="@Url.Action("Index", "Product", new { keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort })">
+                        Tất cả sản phẩm
+                    </a>
+                </li>
+                @foreach (var cat in categories)
+                {
+                    <li>
+                        <a class="@(categoryId == cat.CategoryId ? "is-active" : "")"
+                           href="@Url.Action("Index", "Product", new { categoryId = cat.CategoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort })">
+                            @cat.Name
+                        </a>
+                        @if (cat.Children != null && cat.Children.Any(c => c.IsActive))
+                        {
+                            <ul class="filter-sublist">
+                                @foreach (var sub in cat.Children.Where(c => c.IsActive).OrderBy(c => c.CategoryId))
+                                {
+                                    <li>
+                                        <a class="@(categoryId == sub.CategoryId ? "is-active" : "")"
+                                           href="@Url.Action("Index", "Product", new { categoryId = sub.CategoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort })">
+                                            @sub.Name
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </li>
+                }
+            </ul>
+        </details>
 
-        .custom-input:focus {
-            border-color: #333;
-            box-shadow: 0 0 0 0.2rem rgba(51, 51, 51, 0.15);
-        }
-
-    .btn-search {
-        border-radius: 8px;
-        padding: 0.6rem 1.5rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-    }
-
-    .product-card {
-        border: none;
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        background: #fff;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
-        }
-
-    .img-wrapper {
-        overflow: hidden;
-        position: relative;
-    }
-
-    .product-img {
-        object-fit: cover;
-        height: 320px;
-        width: 100%;
-        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-    .product-card:hover .product-img {
-        transform: scale(1.08);
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    .product-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 0.5rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .product-price {
-        font-size: 1.15rem;
-        color: #e53935;
-        font-weight: 700;
-        margin-bottom: 1.2rem;
-    }
-
-    .btn-details {
-        border-radius: 30px;
-        padding: 0.5rem 1.5rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border: 2px solid #222;
-        color: #222;
-        background: transparent;
-        transition: all 0.3s ease;
-        display: inline-block;
-        width: 100%;
-    }
-
-        .btn-details:hover {
-            background: #222;
-            color: #fff;
-            text-decoration: none;
-        }
-
-    .custom-pagination .page-item .page-link {
-        color: #333;
-        border: none;
-        margin: 0 5px;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-        .custom-pagination .page-item.active .page-link,
-        .custom-pagination .page-item .page-link:hover {
-            background-color: #222;
-            color: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-</style>
-
-<div class="container mt-5 mb-5">
-
-    <div class="catalog-header d-flex justify-content-between align-items-end">
-        <h2 class="catalog-title">Tất cả sản phẩm</h2>
-        <span class="text-muted small">Khám phá bộ sưu tập mới nhất</span>
-    </div>
-
-    <div class="search-filter-box">
-        @using (Html.BeginForm("Index", "Product", FormMethod.Get, new { @class = "row g-3 align-items-center" }))
+        @if (categoryId.HasValue || !string.IsNullOrEmpty(keyword))
         {
-            <div class="col-md-4 col-12">
-                <label class="visually-hidden" for="CategoryId">Danh mục</label>
-                @Html.DropDownList("CategoryId", null, "Tất cả danh mục", new { @class = "form-select custom-input" })
-            </div>
-
-            <div class="col-md-6 col-12">
-                <label class="visually-hidden" for="searchString">Tìm kiếm</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 custom-input" style="border-right: none;">
-                        <i class="bi bi-search text-muted"></i>
-                    </span>
-                    @Html.TextBox("searchString", ViewBag.CurrentFilter as string, new { @class = "form-control custom-input border-start-0", placeholder = "Nhập tên sản phẩm bạn muốn tìm...", style = "border-left: none;" })
-                </div>
-            </div>
-
-            <div class="col-md-2 col-12 d-grid">
-                <button type="submit" class="btn btn-dark btn-search">Tìm kiếm</button>
+            <div class="mt-3">
+                <a class="link-underline" href="@Url.Action("Index", "Product")">Xóa bộ lọc</a>
             </div>
         }
-    </div>
+    </aside>
 
-    <div class="row">
+    <div>
+        <div class="sort-bar">
+            <label class="sort-bar__label" for="catalogSort">Sắp xếp</label>
+            <select id="catalogSort" class="form-select sort-select" onchange="location.href=this.value">
+                @foreach (var opt in ProductSorting.Options)
+                {
+                    var url = Url.Action("Index", "Product", new
+                    {
+                        categoryId = categoryId,
+                        keyword = string.IsNullOrEmpty(keyword) ? null : keyword,
+                        sort = opt.Key
+                    });
+                    <option value="@url" @(sort == opt.Key ? "selected" : null)>@opt.Value</option>
+                }
+            </select>
+        </div>
+
         @if (Model != null && Model.Any())
         {
-            foreach (var item in Model)
-            {
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-5">
-                    <div class="card product-card">
-                        <div class="img-wrapper">
-                            <img src="@Url.Content(string.IsNullOrEmpty(item.ImageUrl) ? "~/Content/images/products/default.jpg" : "~/Content/images/products/" + item.ImageUrl)"
-                                 class="product-img"
-                                 alt="@item.Name">
-                        </div>
-
-                        <div class="card-body text-center">
-                            <h5 class="product-title" title="@item.Name">@item.Name</h5>
-
-                            <p class="product-price">
-                                @string.Format("{0:N0} ₫", item.Price)
-                            </p>
-
-                            <a href="@Url.Action("Details", "Product", new { id = item.ProductId })" class="btn-details">
-                                Xem chi tiết
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            }
+            <div class="product-grid product-grid--3">
+                @foreach (var item in Model)
+                {
+                    @Html.Partial("_ProductCard", item)
+                }
+            </div>
         }
         else
         {
-            <div class="col-12 text-center py-5 my-5">
-                <div class="text-muted mb-3">
-                    <i class="bi bi-box-seam" style="font-size: 3rem; opacity: 0.5;"></i>
-                </div>
-                <h4 class="text-secondary">Chưa tìm thấy sản phẩm nào!</h4>
-                <p class="text-muted">Vui lòng thử lại với từ khóa khác hoặc quay lại sau.</p>
-                <a href="@Url.Action("Index", "Product")" class="btn btn-outline-dark mt-3 px-4">Xóa bộ lọc</a>
+            <div class="empty-catalog">
+                <p class="text-uppercase mb-2" style="letter-spacing:.08em;">Không tìm thấy sản phẩm phù hợp</p>
+                <p class="text-muted small mb-4">Thử thay đổi từ khóa hoặc chọn danh mục khác.</p>
+                <a href="@Url.Action("Index", "Product")" class="btn btn-ink">Xem tất cả sản phẩm</a>
             </div>
         }
-    </div>
 
-    @if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
-    {
-        <div class="row mt-5">
-            <div class="col-md-12">
-                <ul class="pagination custom-pagination justify-content-center">
+        @if (totalPages > 1)
+        {
+            <nav class="pager" aria-label="Phân trang">
+                @if (currentPage > 1)
+                {
+                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage - 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort })">Trước</a>
+                }
+                else
+                {
+                    <span class="pager__nav is-disabled">Trước</span>
+                }
 
-                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                        <a class="page-link" href="@(ViewBag.CurrentPage == 1 ? "#" : Url.Action("Index", new { page = ViewBag.CurrentPage - 1, searchString = ViewBag.CurrentFilter, categoryId = ViewBag.CurrentCategory }))" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-
-                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    if (i == currentPage)
                     {
-                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                            <a class="page-link" href="@Url.Action("Index", new { page = i, searchString = ViewBag.CurrentFilter, categoryId = ViewBag.CurrentCategory })">@i</a>
-                        </li>
+                        <span class="is-current">@i</span>
                     }
+                    else
+                    {
+                        <a href="@Url.Action("Index", "Product", new { page = i, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort })">@i</a>
+                    }
+                }
 
-                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                        <a class="page-link" href="@(ViewBag.CurrentPage == ViewBag.TotalPages ? "#" : Url.Action("Index", new { page = ViewBag.CurrentPage + 1, searchString = ViewBag.CurrentFilter, categoryId = ViewBag.CurrentCategory }))" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-
-                </ul>
-            </div>
-        </div>
-    }
+                @if (currentPage < totalPages)
+                {
+                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage + 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort })">Sau</a>
+                }
+                else
+                {
+                    <span class="pager__nav is-disabled">Sau</span>
+                }
+            </nav>
+        }
+    </div>
 </div>
