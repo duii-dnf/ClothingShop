@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 using ClothingShop.Web.Services;
 using ClothingShop.Web.ViewModels;
 
@@ -11,7 +8,6 @@ namespace ClothingShop.Controllers
     {
         private CartService _cartService = new CartService();
 
-        // 1. Hiển thị trang giỏ hàng
         public ActionResult Index()
         {
             var cart = _cartService.GetCart();
@@ -19,7 +15,6 @@ namespace ClothingShop.Controllers
             return View(cart);
         }
 
-        // 2. Thêm sản phẩm vào giỏ (Thích hợp gọi qua AJAX từ trang Chi tiết SP)
         [HttpPost]
         public ActionResult Add(int productId, string productName, string imageUrl, decimal price, int quantity = 1)
         {
@@ -36,15 +31,27 @@ namespace ClothingShop.Controllers
             return Json(new { success = true, message = "Đã thêm vào giỏ hàng", cartCount = _cartService.GetCart().Count });
         }
 
-        // 3. Cập nhật số lượng sản phẩm
         [HttpPost]
         public ActionResult Update(int productId, int quantity)
         {
             _cartService.UpdateQuantity(productId, quantity);
+
+            if (Request.IsAjaxRequest())
+            {
+                var cart = _cartService.GetCart();
+                var item = cart.Find(x => x.ProductId == productId);
+                return Json(new
+                {
+                    success = true,
+                    itemTotal = item != null ? item.TotalPrice.ToString("N0") + " VNĐ" : "0 VNĐ",
+                    cartTotal = _cartService.GetCartTotal().ToString("N0") + " VNĐ",
+                    cartCount = cart.Count
+                });
+            }
+
             return RedirectToAction("Index");
         }
 
-        // 4. Xóa sản phẩm khỏi giỏ
         public ActionResult Remove(int productId)
         {
             _cartService.RemoveItem(productId);

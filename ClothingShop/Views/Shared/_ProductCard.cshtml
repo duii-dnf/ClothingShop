@@ -1,36 +1,53 @@
 ﻿@using ClothingShop.Services
 @model ClothingShop.Models.Product
 
-@{
-    var img = string.IsNullOrWhiteSpace(Model.ImageUrl) ? "~/Content/images/products/default.jpg" : Model.ImageUrl;
+@if (Model != null)
+{
+    var rawImg = (Model.ImageUrl ?? string.Empty).Trim();
+    var fallbackImg = Url.Content("~/Content/images/products/default.jpg");
+    var imgSrc = string.IsNullOrEmpty(rawImg)
+        ? fallbackImg
+        : (rawImg.StartsWith("http://", System.StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", System.StringComparison.OrdinalIgnoreCase)
+            ? rawImg
+            : Url.Content(rawImg.StartsWith("~") || rawImg.StartsWith("/") ? rawImg : "~/Content/images/products/" + rawImg));
+
     var onSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
+
+    <a class="product-card" href="@Url.Action("Details", "Product", new { area = "", id = Model.ProductId })">
+        <div class="product-card__media">
+            <img src="@imgSrc"
+                 alt="@Model.Name"
+                 loading="lazy"
+                 onerror="this.onerror=null;this.src='@fallbackImg';" />
+            @if (Model.Stock <= 0)
+            {
+                <span class="tag tag--soldout">Hết hàng</span>
+            }
+            else if (onSale)
+            {
+                <span class="tag tag--sale">Giảm giá</span>
+            }
+            else if (Model.IsFeatured)
+            {
+                <span class="tag">Nổi bật</span>
+            }
+            else if (Model.IsNew)
+            {
+                <span class="tag">Mới</span>
+            }
+            <span class="product-card__quick">Xem chi tiết</span>
+        </div>
+        <h3 class="product-card__name" title="@Model.Name">@Model.Name</h3>
+        <p class="product-card__price">
+            @if (onSale)
+            {
+                <span class="price-now">@PriceFormatter.Vnd(Model.DiscountPrice)</span>
+                <s class="price-old">@PriceFormatter.Vnd(Model.Price)</s>
+            }
+            else
+            {
+                <span class="price-now">@PriceFormatter.Vnd(Model.Price)</span>
+            }
+        </p>
+    </a>
 }
-<a class="product-card" href="@Url.Action("Details", "Product", new { area = "", id = Model.ProductId })">
-    <div class="product-card__media">
-        <img src="@Url.Content(string.IsNullOrEmpty(Model.ImageUrl) ? "~/Content/images/products/default.jpg" : "~/Content/images/products/" + Model.ImageUrl)" alt="@Model.Name" loading="lazy" />
-        @if (onSale)
-        {
-            <span class="tag">Giảm giá</span>
-        }
-        else if (Model.IsFeatured)
-        {
-            <span class="tag">Nổi bật</span>
-        }
-        else if (Model.IsNew)
-        {
-            <span class="tag">Mới</span>
-        }
-    </div>
-    <h3 class="product-card__name" title="@Model.Name">@Model.Name</h3>
-    <p class="product-card__price">
-        @if (onSale)
-        {
-            <span class="price-now">@PriceFormatter.Vnd(Model.DiscountPrice)</span>
-            <s class="price-old">@PriceFormatter.Vnd(Model.Price)</s>
-        }
-        else
-        {
-            <span class="price-now">@PriceFormatter.Vnd(Model.Price)</span>
-        }
-    </p>
-</a>

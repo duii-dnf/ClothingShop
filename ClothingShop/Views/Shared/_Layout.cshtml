@@ -3,7 +3,6 @@
 @{
     var currentUser = SessionHelper.CurrentUser;
     int cartCount = (Session[SessionHelper.CartCountKey] as int?) ?? 0;
-    var promoClass = ViewBag.PromoWine == true ? "promo-strip promo-strip--wine" : "promo-strip";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -13,7 +12,7 @@
     <title>@ViewBag.Title - ClothingShop</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
     @Styles.Render("~/Content/css")
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 </head>
@@ -25,11 +24,7 @@
                 <button class="icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-label="Mở menu">
                     <i class="bi bi-list"></i>
                 </button>
-                <nav class="main-nav d-none d-lg-block" aria-label="Danh mục sản phẩm">
-                    <ul class="main-nav__list">
-                        @Html.Action("CategoryMenu", "Menu", new { area = "", mode = "desktop" })
-                    </ul>
-                </nav>
+                <span class="header-est d-none d-lg-inline-block">Est. 2026 &mdash; Saigon</span>
             </div>
 
             @Html.ActionLink("ClothingShop", "Index", "Home", new { area = "" }, new { @class = "brand" })
@@ -78,6 +73,24 @@
             </div>
         </div>
 
+        <nav class="wine-nav d-none d-lg-block" aria-label="Điều hướng chính">
+            <ul class="main-nav__list wine-nav__list">
+                <li class="main-nav__item">
+                    <a class="main-nav__link" href="@Url.Action("Index", "Home", new { area = "" })">Trang chủ</a>
+                </li>
+                <li class="main-nav__item">
+                    <a class="main-nav__link" href="@Url.Action("Index", "Product", new { area = "" })">Bộ sưu tập</a>
+                </li>
+                
+                <li class="main-nav__item">
+                    <a class="main-nav__link" href="@Url.Action("Index", "Product", new { area = "", sort = "newest" })">Hàng mới về</a>
+                </li>
+                <li class="main-nav__item">
+                    <a class="main-nav__link" href="#store-footer">Liên hệ</a>
+                </li>
+            </ul>
+        </nav>
+
         <div class="collapse search-bar" id="searchBar">
             <form action="@Url.Action("Search", "Product", new { area = "" })" method="get">
                 <input type="text" name="keyword" class="form-control" placeholder="Tìm sản phẩm..." aria-label="Từ khóa" />
@@ -86,18 +99,6 @@
         </div>
     </header>
 
-    <div class="@promoClass">
-        @if (currentUser == null)
-        {
-            <a href="@Url.Action("Register", "Account", new { area = "" })">Đăng ký thành viên và nhập mã NEWUSER để nhận ưu đãi</a>
-        }
-        else
-        {
-            <a href="@Url.Action("Index", "Product", new { area = "" })">Khám phá bộ sưu tập mới của ClothingShop</a>
-        }
-    </div>
-
-    <!-- Menu trượt (điện thoại và nút MENU trên desktop) -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
         <div class="offcanvas-header">
             <span class="brand brand--sm" id="mobileMenuLabel">ClothingShop</span>
@@ -158,46 +159,70 @@
         }
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer" id="store-footer">
         <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col--contact">
-                    <p class="footer-label">Liên hệ</p>
-                    <p class="footer-big">clothingshop@example.com</p>
-                    <p class="footer-label mt-4">Mạng xã hội</p>
-                    <p class="footer-big">Facebook / Instagram / TikTok</p>
+            <div class="row g-4 pb-5">
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-wordmark mb-3">ClothingShop</div>
+                    <p class="small text-white-50 mb-3" style="line-height:1.7;">
+                        Thời trang tối giản đương đại, đề cao phom dáng chuẩn mực và chất liệu tự nhiên bền vững cho nhịp sống hiện đại.
+                    </p>
+                    <p class="footer-label mt-3">Flagship Store</p>
+                    <p class="small text-white mb-1"><i class="bi bi-geo-alt me-1"></i> 140 Lê Trọng Tấn, Tân Phú, TP.HCM</p>
+                    <p class="small text-white-50 mb-3"><i class="bi bi-clock me-1"></i> 09:00 &ndash; 22:00 (Hàng ngày)</p>
+                    <div class="footer-socials">
+                        <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="#" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                    </div>
                 </div>
-                <div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <p class="footer-label mb-3">Bộ sưu tập</p>
                     <ul class="footer-list">
                         @Html.Action("CategoryMenu", "Menu", new { area = "", mode = "footer" })
                     </ul>
                 </div>
-                <div>
+
+                <div class="col-lg-3 col-md-6 col-6">
+                    <p class="footer-label mb-3">Dịch vụ khách hàng</p>
                     <ul class="footer-list">
-                        <li><a href="@Url.Action("Index", "Cart", new { area = "" })">Giỏ hàng</a></li>
-                        <li><a href="@Url.Action("History", "Order", new { area = "" })">Đơn hàng của tôi</a></li>
+                        <li><a href="@Url.Action("Index", "Cart", new { area = "" })">Giỏ hàng của bạn</a></li>
+                        <li><a href="@Url.Action("History", "Order", new { area = "" })">Tra cứu đơn hàng</a></li>
                         @if (currentUser == null)
                         {
-                            <li><a href="@Url.Action("Login", "Account", new { area = "" })">Đăng nhập</a></li>
-                            <li><a href="@Url.Action("Register", "Account", new { area = "" })">Đăng ký</a></li>
+                            <li><a href="@Url.Action("Login", "Account", new { area = "" })">Đăng nhập thành viên</a></li>
+                            <li><a href="@Url.Action("Register", "Account", new { area = "" })">Đăng ký ưu đãi</a></li>
                         }
                         else
                         {
                             <li><a href="@Url.Action("Logout", "Account", new { area = "" })">Đăng xuất</a></li>
                         }
+                        <li><span class="text-white-50">Đổi trả miễn phí trong 7 ngày</span></li>
+                        <li><span class="text-white-50">Hotline: 1900 6868</span></li>
                     </ul>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <p class="footer-label mb-3">Bản đồ cửa hàng</p>
+                    <div class="footer-map">
+                        <iframe src="https://maps.google.com/maps?q=140%20L%C3%AA%20Tr%E1%BB%8Dng%20T%E1%BA%A5n,%20T%C3%A2n%20Ph%C3%BA,%20H%E1%BB%93%20Ch%C3%AD%20Minh&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Bản đồ ClothingShop"></iframe>
+                    </div>
                 </div>
             </div>
 
-            <div class="footer-bottom-row">
-                <div class="footer-wordmark">ClothingShop</div>
-                <div>
-                    <p class="footer-label">Chấp nhận thanh toán</p>
-                    <span class="pay-pill">COD</span><span class="pay-pill">Chuyển khoản</span>
+            <div class="footer-bottom-bar">
+                <div class="small text-white-50">
+                    &copy; 2026 ClothingShop Studio. Đồ án môn Lập trình Web.
                 </div>
-                <div>
-                    <p class="footer-label">Dự án</p>
-                    <span class="footer-legal">Đồ án môn Lập trình Web</span>
+                <div class="pay-badges">
+                    <span class="pay-badge pay-badge--visa">VISA</span>
+                    <span class="pay-badge pay-badge--mc"><i class="bi bi-credit-card-2-front"></i> Mastercard</span>
+                    <span class="pay-badge"><i class="bi bi-apple"></i> Apple Pay</span>
+                    <span class="pay-badge">MoMo</span>
+                    <span class="pay-badge">COD</span>
                 </div>
             </div>
         </div>
