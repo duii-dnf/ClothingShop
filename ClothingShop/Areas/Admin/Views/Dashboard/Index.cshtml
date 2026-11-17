@@ -1,8 +1,123 @@
-﻿
+﻿@using ClothingShop.Models
+@using ClothingShop.Services
+@model IEnumerable<ClothingShop.Models.Order>
+
 @{
-    ViewBag.Title = "Thống kê";
+    ViewBag.Title = "Thống kê doanh thu";
+    DateTime? fromDate = ViewBag.FromDate as DateTime?;
+    DateTime? toDate = ViewBag.ToDate as DateTime?;
 }
 
-<h2>Trang quản trị</h2>
-<p>Khu vực dành cho người bán. Thống kê doanh thu sẽ được bổ sung ở bước sau.</p>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-speedometer2 me-2 text-primary"></i>Thống kê doanh thu</h4>
+        <p class="text-muted mb-0 small">Tổng hợp từ các đơn hàng có trạng thái <strong>Hoàn thành</strong>.</p>
+    </div>
 
+    <form method="get" class="d-flex align-items-end gap-2">
+        <div>
+            <label class="form-label small mb-1">Từ ngày</label>
+            <input type="date" name="fromDate" class="form-control form-control-sm" value="@(fromDate.HasValue ? fromDate.Value.ToString("yyyy-MM-dd") : "")" />
+        </div>
+        <div>
+            <label class="form-label small mb-1">Đến ngày</label>
+            <input type="date" name="toDate" class="form-control form-control-sm" value="@(toDate.HasValue ? toDate.Value.ToString("yyyy-MM-dd") : "")" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Lọc</button>
+        <a href="@Url.Action("Index", "Dashboard")" class="btn btn-outline-secondary btn-sm">Tất cả</a>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 bg-primary text-white shadow-sm">
+            <div class="card-body">
+                <div class="small text-white-50">Tổng doanh thu</div>
+                <div class="fs-4 fw-bold">@PriceFormatter.Vnd((decimal)ViewBag.TongDoanhThu)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-success text-white shadow-sm">
+            <div class="card-body">
+                <div class="small text-white-50">Đơn hoàn thành / Tổng đơn</div>
+                <div class="fs-4 fw-bold">@ViewBag.DonHoanThanh / @ViewBag.TongDonHang</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-warning text-dark shadow-sm">
+            <div class="card-body">
+                <div class="small">Đơn chờ xác nhận</div>
+                <div class="fs-4 fw-bold">@ViewBag.DonChoXacNhan</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-dark text-white shadow-sm">
+            <div class="card-body">
+                <div class="small text-white-50">Sản phẩm / Khách hàng</div>
+                <div class="fs-4 fw-bold">@ViewBag.TongSanPham / @ViewBag.TongKhachHang</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border h-100">
+            <div class="card-header bg-light fw-bold">Trạng thái đơn hàng</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Chờ xác nhận</span><strong>@ViewBag.DonChoXacNhan</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Đã xác nhận</span><strong>@ViewBag.DonDaXacNhan</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Đang giao</span><strong>@ViewBag.DonDangGiao</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between text-success">
+                    <span>Hoàn thành</span><strong>@ViewBag.DonHoanThanh</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between text-danger">
+                    <span>Đã hủy</span><strong>@ViewBag.DonDaHuy</strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border h-100">
+            <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center">
+                <span>Đơn hàng gần đây</span>
+                <a href="@Url.Action("Index", "Order")" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã</th>
+                            <th>Người nhận</th>
+                            <th>Ngày đặt</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Tổng tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><a href="@Url.Action("Details", "Order", new { id = item.OrderId })" class="fw-bold">#@item.OrderId</a></td>
+                                <td>@item.ReceiverName</td>
+                                <td>@item.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge bg-secondary">@item.Status</span></td>
+                                <td class="text-end fw-semibold">@PriceFormatter.Vnd(item.TotalAmount)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

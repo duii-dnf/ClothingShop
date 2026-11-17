@@ -1,0 +1,56 @@
+@model ClothingShop.Models.Coupon
+
+@{
+    ViewBag.Title = "Sửa mã khuyến mãi";
+}
+
+<h4 class="fw-bold mb-3">Sửa mã khuyến mãi @Model.Code</h4>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.CouponId)
+    @Html.HiddenFor(m => m.UsedCount)
+    @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.Code, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.Code, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Code, "", new { @class = "text-danger small" })
+        </div>
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.DiscountPercent, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.DiscountPercent, new { @class = "form-control", type = "number", min = "1", max = "100" })
+            @Html.ValidationMessageFor(m => m.DiscountPercent, "", new { @class = "text-danger small" })
+        </div>
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.StartDate, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+        </div>
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.EndDate, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            @Html.ValidationMessageFor(m => m.EndDate, "", new { @class = "text-danger small" })
+        </div>
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.MinOrder, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.MinOrder, new { @class = "form-control", type = "number", min = "0" })
+        </div>
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.UsageLimit, new { @class = "form-label fw-semibold" })
+            @Html.TextBoxFor(m => m.UsageLimit, new { @class = "form-control", type = "number", min = "1" })
+        </div>
+        <div class="col-12">
+            <div class="form-check">
+                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input" })
+                @Html.LabelFor(m => m.IsActive, new { @class = "form-check-label" })
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-warning">Cập nhật</button>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+    </div>
+}

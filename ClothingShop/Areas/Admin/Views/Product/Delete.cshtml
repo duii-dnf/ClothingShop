@@ -1,0 +1,16 @@
+@using ClothingShop.Services
+@model ClothingShop.Models.Product
+
+@{
+    ViewBag.Title = "Xóa sản phẩm";
+}
+
+<h4 class="fw-bold text-danger mb-3">Xác nhận xóa sản phẩm</h4>
+<p>Bạn có chắc chắn muốn xóa sản phẩm <strong>@Model.Name</strong> (@PriceFormatter.Vnd(Model.Price))?</p>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+}
