@@ -2,12 +2,14 @@
 @model ClothingShop.Models.Product
 
 @{
-    var img = string.IsNullOrWhiteSpace(Model.ImageUrl) ? "~/Content/images/products/default.jpg" : Model.ImageUrl;
+    var rawImg = Model.ImageUrl;
+    var imgSrc = string.IsNullOrWhiteSpace(rawImg) ? "/Content/images/products/default.jpg"
+               : (rawImg.StartsWith("/") || rawImg.StartsWith("~") ? rawImg : "/Content/images/products/" + rawImg);
     var onSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
 }
 <a class="product-card" href="@Url.Action("Details", "Product", new { area = "", id = Model.ProductId })">
     <div class="product-card__media">
-        <img src="@Url.Content(string.IsNullOrEmpty(Model.ImageUrl) ? "~/Content/images/products/default.jpg" : "~/Content/images/products/" + Model.ImageUrl)" alt="@Model.Name" loading="lazy" />
+        <img src="@Url.Content(imgSrc)" alt="@Model.Name" loading="lazy" />
         @if (onSale)
         {
             <span class="tag">Giảm giá</span>

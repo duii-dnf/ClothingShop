@@ -44,4 +44,36 @@ namespace ClothingShop.Filters
             }
         }
     }
+
+    // Bộ lọc toàn cục: bảo vệ toàn bộ các Controller trong Area "Admin"
+    public class AdminAreaAuthorizeFilter : AuthorizeAttribute
+    {
+        public override void OnAuthorization(AuthorizationContext filterContext)
+        {
+            var area = filterContext.RouteData.DataTokens["area"] as string;
+            if (string.Equals(area, "Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                var user = SessionHelper.GetCurrentUser(filterContext.HttpContext.Session);
+                if (user == null)
+                {
+                    filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
+                    {
+                        area = "",
+                        controller = "Account",
+                        action = "Login",
+                        returnUrl = filterContext.HttpContext.Request.RawUrl
+                    }));
+                }
+                else if (!user.IsAdmin)
+                {
+                    filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
+                    {
+                        area = "",
+                        controller = "Account",
+                        action = "AccessDenied"
+                    }));
+                }
+            }
+        }
+    }
 }

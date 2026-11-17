@@ -10,7 +10,7 @@
 
     internal sealed class Configuration : DbMigrationsConfiguration<ClothingShop.Models.ShopDbContext>
     {
-        private const string DefaultImage = "/Content/images/products/default.jpg";
+        private const string DefaultImage = "default.jpg";
 
         public Configuration()
         {

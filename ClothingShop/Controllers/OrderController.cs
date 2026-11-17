@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Web.Mvc;
 using ClothingShop.Web.Services;
 using ClothingShop.Web.ViewModels;
 using ClothingShop.Models; // Sử dụng đúng namespace chứa entity Models
+using ClothingShop.Services;
 
 namespace ClothingShop.Controllers
 {
@@ -15,10 +16,10 @@ namespace ClothingShop.Controllers
         // 1. Trang Checkout (GET)
         public ActionResult Checkout()
         {
-            // Bắt buộc đăng nhập theo cấu trúc DB của TV1
-            if (Session["UserId"] == null)
+            var currentUser = SessionHelper.GetCurrentUser(Session);
+            if (currentUser == null)
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Order") });
             }
 
             var cart = _cartService.GetCart();
@@ -38,9 +39,10 @@ namespace ClothingShop.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Checkout(CheckoutVM model)
         {
-            if (Session["UserId"] == null)
+            var currentUser = SessionHelper.GetCurrentUser(Session);
+            if (currentUser == null)
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Order") });
             }
 
             var cart = _cartService.GetCart();
@@ -69,7 +71,7 @@ namespace ClothingShop.Controllers
                 // Khởi tạo Order (không tự gán OrderId vì PK tự tăng)
                 var order = new Order
                 {
-                    UserId = Convert.ToInt32(Session["UserId"]),
+                    UserId = currentUser.UserId,
                     OrderDate = DateTime.Now,
                     ReceiverName = model.ReceiverName,
                     Phone = model.Phone,
@@ -103,6 +105,8 @@ namespace ClothingShop.Controllers
 
                 // Dọn Session giỏ hàng
                 _cartService.ClearCart();
+                Session[SessionHelper.CartCountKey] = 0;
+                Session["ShoppingCart"] = null;
                 return RedirectToAction("Success", new { id = order.OrderId }); // Truyền OrderId thật cho View Success
             }
 
@@ -117,6 +121,29 @@ namespace ClothingShop.Controllers
         {
             ViewBag.OrderId = id;
             return View();
+        }
+
+        // 4. Lịch sử đơn hàng của tôi
+        public ActionResult History()
+        {
+            var currentUser = SessionHelper.GetCurrentUser(Session);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("History", "Order") });
+            }
+
+            var orders = db.Orders
+                .Where(o => o.UserId == currentUser.UserId)
+                .OrderByDescending(o => o.OrderDate)
+                .ToList();
+
+            return View(orders);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) db.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

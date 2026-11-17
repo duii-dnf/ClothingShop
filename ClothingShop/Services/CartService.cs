@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using ClothingShop.Web.ViewModels;
@@ -63,7 +63,11 @@ namespace ClothingShop.Web.Services
 
         public void ClearCart()
         {
-            HttpContext.Current.Session[CartSessionKey] = null;
+            if (HttpContext.Current?.Session != null)
+            {
+                HttpContext.Current.Session[CartSessionKey] = null;
+                HttpContext.Current.Session["CartCount"] = 0;
+            }
         }
 
         public decimal GetCartTotal()

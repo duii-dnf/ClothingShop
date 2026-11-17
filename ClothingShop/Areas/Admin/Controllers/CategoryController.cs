@@ -10,7 +10,7 @@ using ClothingShop.Models;
 
 namespace ClothingShop.Areas.Admin.Controllers
 {
-    public class CategoryController : Controller
+    public class CategoryController : AdminBaseController
     {
         private ShopDbContext db = new ShopDbContext();
 

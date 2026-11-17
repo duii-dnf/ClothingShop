@@ -1,8 +1,9 @@
-﻿@using ClothingShop.Services
+@using ClothingShop.Services
 
 @{
     var currentUser = SessionHelper.CurrentUser;
-    int cartCount = (Session[SessionHelper.CartCountKey] as int?) ?? 0;
+    var cart = Session["ShoppingCart"] as List<ClothingShop.Web.ViewModels.CartItemVM>;
+    int cartCount = cart != null ? cart.Sum(x => x.Quantity) : ((Session[SessionHelper.CartCountKey] as int?) ?? 0);
     var promoClass = ViewBag.PromoWine == true ? "promo-strip promo-strip--wine" : "promo-strip";
 }
 <!DOCTYPE html>
@@ -13,7 +14,7 @@
     <title>@ViewBag.Title - ClothingShop</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
     @Styles.Render("~/Content/css")
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 </head>
@@ -79,8 +80,8 @@
         </div>
 
         <div class="collapse search-bar" id="searchBar">
-            <form action="@Url.Action("Search", "Product", new { area = "" })" method="get">
-                <input type="text" name="keyword" class="form-control" placeholder="Tìm sản phẩm..." aria-label="Từ khóa" />
+            <form action="@Url.Action("Index", "Product", new { area = "" })" method="get">
+                <input type="text" name="searchString" class="form-control" placeholder="Tìm sản phẩm..." aria-label="Từ khóa" />
                 <button class="btn btn-primary" type="submit">Tìm</button>
             </form>
         </div>

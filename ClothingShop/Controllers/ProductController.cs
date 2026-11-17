@@ -10,13 +10,28 @@ namespace ClothingShop.Controllers
         private ShopDbContext db = new ShopDbContext();
 
 
+        public ActionResult Search(string keyword, int? page)
+        {
+            return RedirectToAction("Index", new { searchString = keyword, page = page });
+        }
+
         public ActionResult Index(string searchString, int? categoryId, int? page)
         {
             var products = db.Products.AsQueryable();
 
             if (categoryId.HasValue)
             {
-                products = products.Where(p => p.CategoryId == categoryId.Value);
+                var catId = categoryId.Value;
+                var childIds = db.Categories.Where(c => c.ParentId == catId).Select(c => c.CategoryId).ToList();
+                if (childIds.Any())
+                {
+                    childIds.Add(catId);
+                    products = products.Where(p => childIds.Contains(p.CategoryId));
+                }
+                else
+                {
+                    products = products.Where(p => p.CategoryId == catId);
+                }
             }
 
             if (!string.IsNullOrEmpty(searchString))

@@ -17,6 +17,11 @@ namespace ClothingShop.Services
             get { return HttpContext.Current?.Session?[UserKey] as SessionUser; }
         }
 
+        public static int? CurrentUserId
+        {
+            get { return CurrentUser?.UserId; }
+        }
+
         public static SessionUser GetCurrentUser(HttpSessionStateBase session)
         {
             return session?[UserKey] as SessionUser;
@@ -24,11 +29,17 @@ namespace ClothingShop.Services
 
         public static void SignIn(HttpSessionStateBase session, SessionUser user)
         {
+            if (session == null) return;
             session[UserKey] = user;
+            if (user != null)
+            {
+                session["UserId"] = user.UserId; // Đồng bộ Session["UserId"] phục vụ tương thích toàn hệ thống
+            }
         }
 
         public static void SignOut(HttpSessionStateBase session)
         {
+            if (session == null) return;
             session.Clear();
             session.Abandon();
         }

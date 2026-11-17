@@ -73,8 +73,10 @@
         <div class="cat-strip" id="catStrip">
             @foreach (var c in Model.Categories)
             {
+                var catImg = string.IsNullOrWhiteSpace(c.ImageUrl) ? defaultImg
+                    : (c.ImageUrl.StartsWith("/") || c.ImageUrl.StartsWith("~") ? c.ImageUrl : "~/Content/images/products/" + c.ImageUrl);
                 <a class="cat-tile" href="@Url.Action("Index", "Product", new { area = "", categoryId = c.Id })">
-                    <img src="@Url.Content(string.IsNullOrWhiteSpace(c.ImageUrl) ? defaultImg : "~/Content/images/products/" + c.ImageUrl)" alt="@c.Name" loading="lazy" />
+                    <img src="@Url.Content(catImg)" alt="@c.Name" loading="lazy" />
                 </a>
             }
         </div>

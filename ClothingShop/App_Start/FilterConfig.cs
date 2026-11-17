@@ -1,5 +1,6 @@
-﻿using System.Web;
+using System.Web;
 using System.Web.Mvc;
+using ClothingShop.Filters;
 
 namespace ClothingShop
 {
@@ -8,6 +9,7 @@ namespace ClothingShop
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
             filters.Add(new HandleErrorAttribute());
+            filters.Add(new AdminAreaAuthorizeFilter());
         }
     }
 }

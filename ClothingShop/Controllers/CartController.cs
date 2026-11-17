@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
@@ -15,11 +15,12 @@ namespace ClothingShop.Controllers
         public ActionResult Index()
         {
             var cart = _cartService.GetCart();
+            Session["CartCount"] = cart.Sum(x => x.Quantity);
             ViewBag.Total = _cartService.GetCartTotal();
             return View(cart);
         }
 
-        // 2. Thêm sản phẩm vào giỏ (Thích hợp gọi qua AJAX từ trang Chi tiết SP)
+        // 2. Thêm sản phẩm vào giỏ (Thích hợp gọi qua AJAX hoặc submit Form từ trang Chi tiết SP)
         [HttpPost]
         public ActionResult Add(int productId, string productName, string imageUrl, decimal price, int quantity = 1)
         {
@@ -32,8 +33,14 @@ namespace ClothingShop.Controllers
                 Quantity = quantity
             };
             _cartService.AddItem(item);
+            Session["CartCount"] = _cartService.GetCart().Sum(x => x.Quantity);
 
-            return Json(new { success = true, message = "Đã thêm vào giỏ hàng", cartCount = _cartService.GetCart().Count });
+            if (Request.IsAjaxRequest())
+            {
+                return Json(new { success = true, message = "Đã thêm vào giỏ hàng", cartCount = _cartService.GetCart().Sum(x => x.Quantity) });
+            }
+
+            return RedirectToAction("Index");
         }
 
         // 3. Cập nhật số lượng sản phẩm
@@ -41,6 +48,7 @@ namespace ClothingShop.Controllers
         public ActionResult Update(int productId, int quantity)
         {
             _cartService.UpdateQuantity(productId, quantity);
+            Session["CartCount"] = _cartService.GetCart().Sum(x => x.Quantity);
             return RedirectToAction("Index");
         }
 
@@ -48,6 +56,7 @@ namespace ClothingShop.Controllers
         public ActionResult Remove(int productId)
         {
             _cartService.RemoveItem(productId);
+            Session["CartCount"] = _cartService.GetCart().Sum(x => x.Quantity);
             return RedirectToAction("Index");
         }
     }
