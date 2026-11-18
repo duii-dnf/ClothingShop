@@ -15,5 +15,7 @@ namespace ClothingShop.ViewModels
         public string Role { get; set; }
 
         public bool IsAdmin => Role == AppRoles.Admin;
+        public bool IsStaff => Role == AppRoles.Staff;
+        public bool CanAccessAdmin => IsAdmin || IsStaff;
     }
 }

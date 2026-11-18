@@ -28,21 +28,36 @@
 
         private static void SeedUsers(ShopDbContext context)
         {
-            if (context.Users.Any()) return;
-
-            context.Users.AddRange(new[]
+            if (!context.Users.Any())
             {
-                new AppUser { FullName = "Quản trị viên", Email = "admin@shop.com",
-                    PasswordHash = PasswordHasher.Hash("Admin@123"),
-                    Phone = "0900000001", Address = "TP. Hồ Chí Minh", Role = AppRoles.Admin },
-                new AppUser { FullName = "Nguyễn Văn An", Email = "khach1@shop.com",
-                    PasswordHash = PasswordHasher.Hash("Khach@123"),
-                    Phone = "0900000002", Address = "12 Nguyễn Huệ, Quận 1, TP.HCM", Role = AppRoles.Customer },
-                new AppUser { FullName = "Trần Thị Bình", Email = "khach2@shop.com",
-                    PasswordHash = PasswordHasher.Hash("Khach@123"),
-                    Phone = "0900000003", Address = "45 Lê Lợi, Quận 3, TP.HCM", Role = AppRoles.Customer }
-            });
-            context.SaveChanges();
+                context.Users.AddRange(new[]
+                {
+                    new AppUser { FullName = "Quản trị viên", Email = "admin@shop.com",
+                        PasswordHash = PasswordHasher.Hash("Admin@123"),
+                        Phone = "0900000001", Address = "TP. Hồ Chí Minh", Role = AppRoles.Admin },
+                    new AppUser { FullName = "Nguyễn Văn An", Email = "khach1@shop.com",
+                        PasswordHash = PasswordHasher.Hash("Khach@123"),
+                        Phone = "0900000002", Address = "12 Nguyễn Huệ, Quận 1, TP.HCM", Role = AppRoles.Customer },
+                    new AppUser { FullName = "Trần Thị Bình", Email = "khach2@shop.com",
+                        PasswordHash = PasswordHasher.Hash("Khach@123"),
+                        Phone = "0900000003", Address = "45 Lê Lợi, Quận 3, TP.HCM", Role = AppRoles.Customer }
+                });
+                context.SaveChanges();
+            }
+
+            if (!context.Users.Any(u => u.Email == "nhanvien@shop.com"))
+            {
+                context.Users.Add(new AppUser
+                {
+                    FullName = "Lê Minh Nhân Viên",
+                    Email = "nhanvien@shop.com",
+                    PasswordHash = PasswordHasher.Hash("Staff@123"),
+                    Phone = "0900000004",
+                    Address = "TP. Hồ Chí Minh",
+                    Role = AppRoles.Staff
+                });
+                context.SaveChanges();
+            }
         }
 
         private static void SeedCategories(ShopDbContext context)

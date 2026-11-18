@@ -59,9 +59,9 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text fw-semibold">@currentUser.FullName</span></li>
                             <li><hr class="dropdown-divider" /></li>
-                            @if (currentUser.IsAdmin)
+                            @if (currentUser.CanAccessAdmin)
                             {
-                                <li>@Html.ActionLink("Trang quản trị", "Index", "Dashboard", new { area = "Admin" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new { area = "Admin" }, new { @class = "dropdown-item" })</li>
                             }
                             <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, new { @class = "dropdown-item" })</li>
                             <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, new { @class = "dropdown-item" })</li>
@@ -117,9 +117,9 @@
                 else
                 {
                     <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, null)</li>
-                    if (currentUser.IsAdmin)
+                    if (currentUser.CanAccessAdmin)
                     {
-                        <li>@Html.ActionLink("Trang quản trị", "Index", "Dashboard", new { area = "Admin" }, null)</li>
+                        <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new { area = "Admin" }, null)</li>
                     }
                     <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, null)</li>
                 }

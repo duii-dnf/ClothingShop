@@ -1,0 +1,58 @@
+@using ClothingShop.Models
+@model IEnumerable<ClothingShop.Models.AppUser>
+
+@{
+    ViewBag.Title = "Quản lý Tài khoản & Phân quyền";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="fw-bold mb-0"><i class="bi bi-people me-2"></i>Quản lý Tài khoản &amp; Phân quyền</h4>
+        <small class="text-muted">Phân quyền 3 vai trò: Admin (toàn quyền), Staff (nhân viên: Loại, SP, Đơn hàng), Customer (khách hàng).</small>
+    </div>
+    <a href="@Url.Action("Create")" class="btn btn-primary btn-sm rounded-pill px-3">
+        <i class="bi bi-person-plus me-1"></i> Thêm nhân viên
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>SĐT</th>
+                <th>Vai trò hiện tại</th>
+                <th class="text-end" style="width: 260px;">Đổi vai trò</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                string badgeClass = item.Role == AppRoles.Admin ? "bg-danger"
+                    : (item.Role == AppRoles.Staff ? "bg-info text-dark" : "bg-secondary");
+                <tr>
+                    <td>#@item.UserId</td>
+                    <td class="fw-medium">@item.FullName</td>
+                    <td>@item.Email</td>
+                    <td>@item.Phone</td>
+                    <td><span class="badge @badgeClass">@item.Role</span></td>
+                    <td class="text-end">
+                        @using (Html.BeginForm("ChangeRole", "User", FormMethod.Post, new { @class = "d-inline-flex gap-2" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.UserId" />
+                            <select name="role" class="form-select form-select-sm" style="width: 140px;">
+                                <option value="@AppRoles.Admin" @(item.Role == AppRoles.Admin ? "selected" : "")>Admin</option>
+                                <option value="@AppRoles.Staff" @(item.Role == AppRoles.Staff ? "selected" : "")>Staff (Nhân viên)</option>
+                                <option value="@AppRoles.Customer" @(item.Role == AppRoles.Customer ? "selected" : "")>Customer</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Lưu</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

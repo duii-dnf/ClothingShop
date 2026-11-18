@@ -3,10 +3,12 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using ClothingShop.Filters;
 using ClothingShop.Models;
 
 namespace ClothingShop.Areas.Admin.Controllers
 {
+    [AdminAuthorize(Roles = AppRoles.Admin)]
     public class CouponController : AdminBaseController
     {
         private ShopDbContext db = new ShopDbContext();
