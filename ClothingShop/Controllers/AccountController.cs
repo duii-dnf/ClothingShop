@@ -114,6 +114,9 @@ namespace ClothingShop.Controllers
             if (user.Role == AppRoles.Admin)
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
 
+            if (user.Role == AppRoles.Staff)
+                return RedirectToAction("Index", "Order", new { area = "Admin" });
+
             return RedirectToAction("Index", "Home");
         }
 
