@@ -8,13 +8,21 @@ using ClothingShop.Services;
 
 namespace ClothingShop.Filters
 {
-    // Chỉ tài khoản Role = Admin mới vào được
+    // Phân quyền khu vực quản trị: mặc định cho phép Admin và Staff; có thể giới hạn Roles = AppRoles.Admin
     public class AdminAuthorizeAttribute : AuthorizeAttribute
     {
         protected override bool AuthorizeCore(HttpContextBase httpContext)
         {
             var user = SessionHelper.GetCurrentUser(httpContext.Session);
-            return user != null && user.IsAdmin;
+            if (user == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(Roles))
+            {
+                var allowed = Roles.Split(',').Select(r => r.Trim());
+                return allowed.Any(r => string.Equals(r, user.Role, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return user.CanAccessAdmin;
         }
 
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
@@ -34,7 +42,7 @@ namespace ClothingShop.Filters
             }
             else
             {
-                // Đã đăng nhập nhưng không phải Admin
+                // Đã đăng nhập nhưng không đủ quyền
                 filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
                 {
                     area = "",
@@ -45,7 +53,7 @@ namespace ClothingShop.Filters
         }
     }
 
-    // Bộ lọc toàn cục: bảo vệ toàn bộ các Controller trong Area "Admin"
+    // Bộ lọc toàn cục: bảo vệ toàn bộ các Controller trong Area "Admin" (cho Admin & Staff)
     public class AdminAreaAuthorizeFilter : AuthorizeAttribute
     {
         public override void OnAuthorization(AuthorizationContext filterContext)
@@ -64,7 +72,7 @@ namespace ClothingShop.Filters
                         returnUrl = filterContext.HttpContext.Request.RawUrl
                     }));
                 }
-                else if (!user.IsAdmin)
+                else if (!user.CanAccessAdmin)
                 {
                     filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
                     {

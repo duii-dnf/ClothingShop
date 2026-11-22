@@ -1,10 +1,16 @@
-﻿@{
+﻿@using ClothingShop.Services
+@{
     ViewBag.Title = "Không có quyền truy cập";
+    var user = SessionHelper.CurrentUser;
 }
 
 <div class="text-center mt-5">
     <h2>Bạn không có quyền truy cập trang này</h2>
-    <p class="text-muted">Trang này chỉ dành cho tài khoản quản trị.</p>
-    @Html.ActionLink("Về trang chủ", "Index", "Home", null, new { @class = "btn btn-primary" })
+    <p class="text-muted">Chức năng này chỉ dành cho Quản trị viên (Admin) hoặc Nhân viên có thẩm quyền.</p>
+    @if (user != null && user.IsStaff)
+    {
+        @Html.ActionLink("Về trang Quản lý đơn hàng", "Index", "Order", new { area = "Admin" }, new { @class = "btn btn-dark me-2" })
+    }
+    @Html.ActionLink("Về trang chủ", "Index", "Home", new { area = "" }, new { @class = "btn btn-primary" })
 </div>
 

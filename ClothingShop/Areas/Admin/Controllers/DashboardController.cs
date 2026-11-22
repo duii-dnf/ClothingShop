@@ -2,10 +2,12 @@
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using ClothingShop.Filters;
 using ClothingShop.Models;
 
 namespace ClothingShop.Areas.Admin.Controllers
 {
+    [AdminAuthorize(Roles = AppRoles.Admin)]
     public class DashboardController : AdminBaseController
     {
         private ShopDbContext db = new ShopDbContext();

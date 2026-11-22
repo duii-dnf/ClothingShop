@@ -165,16 +165,19 @@
 <body class="admin-body">
 
     <aside class="admin-sidebar">
-        <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="sidebar-brand">
+        <a href="@Url.Action("Index", admin != null && admin.IsAdmin ? "Dashboard" : "Order", new { area = "Admin" })" class="sidebar-brand">
             <i class="bi bi-hexagon-fill text-primary me-2"></i> CLOTHING
         </a>
 
         <ul class="sidebar-menu">
-            <li class="nav-item">
-                <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="nav-link">
-                    <i class="bi bi-speedometer2"></i> Thống kê
-                </a>
-            </li>
+            @if (admin != null && admin.IsAdmin)
+            {
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="nav-link @(Request.Url.AbsolutePath.Contains("/Dashboard") ? "active" : "")">
+                        <i class="bi bi-speedometer2"></i> Thống kê
+                    </a>
+                </li>
+            }
 
             <li class="nav-item px-3 mt-4 mb-1 text-uppercase text-muted" style="font-size: 0.75rem; letter-spacing: 1px;">Quản lý dữ liệu</li>
 
@@ -193,11 +196,19 @@
                     <i class="bi bi-cart-check"></i> Đơn hàng
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="@Url.Action("Index", "Coupon", new { area = "Admin" })" class="nav-link @(Request.Url.AbsolutePath.Contains("/Coupon") ? "active" : "")">
-                    <i class="bi bi-ticket-perforated"></i> Khuyến mãi
-                </a>
-            </li>
+            @if (admin != null && admin.IsAdmin)
+            {
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Coupon", new { area = "Admin" })" class="nav-link @(Request.Url.AbsolutePath.Contains("/Coupon") ? "active" : "")">
+                        <i class="bi bi-ticket-perforated"></i> Khuyến mãi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "User", new { area = "Admin" })" class="nav-link @(Request.Url.AbsolutePath.Contains("/User") ? "active" : "")">
+                        <i class="bi bi-people"></i> Tài khoản
+                    </a>
+                </li>
+            }
 
             <li class="nav-item px-3 mt-4 mb-1 text-uppercase text-muted" style="font-size: 0.75rem; letter-spacing: 1px;">Hệ thống</li>
 
@@ -220,6 +231,12 @@
                 <div class="user-profile">
                     <i class="bi bi-person-circle fs-4 text-primary"></i>
                     <span>@(admin != null ? admin.FullName : "Quản trị viên")</span>
+                    @if (admin != null)
+                    {
+                        <span class="badge @(admin.IsAdmin ? "bg-danger" : "bg-info text-dark")">
+                            @(admin.IsAdmin ? "Admin" : "Nhân viên")
+                        </span>
+                    }
                 </div>
                 <a href="@Url.Action("Logout", "Account", new { area = "" })" class="btn-logout">
                     <i class="bi bi-box-arrow-right"></i> Đăng xuất
