@@ -71,6 +71,7 @@
                                 <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new
                             { area = "Admin" }, new { @class = "dropdown-item" })</li>
                             }
+                            <li>@Html.ActionLink("Hồ sơ & Sổ địa chỉ", "Profile", "Account", new { area = "" }, new { @class = "dropdown-item" })</li>
                             <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, new { @class =
                             "dropdown-item" })</li>
                             <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, new { @class =
@@ -140,6 +141,7 @@
                 }
                 else
                 {
+                    <li>@Html.ActionLink("Hồ sơ & Sổ địa chỉ", "Profile", "Account", new { area = "" }, null)</li>
                     <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, null)</li>
                     if (currentUser.CanAccessAdmin)
                     {

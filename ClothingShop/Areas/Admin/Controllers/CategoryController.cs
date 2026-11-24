@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -86,7 +86,7 @@ namespace ClothingShop.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "CategoryId,Name,ParentId,IsActive")] Category category)
+        public ActionResult Create([Bind(Include = "CategoryId,Name,Description,ImageUrl,ParentId,IsActive")] Category category)
         {
             if (string.IsNullOrWhiteSpace(category.Name))
             {
@@ -149,7 +149,7 @@ namespace ClothingShop.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "CategoryId,Name,ParentId,IsActive")] Category category)
+        public ActionResult Edit([Bind(Include = "CategoryId,Name,Description,ImageUrl,ParentId,IsActive")] Category category)
         {
             bool hasChildren = db.Categories.Any(c => c.ParentId == category.CategoryId);
 

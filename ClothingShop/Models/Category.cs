@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -20,6 +20,13 @@ namespace ClothingShop.Models
         [StringLength(100, ErrorMessage = "Tên loại tối đa 100 ký tự")]
         [Display(Name = "Tên loại")]
         public string Name { get; set; }
+
+        [Display(Name = "Mô tả")]
+        public string Description { get; set; }
+
+        [StringLength(300)]
+        [Display(Name = "Hình ảnh")]
+        public string ImageUrl { get; set; }
 
         [Display(Name = "Loại cha")]
         public int? ParentId { get; set; }

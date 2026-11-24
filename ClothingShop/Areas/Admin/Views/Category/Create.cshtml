@@ -1,4 +1,4 @@
-﻿@model ClothingShop.Models.Category
+@model ClothingShop.Models.Category
 
 @{
     ViewBag.Title = "Thêm loại sản phẩm";
@@ -22,6 +22,16 @@
             <label class="form-label fw-medium">Tên loại sản phẩm <span class="text-danger">*</span></label>
             @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Ví dụ: Áo thun, Quần jeans...", autofocus = "autofocus" })
             @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-medium">Mô tả danh mục</label>
+            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 2, placeholder = "Mô tả ngắn về danh mục này..." })
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-medium">Hình ảnh đại diện (URL)</label>
+            @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control", placeholder = "https://... hoặc /Content/images/..." })
         </div>
 
         <div class="col-12">

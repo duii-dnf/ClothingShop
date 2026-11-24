@@ -1,4 +1,4 @@
-﻿@using ClothingShop.Models
+@using ClothingShop.Models
 @using ClothingShop.Services
 @model ClothingShop.Models.Product
 
@@ -6,9 +6,12 @@
     ViewBag.Title = Model.Name;
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var imgPath = string.IsNullOrWhiteSpace(Model.ImageUrl)
-        ? "~/Content/images/products/default.jpg"
-        : (Model.ImageUrl.StartsWith("~") || Model.ImageUrl.StartsWith("/") ? Model.ImageUrl : "~/Content/images/products/" + Model.ImageUrl);
+    var rawImg = (Model.ImageUrl ?? string.Empty).Trim();
+    var fallbackImg = Url.Content("~/Content/images/products/default.jpg");
+    var imgPath = string.IsNullOrEmpty(rawImg) ? fallbackImg
+        : (rawImg.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            ? rawImg
+            : Url.Content(rawImg.StartsWith("~") || rawImg.StartsWith("/") ? rawImg : "~/Content/images/products/" + rawImg));
 
     var onSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
     var finalPrice = onSale ? Model.DiscountPrice.Value : Model.Price;
@@ -16,13 +19,19 @@
         ? (int)Math.Round((Model.Price - Model.DiscountPrice.Value) / Model.Price * 100)
         : 0;
 
-    var sizes = string.IsNullOrWhiteSpace(Model.Sizes)
-        ? new string[0]
-        : Model.Sizes.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Where(s => s.Length > 0).Distinct().ToArray();
+    var activeVariants = Model.Variants != null ? Model.Variants.Where(v => v.IsActive).ToList() : new List<ProductVariant>();
 
-    var colors = string.IsNullOrWhiteSpace(Model.Colors)
-        ? new string[0]
-        : Model.Colors.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).Where(c => c.Length > 0).Distinct().ToArray();
+    var sizes = activeVariants.Where(v => v.Size != null).Select(v => v.Size.Name ?? v.Size.Code).Distinct().ToArray();
+    if (sizes.Length == 0 && !string.IsNullOrWhiteSpace(Model.Sizes))
+    {
+        sizes = Model.Sizes.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Where(s => s.Length > 0).Distinct().ToArray();
+    }
+
+    var colors = activeVariants.Where(v => v.Color != null).Select(v => v.Color.Name).Distinct().ToArray();
+    if (colors.Length == 0 && !string.IsNullOrWhiteSpace(Model.Colors))
+    {
+        colors = Model.Colors.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).Where(c => c.Length > 0).Distinct().ToArray();
+    }
 
     var relatedList = ViewBag.RelatedProducts as IEnumerable<Product>;
 }
@@ -373,7 +382,7 @@
 <div class="pdp">
     <div class="pdp-gallery pdp-gallery--single">
         <div class="pdp-gallery__item">
-            <img src="@Url.Content(imgPath)" alt="@Model.Name" />
+            <img src="@imgPath" alt="@Model.Name" onerror="this.onerror=null;this.src='@fallbackImg';" />
         </div>
     </div>
 
@@ -408,7 +417,7 @@
             }
         </div>
 
-        <div class="pdp-sub">
+        <div class="pdp-sub" id="pdpStockSub">
             @if (Model.Stock > 0)
             {
                 <span class="text-success"><i class="bi bi-check-circle me-1"></i>Còn hàng (@Model.Stock sản phẩm)</span>
@@ -591,9 +600,27 @@
             var plus = document.getElementById('qtyPlus');
             var btn = document.getElementById('btnAddCart');
             var feedback = document.getElementById('cartFeedback');
+            var stockSub = document.getElementById('pdpStockSub');
+            var basePrice = parseFloat(btn ? btn.getAttribute('data-price') : '0') || 0;
+            var currentPrice = basePrice;
             var maxStock = parseInt(input.getAttribute('max'), 10) || 1;
-            var unitPrice = parseFloat(btn ? btn.getAttribute('data-price') : '0') || 0;
             var freeshipGoal = 500000;
+
+            // Product variants embedded from server
+            var productVariants = [
+                @foreach (var v in activeVariants)
+                {
+                    <text>{
+                        id: @v.VariantId,
+                        size: '@Html.Raw(HttpUtility.JavaScriptStringEncode(v.Size?.Name ?? v.Size?.Code ?? ""))',
+                        color: '@Html.Raw(HttpUtility.JavaScriptStringEncode(v.Color?.Name ?? ""))',
+                        hex: '@Html.Raw(HttpUtility.JavaScriptStringEncode(v.Color?.HexCode ?? ""))',
+                        sku: '@Html.Raw(HttpUtility.JavaScriptStringEncode(v.SKU ?? ""))',
+                        stock: @v.Stock,
+                        price: @(v.Price ?? finalPrice)
+                    },</text>
+                }
+            ];
 
             function formatVnd(num) {
                 return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "'") + '₫';
@@ -601,7 +628,7 @@
 
             function updateFreeship() {
                 var qty = parseInt(input.value, 10) || 1;
-                var subtotal = unitPrice * qty;
+                var subtotal = currentPrice * qty;
                 var textEl = document.getElementById('freeshipText');
                 var fillEl = document.getElementById('freeshipFill');
                 if (!textEl || !fillEl) return;
@@ -617,6 +644,54 @@
                     fillEl.style.width = pct + '%';
                     fillEl.classList.remove('is-done');
                 }
+            }
+
+            function syncVariantState() {
+                var selectedSize = '';
+                var selectedColor = '';
+
+                var sSelected = document.querySelector('.size-tile.is-selected');
+                if (sSelected) selectedSize = sSelected.getAttribute('data-value').trim();
+
+                var cSelected = document.querySelector('.color-tile.is-selected');
+                if (cSelected) selectedColor = cSelected.getAttribute('data-value').trim();
+
+                var matchedVariant = null;
+                if (productVariants.length > 0) {
+                    matchedVariant = productVariants.find(function (v) {
+                        var sizeMatch = !selectedSize || v.size.toLowerCase() === selectedSize.toLowerCase();
+                        var colorMatch = !selectedColor || v.color.toLowerCase() === selectedColor.toLowerCase();
+                        return sizeMatch && colorMatch;
+                    });
+                }
+
+                if (matchedVariant) {
+                    btn.setAttribute('data-variant-id', matchedVariant.id);
+                    maxStock = matchedVariant.stock;
+                    input.setAttribute('max', maxStock > 0 ? maxStock : 1);
+                    currentPrice = matchedVariant.price;
+
+                    if (matchedVariant.stock > 0) {
+                        stockSub.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Còn hàng (' + matchedVariant.stock + ' sản phẩm)</span> <span class="badge bg-light text-secondary ms-2 border">SKU: ' + matchedVariant.sku + '</span>';
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-bag"></i> <span>Thêm vào giỏ hàng</span>';
+                    } else {
+                        stockSub.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Biến thể này tạm hết hàng</span> <span class="badge bg-light text-secondary ms-2 border">SKU: ' + matchedVariant.sku + '</span>';
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="bi bi-slash-circle"></i> <span>Biến thể này đã hết hàng</span>';
+                    }
+                } else if (productVariants.length > 0) {
+                    btn.removeAttribute('data-variant-id');
+                    stockSub.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-circle me-1"></i>Tùy chọn không khả dụng</span>';
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="bi bi-slash-circle"></i> <span>Tùy chọn không khả dụng</span>';
+                }
+
+                var currentQty = parseInt(input.value, 10) || 1;
+                if (currentQty > maxStock && maxStock > 0) {
+                    input.value = maxStock;
+                }
+                updateFreeship();
             }
 
             document.querySelectorAll('.pdp-variant').forEach(function (box) {
@@ -681,6 +756,8 @@
                             if (cLabel) cLabel.textContent = val;
                             if (cSwatch) cSwatch.style.backgroundColor = tile.getAttribute('data-hex') || '#ccc';
                         }
+
+                        syncVariantState();
                     });
                 });
             });
@@ -709,20 +786,29 @@
                 });
             }
 
-            updateFreeship();
+            syncVariantState();
 
             if (btn) {
                 btn.addEventListener('click', function () {
                     var qty = parseInt(input.value, 10) || 1;
                     if (qty < 1) qty = 1;
-                    if (qty > maxStock) qty = maxStock;
+                    if (qty > maxStock && maxStock > 0) qty = maxStock;
+
+                    var variantId = btn.getAttribute('data-variant-id') || null;
+                    var sSelected = document.querySelector('.size-tile.is-selected');
+                    var cSelected = document.querySelector('.color-tile.is-selected');
+                    var selectedSize = sSelected ? sSelected.getAttribute('data-value').trim() : null;
+                    var selectedColor = cSelected ? cSelected.getAttribute('data-value').trim() : null;
 
                     btn.disabled = true;
                     $.post(btn.getAttribute('data-url'), {
                         productId: btn.getAttribute('data-id'),
+                        variantId: variantId,
+                        size: selectedSize,
+                        color: selectedColor,
                         productName: btn.getAttribute('data-name'),
                         imageUrl: btn.getAttribute('data-img'),
-                        price: btn.getAttribute('data-price'),
+                        price: currentPrice,
                         quantity: qty
                     }, function (res) {
                         btn.disabled = false;
@@ -733,14 +819,20 @@
 
                             var bag = document.querySelector('.header-actions a[aria-label="Giỏ hàng"]');
                             if (bag) {
-                                var badge = bag.querySelector('.cart-count');
+                                var badge = document.getElementById('headerCartCount');
                                 if (!badge) {
                                     badge = document.createElement('span');
+                                    badge.id = 'headerCartCount';
                                     badge.className = 'cart-count';
                                     bag.appendChild(badge);
                                 }
                                 badge.textContent = res.cartCount;
+                                badge.style.display = 'inline-block';
                             }
+                        } else {
+                            feedback.style.display = 'block';
+                            feedback.className = 'small mt-2 text-danger';
+                            feedback.textContent = (res && res.message) ? res.message : 'Không thể thêm vào giỏ hàng.';
                         }
                     }).fail(function () {
                         btn.disabled = false;

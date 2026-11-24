@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -8,6 +8,12 @@ namespace ClothingShop.Models
 {
     public class Product
     {
+        public Product()
+        {
+            Variants = new HashSet<ProductVariant>();
+            Styles = new HashSet<ProductStyle>();
+        }
+
         public int ProductId { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm")]
@@ -69,5 +75,7 @@ namespace ClothingShop.Models
         public int CategoryId { get; set; }
 
         public virtual Category Category { get; set; }
+        public virtual ICollection<ProductVariant> Variants { get; set; }
+        public virtual ICollection<ProductStyle> Styles { get; set; }
     }
 }

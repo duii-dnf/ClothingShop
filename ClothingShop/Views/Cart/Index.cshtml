@@ -1,4 +1,4 @@
-﻿@model List<ClothingShop.Web.ViewModels.CartItemVM>
+@model List<ClothingShop.Web.ViewModels.CartItemVM>
 
 @{
     ViewBag.Title = "Giỏ hàng của bạn";
@@ -9,56 +9,85 @@
 <div class="py-4">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h2 class="section-title mb-0"><i class="bi bi-bag-check me-2"></i>Giỏ hàng của bạn</h2>
-        <span class="text-muted small">@(Model != null ? Model.Count : 0) sản phẩm</span>
+        <span class="text-muted small">@(Model != null ? Model.Sum(x => x.Quantity) : 0) sản phẩm trong giỏ</span>
     </div>
 
     @if (Model != null && Model.Any())
     {
-        <div class="table-responsive border bg-white" style="border-radius: 14px; overflow: hidden;">
+        <div class="table-responsive border bg-white shadow-sm" style="border-radius: 14px; overflow: hidden;">
             <table class="table align-middle mb-0">
                 <thead class="table-light">
                     <tr class="text-uppercase small" style="letter-spacing: .06em;">
-                        <th style="width: 110px;">Hình ảnh</th>
-                        <th>Tên sản phẩm</th>
+                        <th style="width: 100px;">Hình ảnh</th>
+                        <th>Sản phẩm & Biến thể</th>
                         <th>Đơn giá</th>
                         <th style="width: 170px;">Số lượng</th>
                         <th>Thành tiền</th>
-                        <th class="text-end" style="width: 110px;">Thao tác</th>
+                        <th class="text-end" style="width: 100px;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        var imgPath = string.IsNullOrWhiteSpace(item.ImageUrl)
-                            ? "~/Content/images/products/default.jpg"
-                            : (item.ImageUrl.StartsWith("~") || item.ImageUrl.StartsWith("/") ? item.ImageUrl : "~/Content/images/products/" + item.ImageUrl);
+                        var rawImg = (item.ImageUrl ?? string.Empty).Trim();
+                        var fallbackImg = Url.Content("~/Content/images/products/default.jpg");
+                        var imgSrc = string.IsNullOrEmpty(rawImg) ? fallbackImg
+                            : (rawImg.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? rawImg
+                            : Url.Content(rawImg.StartsWith("~") || rawImg.StartsWith("/") ? rawImg : "~/Content/images/products/" + rawImg));
 
-                        <tr data-row-id="@item.ProductId">
+                        <tr data-row-key="@item.ItemKey">
                             <td>
                                 <a href="@Url.Action("Details", "Product", new { id = item.ProductId })">
-                                    <img src="@Url.Content(imgPath)"
+                                    <img src="@imgSrc"
                                          alt="@item.ProductName"
-                                         style="width: 72px; height: 88px; object-fit: cover; border-radius: 10px; background: var(--tile);" />
+                                         onerror="this.onerror=null;this.src='@fallbackImg';"
+                                         style="width: 72px; height: 88px; object-fit: cover; border-radius: 8px; background: var(--tile);" />
                                 </a>
                             </td>
                             <td>
-                                <a href="@Url.Action("Details", "Product", new { id = item.ProductId })" class="fw-semibold text-decoration-none">
+                                <a href="@Url.Action("Details", "Product", new { id = item.ProductId })" class="fw-semibold text-dark text-decoration-none d-block mb-1">
                                     @item.ProductName
                                 </a>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    @if (!string.IsNullOrEmpty(item.Size))
+                                    {
+                                        <span class="badge bg-light text-dark border">
+                                            Size: <strong>@item.Size</strong>
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Color))
+                                    {
+                                        <span class="badge bg-light text-dark border d-inline-flex align-items-center gap-1">
+                                            @if (!string.IsNullOrEmpty(item.ColorHex))
+                                            {
+                                                <span style="width: 10px; height: 10px; border-radius: 50%; background-color: @item.ColorHex; display: inline-block; border: 1px solid #ccc;"></span>
+                                            }
+                                            Màu: <strong>@item.Color</strong>
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.SKU))
+                                    {
+                                        <span class="text-muted small">SKU: @item.SKU</span>
+                                    }
+                                </div>
+                                @if (item.MaxStock <= 5 && item.MaxStock > 0)
+                                {
+                                    <small class="text-warning d-block mt-1"><i class="bi bi-exclamation-triangle"></i> Chỉ còn @item.MaxStock sản phẩm</small>
+                                }
                             </td>
-                            <td>@item.UnitPrice.ToString("N0") VNĐ</td>
+                            <td class="fw-medium">@item.UnitPrice.ToString("N0") VNĐ</td>
                             <td>
-                                <div class="qty">
-                                    <button type="button" class="js-qty-btn" data-step="-1" data-id="@item.ProductId" aria-label="Giảm">-</button>
-                                    <input type="number" class="js-qty-input" data-id="@item.ProductId" value="@item.Quantity" min="1" />
-                                    <button type="button" class="js-qty-btn" data-step="1" data-id="@item.ProductId" aria-label="Tăng">+</button>
+                                <div class="qty d-flex align-items-center">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary js-qty-btn" data-step="-1" data-key="@item.ItemKey" style="width: 32px; height: 32px; padding: 0;">-</button>
+                                    <input type="number" class="form-control form-control-sm text-center mx-1 js-qty-input" data-key="@item.ItemKey" value="@item.Quantity" min="1" max="@item.MaxStock" style="width: 55px;" />
+                                    <button type="button" class="btn btn-sm btn-outline-secondary js-qty-btn" data-step="1" data-key="@item.ItemKey" style="width: 32px; height: 32px; padding: 0;">+</button>
                                 </div>
                             </td>
                             <td class="fw-semibold text-danger js-item-total">@item.TotalPrice.ToString("N0") VNĐ</td>
                             <td class="text-end">
-                                <a href="@Url.Action("Remove", "Cart", new { productId = item.ProductId })"
-                                   class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash"></i> Xóa
+                                <a href="@Url.Action("Remove", "Cart", new { itemKey = item.ItemKey })"
+                                   class="btn btn-outline-danger btn-sm" title="Xóa khỏi giỏ">
+                                    <i class="bi bi-trash"></i>
                                 </a>
                             </td>
                         </tr>
@@ -66,7 +95,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <td colspan="4" class="text-end fw-semibold">Tổng cộng:</td>
+                        <td colspan="4" class="text-end fw-semibold fs-6">Tổng tiền hàng:</td>
                         <td colspan="2" class="fs-5 fw-bold text-danger" id="cartGrandTotal">@total.ToString("N0") VNĐ</td>
                     </tr>
                 </tfoot>
@@ -77,18 +106,18 @@
             <a href="@Url.Action("Index", "Product")" class="btn btn-outline-dark">
                 <i class="bi bi-arrow-left me-1"></i> Tiếp tục mua sắm
             </a>
-            <a href="@Url.Action("Checkout", "Order")" class="btn btn-success px-4">
-                Thanh toán <i class="bi bi-arrow-right ms-1"></i>
+            <a href="@Url.Action("Checkout", "Order")" class="btn btn-danger btn-lg px-4 fw-semibold shadow-sm">
+                Tiến hành thanh toán <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
     }
     else
     {
-        <div class="empty-catalog">
+        <div class="text-center py-5 bg-white rounded-3 border shadow-sm my-4">
             <i class="bi bi-bag-x fs-1 text-muted d-block mb-3"></i>
-            <p class="text-uppercase mb-2" style="letter-spacing: .08em;">Giỏ hàng của bạn đang trống</p>
-            <p class="text-muted small mb-4">Hãy chọn thêm sản phẩm yêu thích để tiếp tục mua sắm.</p>
-            <a href="@Url.Action("Index", "Product")" class="btn btn-ink">Khám phá sản phẩm</a>
+            <h4 class="text-uppercase mb-2" style="letter-spacing: .06em;">Giỏ hàng của bạn đang trống</h4>
+            <p class="text-muted small mb-4">Hãy chọn thêm những sản phẩm thời trang yêu thích để bắt đầu mua sắm.</p>
+            <a href="@Url.Action("Index", "Product")" class="btn btn-danger px-4 py-2">Khám phá sản phẩm ngay</a>
         </div>
     }
 </div>
@@ -98,43 +127,66 @@
         (function () {
             var updateUrl = '@Url.Action("Update", "Cart")';
 
-            function syncQuantity(productId, qty) {
-                if (qty < 1) qty = 1;
-                var row = document.querySelector('tr[data-row-id="' + productId + '"]');
-                var input = row ? row.querySelector('.js-qty-input') : null;
-                if (input) input.value = qty;
-
-                $.post(updateUrl, { productId: productId, quantity: qty }, function (res) {
-                    if (res && res.success) {
-                        if (row) {
-                            var itemTotalEl = row.querySelector('.js-item-total');
-                            if (itemTotalEl) itemTotalEl.textContent = res.itemTotal;
+            function updateCart(itemKey, qty) {
+                $.ajax({
+                    url: updateUrl,
+                    type: 'POST',
+                    data: { itemKey: itemKey, quantity: qty },
+                    success: function (res) {
+                        if (res && res.success) {
+                            var row = $('tr[data-row-key="' + itemKey + '"]');
+                            if (qty <= 0) {
+                                row.fadeOut(300, function () { $(this).remove(); });
+                            } else {
+                                row.find('.js-item-total').text(res.itemTotal);
+                            }
+                            $('#cartGrandTotal').text(res.cartTotal);
+                            if (typeof res.cartCount !== 'undefined') {
+                                var badge = $('#headerCartCount');
+                                badge.text(res.cartCount);
+                                if (res.cartCount > 0) badge.show(); else badge.hide();
+                            }
+                        } else {
+                            location.reload();
                         }
-                        var grandTotalEl = document.getElementById('cartGrandTotal');
-                        if (grandTotalEl) grandTotalEl.textContent = res.cartTotal;
+                    },
+                    error: function () {
+                        location.reload();
                     }
                 });
             }
 
-            document.querySelectorAll('.js-qty-btn').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var id = btn.getAttribute('data-id');
-                    var step = parseInt(btn.getAttribute('data-step'), 10);
-                    var row = document.querySelector('tr[data-row-id="' + id + '"]');
-                    var input = row.querySelector('.js-qty-input');
-                    var nextVal = (parseInt(input.value, 10) || 1) + step;
-                    if (nextVal >= 1) {
-                        syncQuantity(id, nextVal);
-                    }
-                });
+            $(document).on('click', '.js-qty-btn', function () {
+                var btn = $(this);
+                var key = btn.data('key');
+                var step = parseInt(btn.data('step'), 10) || 0;
+                var input = $('input.js-qty-input[data-key="' + key + '"]');
+                var cur = parseInt(input.val(), 10) || 1;
+                var max = parseInt(input.attr('max'), 10) || 999;
+                var next = cur + step;
+
+                if (next < 1) next = 1;
+                if (next > max) {
+                    alert('Số lượng tồn kho tối đa là ' + max);
+                    return;
+                }
+
+                input.val(next);
+                updateCart(key, next);
             });
 
-            document.querySelectorAll('.js-qty-input').forEach(function (input) {
-                input.addEventListener('change', function () {
-                    var id = input.getAttribute('data-id');
-                    var val = parseInt(input.value, 10) || 1;
-                    syncQuantity(id, val);
-                });
+            $(document).on('change', '.js-qty-input', function () {
+                var input = $(this);
+                var key = input.data('key');
+                var val = parseInt(input.val(), 10) || 1;
+                var max = parseInt(input.attr('max'), 10) || 999;
+                if (val < 1) val = 1;
+                if (val > max) {
+                    alert('Số lượng tồn kho tối đa là ' + max);
+                    val = max;
+                }
+                input.val(val);
+                updateCart(key, val);
             });
         })();
     </script>

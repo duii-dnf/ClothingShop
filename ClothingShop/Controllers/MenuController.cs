@@ -18,16 +18,18 @@ namespace ClothingShop.Controllers
             {
                 var all = db.Categories
                             .Where(c => c.IsActive)
-                            .OrderBy(c => c.Name)
+                            .OrderBy(c => c.CategoryId)
                             .Select(c => new { c.CategoryId, c.Name, c.ParentId })
                             .ToList();
 
                 var menu = all.Where(c => c.ParentId == null)
+                              .OrderBy(p => p.CategoryId)
                               .Select(p => new MenuItemViewModel
                               {
                                   Id = p.CategoryId,
                                   Name = p.Name,
                                   Children = all.Where(ch => ch.ParentId == p.CategoryId)
+                                                .OrderBy(ch => ch.CategoryId)
                                                 .Select(ch => new MenuItemViewModel { Id = ch.CategoryId, Name = ch.Name })
                                                 .ToList()
                               })

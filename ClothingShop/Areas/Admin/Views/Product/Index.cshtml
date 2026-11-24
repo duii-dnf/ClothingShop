@@ -1,4 +1,4 @@
-﻿@using ClothingShop.Services
+@using ClothingShop.Services
 @model IEnumerable<ClothingShop.Models.Product>
 
 @{
@@ -42,11 +42,13 @@
         <tbody>
             @foreach (var item in Model)
             {
-                var imgSrc = string.IsNullOrEmpty(item.ImageUrl) ? "/Content/images/products/default.jpg"
-                    : (item.ImageUrl.StartsWith("/") ? item.ImageUrl : "/Content/images/products/" + item.ImageUrl);
+                var rawImg = (item.ImageUrl ?? string.Empty).Trim();
+                var imgSrc = string.IsNullOrEmpty(rawImg) ? "/Content/images/products/default.jpg"
+                    : (rawImg.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? rawImg
+                    : (rawImg.StartsWith("/") ? rawImg : "/Content/images/products/" + rawImg));
                 <tr>
                     <td>
-                        <img src="@imgSrc" alt="@item.Name" class="rounded border" style="width: 55px; height: 55px; object-fit: cover;" />
+                        <img src="@imgSrc" alt="@item.Name" class="rounded border" style="width: 55px; height: 55px; object-fit: cover;" onerror="this.onerror=null;this.src='/Content/images/products/default.jpg';" />
                     </td>
                     <td class="fw-medium">@item.Name</td>
                     <td>@(item.Category != null ? item.Category.Name : "")</td>
@@ -69,6 +71,7 @@
                         @if (item.IsFeatured) { <span class="badge bg-primary">Nổi bật</span> }
                     </td>
                     <td class="text-end">
+                        <a href="@Url.Action("Variants", new { id = item.ProductId })" class="btn btn-sm btn-outline-primary" title="Quản lý biến thể & tồn kho"><i class="bi bi-boxes"></i> Biến thể</a>
                         <a href="@Url.Action("Edit", new { id = item.ProductId })" class="btn btn-sm btn-outline-warning">Sửa</a>
                         <a href="@Url.Action("Details", new { id = item.ProductId })" class="btn btn-sm btn-outline-info">Chi tiết</a>
                         <a href="@Url.Action("Delete", new { id = item.ProductId })" class="btn btn-sm btn-outline-danger">Xóa</a>

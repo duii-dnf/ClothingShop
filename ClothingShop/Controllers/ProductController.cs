@@ -192,6 +192,9 @@ namespace ClothingShop.Controllers
             var product = db.Products
                 .Include(p => p.Category)
                 .Include(p => p.Category.Parent)
+                .Include("Variants.Size")
+                .Include("Variants.Color")
+                .Include("Styles")
                 .FirstOrDefault(p => p.ProductId == id.Value && p.IsActive);
 
             if (product == null) return HttpNotFound();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -36,6 +36,8 @@ namespace ClothingShop.Areas.Admin.Controllers
                 .Include(o => o.User)
                 .Include(o => o.Coupon)
                 .Include(o => o.OrderDetails.Select(d => d.Product))
+                .Include(o => o.OrderDetails.Select(d => d.Variant.Size))
+                .Include(o => o.OrderDetails.Select(d => d.Variant.Color))
                 .FirstOrDefault(o => o.OrderId == id);
 
             if (order == null) return HttpNotFound();
@@ -45,15 +47,66 @@ namespace ClothingShop.Areas.Admin.Controllers
         // POST: Admin/Order/UpdateStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult UpdateStatus(int id, string status)
+        public ActionResult UpdateStatus(int id, string status, string paymentStatus = null)
         {
-            var order = db.Orders.Find(id);
+            var order = db.Orders.Include(o => o.OrderDetails).FirstOrDefault(o => o.OrderId == id);
             if (order == null) return HttpNotFound();
 
+            string oldStatus = order.Status;
             order.Status = status;
+
+            if (!string.IsNullOrEmpty(paymentStatus))
+            {
+                order.PaymentStatus = paymentStatus;
+                if (paymentStatus == "Paid" && !order.PaymentDate.HasValue)
+                {
+                    order.PaymentDate = DateTime.Now;
+                }
+            }
+            else if (status == OrderStatus.Completed && order.PaymentStatus == "Unpaid")
+            {
+                order.PaymentStatus = "Paid";
+                order.PaymentDate = DateTime.Now;
+            }
+
+            // If changing to Cancelled, restore variant inventory & log
+            if (status == OrderStatus.Cancelled && oldStatus != OrderStatus.Cancelled)
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    if (detail.ProductVariantId.HasValue)
+                    {
+                        var variant = db.ProductVariants.Find(detail.ProductVariantId.Value);
+                        if (variant != null)
+                        {
+                            variant.Stock += detail.Quantity;
+                            db.InventoryLogs.Add(new InventoryLog
+                            {
+                                ProductId = detail.ProductId,
+                                VariantId = variant.VariantId,
+                                ChangeType = "OrderCancelled",
+                                QuantityChange = detail.Quantity,
+                                StockAfter = variant.Stock,
+                                ReferenceType = "AdminOrder",
+                                ReferenceId = order.OrderId,
+                                Note = $"Admin đổi trạng thái thành Hủy đơn #{order.OrderId} (hoàn tồn kho)",
+                                CreatedAt = DateTime.Now,
+                                CreatedBy = User.Identity?.Name ?? "Admin"
+                            });
+                        }
+                    }
+
+                    var prod = db.Products.Find(detail.ProductId);
+                    if (prod != null)
+                    {
+                        prod.Stock += detail.Quantity;
+                    }
+                }
+            }
+
             db.SaveChanges();
 
-            TempData["Success"] = $"Đã cập nhật trạng thái đơn #{id}.";
+            TempData["Success"] = $"Đã cập nhật trạng thái đơn #{id} thành '{status}'.";
             return RedirectToAction("Details", new { id });
         }
 

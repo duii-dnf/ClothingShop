@@ -3,15 +3,17 @@
 
 @{
     ViewBag.Title = "Chi tiết sản phẩm";
-    var imgSrc = string.IsNullOrEmpty(Model.ImageUrl) ? "/Content/images/products/default.jpg"
-        : (Model.ImageUrl.StartsWith("/") ? Model.ImageUrl : "/Content/images/products/" + Model.ImageUrl);
+    var rawImg = (Model.ImageUrl ?? string.Empty).Trim();
+    var imgSrc = string.IsNullOrEmpty(rawImg) ? "/Content/images/products/default.jpg"
+        : (rawImg.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? rawImg
+        : (rawImg.StartsWith("/") ? rawImg : "/Content/images/products/" + rawImg));
 }
 
 <h4 class="fw-bold mb-3">Chi tiết sản phẩm #@Model.ProductId</h4>
 
 <div class="row g-4">
     <div class="col-md-4">
-        <img src="@imgSrc" alt="@Model.Name" class="img-fluid rounded border" />
+        <img src="@imgSrc" alt="@Model.Name" class="img-fluid rounded border" onerror="this.onerror=null;this.src='/Content/images/products/default.jpg';" />
     </div>
     <div class="col-md-8">
         <table class="table table-bordered">

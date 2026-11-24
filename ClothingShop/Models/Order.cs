@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -18,6 +18,13 @@ namespace ClothingShop.Models
         public int UserId { get; set; }
 
         public DateTime OrderDate { get; set; } = DateTime.Now;
+
+        public DateTime? PaymentDate { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        [Display(Name = "Trạng thái thanh toán")]
+        public string PaymentStatus { get; set; } = "Unpaid";
 
         [Required(ErrorMessage = "Vui lòng nhập tên người nhận")]
         [StringLength(100)]
@@ -48,6 +55,12 @@ namespace ClothingShop.Models
         public string Note { get; set; }
 
         public int? CouponId { get; set; }
+
+        [Display(Name = "Tạm tính")]
+        public decimal Subtotal { get; set; }
+
+        [Display(Name = "Phí giao hàng")]
+        public decimal ShippingFee { get; set; }
 
         [Display(Name = "Giảm giá")]
         public decimal DiscountAmount { get; set; }

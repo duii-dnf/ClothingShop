@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -10,6 +10,11 @@ namespace ClothingShop.Models
     [Table("Users")]
     public class AppUser
     {
+        public AppUser()
+        {
+            Addresses = new HashSet<UserAddress>();
+        }
+
         [Key]
         public int UserId { get; set; }
 
@@ -37,10 +42,27 @@ namespace ClothingShop.Models
         [Display(Name = "Địa chỉ")]
         public string Address { get; set; }
 
+        [StringLength(10)]
+        [Display(Name = "Giới tính")]
+        public string Gender { get; set; }
+
+        [Display(Name = "Ngày sinh")]
+        [DataType(DataType.Date)]
+        public DateTime? BirthDate { get; set; }
+
+        [StringLength(300)]
+        [Display(Name = "Ảnh đại diện")]
+        public string Avatar { get; set; }
+
+        [Display(Name = "Kích hoạt")]
+        public bool IsActive { get; set; } = true;
+
         [Required]
         [StringLength(20)]
         public string Role { get; set; } = AppRoles.Customer;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public virtual ICollection<UserAddress> Addresses { get; set; }
     }
 }

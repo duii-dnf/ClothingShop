@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -14,6 +14,8 @@ namespace ClothingShop.Models
         public int OrderId { get; set; }
 
         public int ProductId { get; set; }
+
+        public int? ProductVariantId { get; set; }
 
         [StringLength(20)]
         public string Size { get; set; }
@@ -35,5 +37,6 @@ namespace ClothingShop.Models
 
         public virtual Order Order { get; set; }
         public virtual Product Product { get; set; }
+        public virtual ProductVariant Variant { get; set; }
     }
 }
