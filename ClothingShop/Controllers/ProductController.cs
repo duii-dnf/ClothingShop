@@ -1,4 +1,4 @@
-﻿using ClothingShop.Models;
+using ClothingShop.Models;
 using ClothingShop.Services;
 using System;
 using System.Collections.Generic;
@@ -17,17 +17,6 @@ namespace ClothingShop.Controllers
             return RedirectToAction("Index", new { keyword = keyword, searchString = keyword, page = page });
         }
 
-        public ActionResult Index(
-            int? categoryId,
-            string keyword,
-            string searchString,
-            string sort,
-            string gender,
-            decimal? minPrice,
-            decimal? maxPrice,
-            bool? onSale,
-            bool? isNew,
-            int? page)
         [HttpGet]
         public ActionResult Suggestions(string term)
         {
@@ -78,7 +67,18 @@ namespace ClothingShop.Controllers
             return Json(new { success = true, count = items.Count, items = items }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult Index(int? categoryId, string keyword, string searchString, string sort, string filter, int? page)
+        public ActionResult Index(
+            int? categoryId = null,
+            string keyword = null,
+            string searchString = null,
+            string sort = null,
+            string filter = null,
+            string gender = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            bool? onSale = null,
+            bool? isNew = null,
+            int? page = null)
         {
             string term = !string.IsNullOrWhiteSpace(keyword) ? keyword.Trim() : (searchString ?? string.Empty).Trim();
             string cleanGender = !string.IsNullOrWhiteSpace(gender) ? gender.Trim() : null;
@@ -93,11 +93,11 @@ namespace ClothingShop.Controllers
                 filter = filter.Trim().ToLowerInvariant();
                 if (filter == "sale" || filter == "deal")
                 {
-                    query = query.Where(p => p.DiscountPrice.HasValue && p.DiscountPrice.Value < p.Price);
+                    onSale = true;
                 }
                 else if (filter == "new")
                 {
-                    query = query.Where(p => p.IsNew);
+                    isNew = true;
                 }
                 else if (filter == "bestseller" || filter == "hot" || filter == "featured")
                 {
@@ -127,17 +127,19 @@ namespace ClothingShop.Controllers
 
             if (!string.IsNullOrEmpty(cleanGender))
             {
-                query = query.Where(p => p.Gender != null && p.Gender.Equals(cleanGender, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(p => p.Gender != null && p.Gender == cleanGender);
             }
 
             if (minPrice.HasValue)
             {
-                query = query.Where(p => ((p.DiscountPrice.HasValue && p.DiscountPrice.Value < p.Price) ? p.DiscountPrice.Value : p.Price) >= minPrice.Value);
+                decimal min = minPrice.Value;
+                query = query.Where(p => ((p.DiscountPrice.HasValue && p.DiscountPrice.Value < p.Price) ? p.DiscountPrice.Value : p.Price) >= min);
             }
 
             if (maxPrice.HasValue)
             {
-                query = query.Where(p => ((p.DiscountPrice.HasValue && p.DiscountPrice.Value < p.Price) ? p.DiscountPrice.Value : p.Price) <= maxPrice.Value);
+                decimal max = maxPrice.Value;
+                query = query.Where(p => ((p.DiscountPrice.HasValue && p.DiscountPrice.Value < p.Price) ? p.DiscountPrice.Value : p.Price) <= max);
             }
 
             if (onSale == true)

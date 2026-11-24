@@ -355,9 +355,7 @@
             {<input type="hidden" name="onSale" value="true" />}
             @if (isNew)
             {<input type="hidden" name="isNew" value="true" />}
-            {
-                <input type="hidden" name="categoryId" value="@categoryId" />
-            }
+            <input type="hidden" name="categoryId" value="@categoryId" />
             @if (!string.IsNullOrEmpty(filter))
             {
                 <input type="hidden" name="filter" value="@filter" />
@@ -543,9 +541,8 @@
                         maxPrice = maxPrice,
                         onSale = onSale ? (bool?)true : null,
                         isNew = isNew ? (bool?)true : null,
+                        filter = string.IsNullOrEmpty(filter) ? null : filter,
                         sort = opt.Key
-                        sort = opt.Key,
-                        filter = string.IsNullOrEmpty(filter) ? null : filter
                     });
                     <option value="@url" @(sort == opt.Key ? "selected" : null)>@opt.Value</option>
                 }
@@ -575,8 +572,7 @@
             <nav class="pager" aria-label="Phân trang">
                 @if (currentPage > 1)
                 {
-                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage - 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort = sort })">Trước</a>
-                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage - 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort, filter = string.IsNullOrEmpty(filter) ? null : filter })">Trước</a>
+                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage - 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, filter = string.IsNullOrEmpty(filter) ? null : filter, sort = sort })">Trước</a>
                 }
                 else
                 {
@@ -591,15 +587,13 @@
                     }
                     else
                     {
-                        <a href="@Url.Action("Index", "Product", new { page = i, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort = sort })">@i</a>
-                        <a href="@Url.Action("Index", "Product", new { page = i, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort, filter = string.IsNullOrEmpty(filter) ? null : filter })">@i</a>
+                        <a href="@Url.Action("Index", "Product", new { page = i, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, filter = string.IsNullOrEmpty(filter) ? null : filter, sort = sort })">@i</a>
                     }
                 }
 
                 @if (currentPage < totalPages)
                 {
-                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage + 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort = sort })">Sau</a>
-                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage + 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort, filter = string.IsNullOrEmpty(filter) ? null : filter })">Sau</a>
+                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage + 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, filter = string.IsNullOrEmpty(filter) ? null : filter, sort = sort })">Sau</a>
                 }
                 else
                 {
