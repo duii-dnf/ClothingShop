@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
@@ -10,9 +11,19 @@ namespace ClothingShop.Areas.Admin.Controllers
     {
         private readonly ShopDbContext db = new ShopDbContext();
 
-        public ActionResult Index(string keyword)
+        public ActionResult Index(string keyword, string level, string status)
         {
-            var query = db.Categories.Include(c => c.Parent).Include(c => c.Products).AsQueryable();
+            var allCategories = db.Categories.ToList();
+            ViewBag.TotalCount = allCategories.Count;
+            ViewBag.RootCount = allCategories.Count(c => c.ParentId == null);
+            ViewBag.ChildCount = allCategories.Count(c => c.ParentId != null);
+            ViewBag.ActiveCount = allCategories.Count(c => c.IsActive);
+
+            var query = db.Categories
+                .Include(c => c.Parent)
+                .Include(c => c.Children)
+                .Include(c => c.Products)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
@@ -20,6 +31,27 @@ namespace ClothingShop.Areas.Admin.Controllers
                 query = query.Where(c => c.Name.Contains(term));
                 ViewBag.Keyword = term;
             }
+
+            if (level == "root")
+            {
+                query = query.Where(c => c.ParentId == null);
+            }
+            else if (level == "child")
+            {
+                query = query.Where(c => c.ParentId != null);
+            }
+
+            if (status == "active")
+            {
+                query = query.Where(c => c.IsActive);
+            }
+            else if (status == "hidden")
+            {
+                query = query.Where(c => !c.IsActive);
+            }
+
+            ViewBag.Level = level;
+            ViewBag.Status = status;
 
             var list = query
                 .OrderBy(c => c.ParentId ?? c.CategoryId)
@@ -46,7 +78,9 @@ namespace ClothingShop.Areas.Admin.Controllers
 
         public ActionResult Create()
         {
-            ViewBag.ParentId = new SelectList(db.Categories.Where(c => c.ParentId == null && c.IsActive), "CategoryId", "Name");
+            ViewBag.ParentId = new SelectList(
+                db.Categories.Where(c => c.ParentId == null && c.IsActive).OrderBy(c => c.CategoryId),
+                "CategoryId", "Name");
             return View(new Category { IsActive = true });
         }
 
@@ -58,6 +92,27 @@ namespace ClothingShop.Areas.Admin.Controllers
             {
                 ModelState.AddModelError("Name", "Vui lòng nhập tên loại sản phẩm.");
             }
+            else
+            {
+                string cleanName = category.Name.Trim();
+                bool isDuplicate = db.Categories.Any(c =>
+                    c.ParentId == category.ParentId &&
+                    c.Name.Equals(cleanName, StringComparison.OrdinalIgnoreCase));
+
+                if (isDuplicate)
+                {
+                    ModelState.AddModelError("Name", "Tên loại sản phẩm này đã tồn tại trong cùng cấp danh mục.");
+                }
+            }
+
+            if (category.ParentId.HasValue)
+            {
+                var parent = db.Categories.Find(category.ParentId.Value);
+                if (parent == null || parent.ParentId != null)
+                {
+                    ModelState.AddModelError("ParentId", "Danh mục cha không hợp lệ (hệ thống chỉ hỗ trợ tối đa 2 cấp).");
+                }
+            }
 
             if (ModelState.IsValid)
             {
@@ -68,7 +123,9 @@ namespace ClothingShop.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.ParentId = new SelectList(db.Categories.Where(c => c.ParentId == null && c.IsActive), "CategoryId", "Name", category.ParentId);
+            ViewBag.ParentId = new SelectList(
+                db.Categories.Where(c => c.ParentId == null && c.IsActive).OrderBy(c => c.CategoryId),
+                "CategoryId", "Name", category.ParentId);
             return View(category);
         }
 
@@ -76,11 +133,15 @@ namespace ClothingShop.Areas.Admin.Controllers
         {
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
-            var category = db.Categories.Find(id);
+            var category = db.Categories
+                .Include(c => c.Children)
+                .FirstOrDefault(c => c.CategoryId == id);
+
             if (category == null) return HttpNotFound();
 
+            ViewBag.HasChildren = category.Children != null && category.Children.Any();
             ViewBag.ParentId = new SelectList(
-                db.Categories.Where(c => c.ParentId == null && c.CategoryId != category.CategoryId),
+                db.Categories.Where(c => c.ParentId == null && c.CategoryId != category.CategoryId).OrderBy(c => c.CategoryId),
                 "CategoryId", "Name", category.ParentId);
 
             return View(category);
@@ -90,9 +151,33 @@ namespace ClothingShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "CategoryId,Name,ParentId,IsActive")] Category category)
         {
+            bool hasChildren = db.Categories.Any(c => c.ParentId == category.CategoryId);
+
+            if (string.IsNullOrWhiteSpace(category.Name))
+            {
+                ModelState.AddModelError("Name", "Vui lòng nhập tên loại sản phẩm.");
+            }
+            else
+            {
+                string cleanName = category.Name.Trim();
+                bool isDuplicate = db.Categories.Any(c =>
+                    c.CategoryId != category.CategoryId &&
+                    c.ParentId == category.ParentId &&
+                    c.Name.Equals(cleanName, StringComparison.OrdinalIgnoreCase));
+
+                if (isDuplicate)
+                {
+                    ModelState.AddModelError("Name", "Tên loại sản phẩm này đã tồn tại trong cùng cấp danh mục.");
+                }
+            }
+
             if (category.ParentId == category.CategoryId)
             {
                 ModelState.AddModelError("ParentId", "Danh mục cha không được trùng với chính nó.");
+            }
+            else if (hasChildren && category.ParentId.HasValue)
+            {
+                ModelState.AddModelError("ParentId", "Loại này đang có danh mục con nên phải giữ là danh mục gốc.");
             }
 
             if (ModelState.IsValid)
@@ -104,11 +189,28 @@ namespace ClothingShop.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
+            ViewBag.HasChildren = hasChildren;
             ViewBag.ParentId = new SelectList(
-                db.Categories.Where(c => c.ParentId == null && c.CategoryId != category.CategoryId),
+                db.Categories.Where(c => c.ParentId == null && c.CategoryId != category.CategoryId).OrderBy(c => c.CategoryId),
                 "CategoryId", "Name", category.ParentId);
 
             return View(category);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ToggleStatus(int id)
+        {
+            var category = db.Categories.Find(id);
+            if (category == null) return HttpNotFound();
+
+            category.IsActive = !category.IsActive;
+            db.SaveChanges();
+            TempData["Success"] = category.IsActive
+                ? $"Đã bật hiển thị loại \"{category.Name}\"."
+                : $"Đã ẩn loại \"{category.Name}\" khỏi cửa hàng.";
+
+            return RedirectToAction("Index");
         }
 
         public ActionResult Delete(int? id)

@@ -19,14 +19,15 @@
 
     <div class="row g-3" style="max-width: 600px;">
         <div class="col-12">
-            <label class="form-label fw-medium">Tên loại sản phẩm</label>
-            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Ví dụ: Áo thun, Quần jeans..." })
+            <label class="form-label fw-medium">Tên loại sản phẩm <span class="text-danger">*</span></label>
+            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Ví dụ: Áo thun, Quần jeans...", autofocus = "autofocus" })
             @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
         </div>
 
         <div class="col-12">
             <label class="form-label fw-medium">Danh mục cha (nếu có)</label>
             @Html.DropDownList("ParentId", null, "-- Là danh mục gốc --", new { @class = "form-select" })
+            <div class="form-text">Để trống nếu muốn tạo danh mục cấp 1 trên thanh điều hướng.</div>
             @Html.ValidationMessageFor(m => m.ParentId, "", new { @class = "text-danger small" })
         </div>
 
@@ -41,7 +42,7 @@
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-lg me-1"></i> Lưu lại
             </button>
-            <a href="@Url.Action("Index")" class="btn btn-light">Hủy</a>
+            <a href="@Url.Action("Index")" class="btn btn-light border">Hủy</a>
         </div>
     </div>
 }

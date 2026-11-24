@@ -9,10 +9,348 @@
     var imgPath = string.IsNullOrWhiteSpace(Model.ImageUrl)
         ? "~/Content/images/products/default.jpg"
         : (Model.ImageUrl.StartsWith("~") || Model.ImageUrl.StartsWith("/") ? Model.ImageUrl : "~/Content/images/products/" + Model.ImageUrl);
+
     var onSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
     var finalPrice = onSale ? Model.DiscountPrice.Value : Model.Price;
+    var discountPercent = (onSale && Model.Price > 0)
+        ? (int)Math.Round((Model.Price - Model.DiscountPrice.Value) / Model.Price * 100)
+        : 0;
+
+    var sizes = string.IsNullOrWhiteSpace(Model.Sizes)
+        ? new string[0]
+        : Model.Sizes.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Where(s => s.Length > 0).Distinct().ToArray();
+
+    var colors = string.IsNullOrWhiteSpace(Model.Colors)
+        ? new string[0]
+        : Model.Colors.Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).Where(c => c.Length > 0).Distinct().ToArray();
+
     var relatedList = ViewBag.RelatedProducts as IEnumerable<Product>;
 }
+
+@functions {
+    public string ResolveColorHex(string colorName)
+    {
+        if (string.IsNullOrWhiteSpace(colorName)) return "#cccccc";
+        var key = colorName.Trim().ToLowerInvariant();
+        if (key.StartsWith("#")) return key;
+
+        if (key.Contains("đen") || key.Contains("black")) return "#1a1a1a";
+        if (key.Contains("trắng") || key.Contains("white") || key.Contains("kem") || key.Contains("cream")) return "#f8f8f6";
+        if (key.Contains("navy") || key.Contains("xanh than") || key.Contains("xanh đen")) return "#1b2a4a";
+        if (key.Contains("xanh dương") || key.Contains("blue") || key.Contains("xanh biển")) return "#2563eb";
+        if (key.Contains("xanh nhạt") || key.Contains("light blue") || key.Contains("sky")) return "#7dd3fc";
+        if (key.Contains("xanh rêu") || key.Contains("olive") || key.Contains("rêu")) return "#4d5d3c";
+        if (key.Contains("xanh lá") || key.Contains("green")) return "#16a34a";
+        if (key.Contains("be") || key.Contains("beige") || key.Contains("nude") || key.Contains("cát")) return "#d6c7b2";
+        if (key.Contains("nâu") || key.Contains("brown") || key.Contains("cafe") || key.Contains("cà phê")) return "#6f4e37";
+        if (key.Contains("xám") || key.Contains("ghi") || key.Contains("gray") || key.Contains("grey")) return "#8c8c8c";
+        if (key.Contains("đỏ đô") || key.Contains("burgundy") || key.Contains("wine") || key.Contains("mận")) return "#5c1919";
+        if (key.Contains("đỏ") || key.Contains("red")) return "#dc2626";
+        if (key.Contains("hồng") || key.Contains("pink")) return "#f472b6";
+        if (key.Contains("vàng") || key.Contains("yellow") || key.Contains("mustard")) return "#eab308";
+        if (key.Contains("cam") || key.Contains("orange")) return "#ea580c";
+        if (key.Contains("tím") || key.Contains("purple") || key.Contains("lavender")) return "#7c3aed";
+
+        return "#9ca3af";
+    }
+}
+
+<style>
+    @@keyframes pdpFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .pdp-gallery {
+        animation: pdpFadeIn .5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .pdp-info {
+        animation: pdpFadeIn .55s cubic-bezier(0.22, 1, 0.36, 1) .08s both;
+    }
+
+    .pdp-gallery__item {
+        overflow: hidden;
+    }
+
+        .pdp-gallery__item img {
+            transition: transform .6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .pdp-gallery__item:hover img {
+            transform: scale(1.04);
+        }
+
+    .pdp-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .pdp-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 11px;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        background: #f3f1ed;
+        color: #333;
+        border: 1px solid #e2ddd7;
+        white-space: nowrap;
+    }
+
+    .pdp-tag--sale {
+        background: #5c1919;
+        color: #fff;
+        border-color: #5c1919;
+    }
+
+    .pdp-tag--new {
+        background: #1a1a1a;
+        color: #fff;
+        border-color: #1a1a1a;
+    }
+
+    .pdp-variant {
+        margin: 14px 0;
+        border: 1px solid #e2ddd7;
+        background: #fff;
+        transition: border-color .25s ease, box-shadow .25s ease;
+    }
+
+        .pdp-variant:hover,
+        .pdp-variant.is-open {
+            border-color: #1a1a1a;
+        }
+
+    .pdp-variant__trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        background: #faf8f5;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        transition: background-color .25s ease;
+    }
+
+        .pdp-variant__trigger:hover {
+            background: #f3efe9;
+        }
+
+    .pdp-variant__label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #666;
+        white-space: nowrap;
+    }
+
+    .pdp-variant__current {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #1a1a1a;
+        font-weight: 600;
+        letter-spacing: .03em;
+    }
+
+    .pdp-variant__meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        color: #777;
+        white-space: nowrap;
+    }
+
+    .pdp-variant__chevron {
+        font-size: 12px;
+        color: #1a1a1a;
+        transition: transform .32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .pdp-variant.is-open .pdp-variant__chevron {
+        transform: rotate(180deg);
+    }
+
+    .pdp-variant__panel {
+        overflow: hidden;
+        height: 0;
+        opacity: 0;
+        border-top: 1px solid transparent;
+        transition: height .32s cubic-bezier(0.22, 1, 0.36, 1), opacity .26s ease, border-color .25s ease;
+    }
+
+    .pdp-variant.is-open .pdp-variant__panel {
+        border-top-color: #ebe6df;
+    }
+
+    .pdp-variant__grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .size-tile {
+        min-width: 46px;
+        height: 36px;
+        padding: 0 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12.5px;
+        font-weight: 500;
+        letter-spacing: .04em;
+        border: 1px solid #dad5ce;
+        background: #fff;
+        color: #1a1a1a;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color .22s cubic-bezier(0.22, 1, 0.36, 1), border-color .22s ease, color .22s ease, transform .18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+        .size-tile:hover {
+            border-color: #1a1a1a;
+            transform: translateY(-1px);
+        }
+
+        .size-tile.is-selected {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: #fff;
+        }
+
+    .color-tile {
+        height: 36px;
+        padding: 0 12px 0 9px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12.5px;
+        border: 1px solid #dad5ce;
+        background: #fff;
+        color: #1a1a1a;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color .22s cubic-bezier(0.22, 1, 0.36, 1), border-color .22s ease, color .22s ease, transform .18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+        .color-tile:hover {
+            border-color: #1a1a1a;
+            transform: translateY(-1px);
+        }
+
+        .color-tile.is-selected {
+            background: #1a1a1a;
+            border-color: #1a1a1a;
+            color: #fff;
+            font-weight: 500;
+        }
+
+    .color-swatch {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, .2);
+        flex-shrink: 0;
+        display: inline-block;
+    }
+
+    .color-tile.is-selected .color-swatch {
+        border-color: rgba(255, 255, 255, .65);
+    }
+
+    .qty button {
+        transition: background-color .2s ease, color .2s ease;
+    }
+
+        .qty button:hover {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+    .btn-add {
+        transition: background-color .3s cubic-bezier(0.22, 1, 0.36, 1), transform .2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow .3s ease;
+    }
+
+        .btn-add:not(:disabled):hover {
+            background: #2f2f2f;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .14);
+        }
+
+        .btn-add:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+    .freeship-box {
+        margin: 16px 0 6px;
+        padding: 10px 12px;
+        background: #faf8f5;
+        border: 1px solid #ebe6df;
+        font-size: 12.5px;
+    }
+
+    .freeship-bar {
+        height: 4px;
+        background: #e5e0d8;
+        margin-top: 7px;
+        overflow: hidden;
+    }
+
+    .freeship-bar__fill {
+        height: 100%;
+        background: #1a1a1a;
+        transition: width .4s cubic-bezier(0.22, 1, 0.36, 1), background-color .3s ease;
+    }
+
+        .freeship-bar__fill.is-done {
+            background: #198754;
+        }
+
+    .pdp-acc .accordion-button {
+        transition: background-color .25s ease, color .25s ease, padding-left .25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+        .pdp-acc .accordion-button:hover {
+            padding-left: 4px;
+            color: #000;
+        }
+
+    .pdp-spec-table {
+        width: 100%;
+        font-size: 13px;
+        border-collapse: collapse;
+    }
+
+        .pdp-spec-table td {
+            padding: 6px 0;
+            border-bottom: 1px solid #f0ede8;
+        }
+
+            .pdp-spec-table td:first-child {
+                color: #777;
+                width: 38%;
+                white-space: nowrap;
+            }
+</style>
 
 <nav class="breadcrumb-lite" aria-label="Breadcrumb">
     <a class="back" href="@Url.Action("Index", "Product")"><i class="bi bi-arrow-left"></i> Quay lại</a>
@@ -21,6 +359,11 @@
     <span class="sep">/</span>
     @if (Model.Category != null)
     {
+        if (Model.Category.Parent != null)
+        {
+            <a href="@Url.Action("Index", "Product", new { categoryId = Model.Category.Parent.CategoryId })">@Model.Category.Parent.Name</a>
+            <span class="sep">/</span>
+        }
         <a href="@Url.Action("Index", "Product", new { categoryId = Model.CategoryId })">@Model.Category.Name</a>
         <span class="sep">/</span>
     }
@@ -35,7 +378,22 @@
     </div>
 
     <div class="pdp-info">
-        <div class="pdp-label">@(Model.Category != null ? Model.Category.Name : "ClothingShop")</div>
+        <div class="pdp-meta-row">
+            <div class="pdp-label mb-0">@(Model.Category != null ? Model.Category.Name : "ClothingShop")</div>
+            @if (!string.IsNullOrWhiteSpace(Model.Gender))
+            {
+                <span class="pdp-tag">@Model.Gender</span>
+            }
+            @if (Model.IsNew)
+            {
+                <span class="pdp-tag pdp-tag--new">Mới</span>
+            }
+            @if (discountPercent > 0)
+            {
+                <span class="pdp-tag pdp-tag--sale">-@discountPercent%</span>
+            }
+        </div>
+
         <h1 class="pdp-title">@Model.Name</h1>
 
         <div class="pdp-price">
@@ -53,13 +411,71 @@
         <div class="pdp-sub">
             @if (Model.Stock > 0)
             {
-                <span class="text-success">Còn hàng (@Model.Stock sản phẩm)</span>
+                <span class="text-success"><i class="bi bi-check-circle me-1"></i>Còn hàng (@Model.Stock sản phẩm)</span>
             }
             else
             {
-                <span class="text-danger">Tạm hết hàng</span>
+                <span class="text-danger"><i class="bi bi-x-circle me-1"></i>Tạm hết hàng</span>
             }
         </div>
+
+        @if (sizes.Length > 0)
+        {
+            <div class="pdp-variant is-open" data-variant="size">
+                <button type="button" class="pdp-variant__trigger" aria-expanded="true">
+                    <span class="pdp-variant__label">
+                        <span>Kích cỡ:</span>
+                        <span class="pdp-variant__current" id="selectedSizeText">@sizes[0]</span>
+                    </span>
+                    <span class="pdp-variant__meta">
+                        <span>@sizes.Length kích cỡ</span>
+                        <i class="bi bi-chevron-down pdp-variant__chevron"></i>
+                    </span>
+                </button>
+                <div class="pdp-variant__panel">
+                    <div class="pdp-variant__grid">
+                        @for (int i = 0; i < sizes.Length; i++)
+                        {
+                            <button type="button" class="size-tile @(i == 0 ? "is-selected" : "")" data-value="@sizes[i]">
+                                @sizes[i]
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (colors.Length > 0)
+        {
+            var firstHex = ResolveColorHex(colors[0]);
+            <div class="pdp-variant is-open" data-variant="color">
+                <button type="button" class="pdp-variant__trigger" aria-expanded="true">
+                    <span class="pdp-variant__label">
+                        <span>Màu sắc:</span>
+                        <span class="pdp-variant__current">
+                            <span class="color-swatch" id="selectedColorSwatch" style="background-color:@firstHex;"></span>
+                            <span id="selectedColorText">@colors[0]</span>
+                        </span>
+                    </span>
+                    <span class="pdp-variant__meta">
+                        <span>@colors.Length màu</span>
+                        <i class="bi bi-chevron-down pdp-variant__chevron"></i>
+                    </span>
+                </button>
+                <div class="pdp-variant__panel">
+                    <div class="pdp-variant__grid">
+                        @for (int i = 0; i < colors.Length; i++)
+                        {
+                            var hex = ResolveColorHex(colors[i]);
+                            <button type="button" class="color-tile @(i == 0 ? "is-selected" : "")" data-value="@colors[i]" data-hex="@hex">
+                                <span class="color-swatch" style="background-color:@hex;"></span>
+                                <span>@colors[i]</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
 
         <div class="opt-head">
             <span>Số lượng</span>
@@ -68,6 +484,13 @@
             <button type="button" id="qtyMinus" aria-label="Giảm">-</button>
             <input type="number" id="qtyInput" value="1" min="1" max="@(Model.Stock > 0 ? Model.Stock : 1)" />
             <button type="button" id="qtyPlus" aria-label="Tăng">+</button>
+        </div>
+
+        <div class="freeship-box" id="freeshipBox">
+            <div id="freeshipText"></div>
+            <div class="freeship-bar">
+                <div class="freeship-bar__fill" id="freeshipFill" style="width:0%"></div>
+            </div>
         </div>
 
         <button type="button"
@@ -104,6 +527,39 @@
                     </div>
                 </div>
             </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#specCollapse" aria-expanded="false">
+                        Thông số & Hướng dẫn bảo quản
+                    </button>
+                </h2>
+                <div id="specCollapse" class="accordion-collapse collapse" data-bs-parent="#pdpAccordion">
+                    <div class="accordion-body">
+                        <table class="pdp-spec-table">
+                            <tr>
+                                <td>Danh mục</td>
+                                <td>@(Model.Category != null ? Model.Category.Name : "Thời trang")</td>
+                            </tr>
+                            @if (!string.IsNullOrWhiteSpace(Model.Gender))
+                            {
+                                <tr><td>Giới tính</td><td>@Model.Gender</td></tr>
+                            }
+                            @if (sizes.Length > 0)
+                            {
+                                <tr><td>Kích cỡ có sẵn</td><td>@string.Join(", ", sizes)</td></tr>
+                            }
+                            @if (colors.Length > 0)
+                            {
+                                <tr><td>Màu sắc</td><td>@string.Join(", ", colors)</td></tr>
+                            }
+                            <tr>
+                                <td>Bảo quản</td>
+                                <td>Giặt máy chế độ nhẹ dưới 30°C, không dùng thuốc tẩy mạnh, phơi nơi thoáng mát.</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -136,20 +592,124 @@
             var btn = document.getElementById('btnAddCart');
             var feedback = document.getElementById('cartFeedback');
             var maxStock = parseInt(input.getAttribute('max'), 10) || 1;
+            var unitPrice = parseFloat(btn ? btn.getAttribute('data-price') : '0') || 0;
+            var freeshipGoal = 500000;
+
+            function formatVnd(num) {
+                return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "'") + '₫';
+            }
+
+            function updateFreeship() {
+                var qty = parseInt(input.value, 10) || 1;
+                var subtotal = unitPrice * qty;
+                var textEl = document.getElementById('freeshipText');
+                var fillEl = document.getElementById('freeshipFill');
+                if (!textEl || !fillEl) return;
+
+                if (subtotal >= freeshipGoal) {
+                    textEl.innerHTML = '<i class="bi bi-check2-circle text-success me-1"></i>Đơn hàng của bạn đã đủ điều kiện <strong>Miễn phí giao hàng</strong>!';
+                    fillEl.style.width = '100%';
+                    fillEl.classList.add('is-done');
+                } else {
+                    var remain = freeshipGoal - subtotal;
+                    var pct = Math.min(100, Math.round((subtotal / freeshipGoal) * 100));
+                    textEl.innerHTML = 'Mua thêm <strong>' + formatVnd(remain) + '</strong> để được <strong>Miễn phí giao hàng</strong>';
+                    fillEl.style.width = pct + '%';
+                    fillEl.classList.remove('is-done');
+                }
+            }
+
+            document.querySelectorAll('.pdp-variant').forEach(function (box) {
+                var trigger = box.querySelector('.pdp-variant__trigger');
+                var panel = box.querySelector('.pdp-variant__panel');
+                var type = box.getAttribute('data-variant');
+                if (!trigger || !panel) return;
+
+                if (box.classList.contains('is-open')) {
+                    panel.style.height = 'auto';
+                    panel.style.opacity = '1';
+                }
+
+                var isAnimating = false;
+                trigger.addEventListener('click', function () {
+                    if (isAnimating) return;
+                    isAnimating = true;
+
+                    if (box.classList.contains('is-open')) {
+                        panel.style.height = panel.scrollHeight + 'px';
+                        panel.style.opacity = '1';
+                        requestAnimationFrame(function () {
+                            panel.style.height = '0px';
+                            panel.style.opacity = '0';
+                        });
+                        box.classList.remove('is-open');
+                        trigger.setAttribute('aria-expanded', 'false');
+                        setTimeout(function () {
+                            isAnimating = false;
+                        }, 320);
+                    } else {
+                        box.classList.add('is-open');
+                        trigger.setAttribute('aria-expanded', 'true');
+                        var targetHeight = panel.scrollHeight;
+                        panel.style.height = '0px';
+                        panel.style.opacity = '0';
+                        requestAnimationFrame(function () {
+                            panel.style.height = targetHeight + 'px';
+                            panel.style.opacity = '1';
+                        });
+                        setTimeout(function () {
+                            panel.style.height = 'auto';
+                            isAnimating = false;
+                        }, 320);
+                    }
+                });
+
+                box.querySelectorAll('.size-tile, .color-tile').forEach(function (tile) {
+                    tile.addEventListener('click', function () {
+                        box.querySelectorAll('.size-tile, .color-tile').forEach(function (t) {
+                            t.classList.remove('is-selected');
+                        });
+                        tile.classList.add('is-selected');
+                        var val = tile.getAttribute('data-value');
+
+                        if (type === 'size') {
+                            var sLabel = document.getElementById('selectedSizeText');
+                            if (sLabel) sLabel.textContent = val;
+                        } else if (type === 'color') {
+                            var cLabel = document.getElementById('selectedColorText');
+                            var cSwatch = document.getElementById('selectedColorSwatch');
+                            if (cLabel) cLabel.textContent = val;
+                            if (cSwatch) cSwatch.style.backgroundColor = tile.getAttribute('data-hex') || '#ccc';
+                        }
+                    });
+                });
+            });
 
             if (minus) {
                 minus.addEventListener('click', function () {
                     var val = parseInt(input.value, 10) || 1;
-                    if (val > 1) input.value = val - 1;
+                    if (val > 1) { input.value = val - 1; updateFreeship(); }
                 });
             }
 
             if (plus) {
                 plus.addEventListener('click', function () {
                     var val = parseInt(input.value, 10) || 1;
-                    if (val < maxStock) input.value = val + 1;
+                    if (val < maxStock) { input.value = val + 1; updateFreeship(); }
                 });
             }
+
+            if (input) {
+                input.addEventListener('change', function () {
+                    var val = parseInt(input.value, 10) || 1;
+                    if (val < 1) val = 1;
+                    if (val > maxStock) val = maxStock;
+                    input.value = val;
+                    updateFreeship();
+                });
+            }
+
+            updateFreeship();
 
             if (btn) {
                 btn.addEventListener('click', function () {

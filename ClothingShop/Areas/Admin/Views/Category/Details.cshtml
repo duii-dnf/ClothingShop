@@ -1,8 +1,11 @@
-﻿@model ClothingShop.Models.Category
+﻿@using ClothingShop.Services
+@model ClothingShop.Models.Category
 
 @{
     ViewBag.Title = "Chi tiết loại sản phẩm";
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    int childCount = Model.Children != null ? Model.Children.Count : 0;
+    int productCount = Model.Products != null ? Model.Products.Count : 0;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,21 +20,102 @@
     </div>
 </div>
 
-<dl class="row" style="max-width: 600px;">
-    <dt class="col-sm-4 text-muted">Mã loại</dt>
-    <dd class="col-sm-8">#@Model.CategoryId</dd>
+<dl class="row mb-4">
+    <dt class="col-sm-3 col-md-2 text-muted">Mã loại</dt>
+    <dd class="col-sm-9 col-md-10">#@Model.CategoryId</dd>
 
-    <dt class="col-sm-4 text-muted">Tên loại</dt>
-    <dd class="col-sm-8 fw-semibold">@Model.Name</dd>
+    <dt class="col-sm-3 col-md-2 text-muted">Tên loại</dt>
+    <dd class="col-sm-9 col-md-10 fw-semibold">@Model.Name</dd>
 
-    <dt class="col-sm-4 text-muted">Danh mục cha</dt>
-    <dd class="col-sm-8">@(Model.Parent != null ? Model.Parent.Name : "Danh mục gốc")</dd>
-
-    <dt class="col-sm-4 text-muted">Trạng thái</dt>
-    <dd class="col-sm-8">
-        @(Model.IsActive ? "Hiển thị" : "Đang ẩn")
+    <dt class="col-sm-3 col-md-2 text-muted">Danh mục cha</dt>
+    <dd class="col-sm-9 col-md-10">
+        @if (Model.Parent != null)
+        {
+            <a href="@Url.Action("Details", new { id = Model.Parent.CategoryId })" class="text-decoration-none">
+                @Model.Parent.Name
+            </a>
+        }
+        else
+        {
+            <span>Danh mục gốc</span>
+        }
     </dd>
 
-    <dt class="col-sm-4 text-muted">Số sản phẩm</dt>
-    <dd class="col-sm-8">@(Model.Products != null ? Model.Products.Count : 0)</dd>
+    <dt class="col-sm-3 col-md-2 text-muted">Trạng thái</dt>
+    <dd class="col-sm-9 col-md-10">
+        @if (Model.IsActive)
+        {
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Hiển thị</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Đang ẩn</span>
+        }
+    </dd>
+
+    <dt class="col-sm-3 col-md-2 text-muted">Số danh mục con</dt>
+    <dd class="col-sm-9 col-md-10">@childCount</dd>
+
+    <dt class="col-sm-3 col-md-2 text-muted">Số sản phẩm trực thuộc</dt>
+    <dd class="col-sm-9 col-md-10">@productCount</dd>
 </dl>
+
+@if (Model.Children != null && Model.Children.Any())
+{
+    <div class="w-100 mb-4">
+        <h6 class="fw-semibold mb-3">Danh mục con trực thuộc (@childCount)</h6>
+        <div class="list-group">
+            @foreach (var sub in Model.Children.OrderBy(c => c.CategoryId))
+            {
+                <a href="@Url.Action("Details", new { id = sub.CategoryId })" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3">
+                    <span class="fw-medium">@sub.Name</span>
+                    <span class="badge @(sub.IsActive ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle")">
+                        @(sub.IsActive ? "Hiển thị" : "Đang ẩn")
+                    </span>
+                </a>
+            }
+        </div>
+    </div>
+}
+
+@if (Model.Products != null && Model.Products.Any())
+{
+    <div class="w-100">
+        <h6 class="fw-semibold mb-3">Sản phẩm thuộc loại này (@productCount)</h6>
+        <div class="table-responsive border rounded">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 90px;" class="ps-3">Mã SP</th>
+                        <th>Tên sản phẩm</th>
+                        <th class="text-end" style="width: 160px;">Giá bán</th>
+                        <th class="text-center" style="width: 120px;">Tồn kho</th>
+                        <th class="text-center pe-3" style="width: 140px;">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Products.OrderByDescending(x => x.ProductId).Take(15))
+                    {
+                        var price = (p.DiscountPrice.HasValue && p.DiscountPrice.Value < p.Price) ? p.DiscountPrice.Value : p.Price;
+                        <tr>
+                            <td class="text-muted ps-3">#@p.ProductId</td>
+                            <td class="fw-medium">@p.Name</td>
+                            <td class="text-end">@PriceFormatter.Vnd(price)</td>
+                            <td class="text-center">@p.Stock</td>
+                            <td class="text-center pe-3">
+                                @if (p.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Đang bán</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Ngừng bán</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
