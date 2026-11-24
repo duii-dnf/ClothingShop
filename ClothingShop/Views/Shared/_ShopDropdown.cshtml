@@ -1,0 +1,52 @@
+@model IEnumerable<ClothingShop.ViewModels.MenuItemViewModel>
+
+<div class="shop-dropdown" id="shopDropdown" aria-label="Menu danh mục sản phẩm">
+    <div class="shop-dropdown__container">
+        <div class="shop-dropdown__top">
+            <a href="@Url.Action("Index", "Product", new { area = "" })" class="shop-dropdown__all-btn">
+                <i class="bi bi-grid me-1"></i> Xem tất cả sản phẩm
+            </a>
+            <div class="shop-dropdown__quick-links">
+                <a href="@Url.Action("Index", "Product", new { area = "", filter = "new" })" class="shop-dropdown__quick-link">
+                    <span class="badge bg-dark me-1">NEW</span> Hàng mới về
+                </a>
+                <a href="@Url.Action("Index", "Product", new { area = "", filter = "sale" })" class="shop-dropdown__quick-link text-danger">
+                    <span class="badge bg-danger me-1">SALE</span> Ưu đãi giảm giá
+                </a>
+                <a href="@Url.Action("Index", "Product", new { area = "", filter = "bestseller" })" class="shop-dropdown__quick-link">
+                    <span class="badge bg-warning text-dark me-1">HOT</span> Bán chạy
+                </a>
+            </div>
+        </div>
+
+        <div class="shop-dropdown__grid">
+            @foreach (var parent in Model)
+            {
+                <div class="shop-dropdown__column">
+                    <a class="shop-dropdown__parent-title" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">
+                        <span>@parent.Name</span>
+                        <i class="bi bi-arrow-right-short"></i>
+                    </a>
+                    @if (parent.Children.Any())
+                    {
+                        <ul class="shop-dropdown__child-list">
+                            <li>
+                                <a class="shop-dropdown__all-child" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">
+                                    Tất cả @parent.Name
+                                </a>
+                            </li>
+                            @foreach (var child in parent.Children)
+                            {
+                                <li>
+                                    <a class="shop-dropdown__child-item" href="@Url.Action("Index", "Product", new { area = "", categoryId = child.Id })">
+                                        @child.Name
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -2,45 +2,78 @@
 @model ClothingShop.ViewModels.HomeViewModel
 
 @{
-    ViewBag.Title = "Trang chủ";
+    ViewBag.Title = "Trang chủ - Thời trang hiện đại";
     ViewBag.FullWidth = true;
     ViewBag.PromoWine = true;
 
     string allUrl = Url.Action("Index", "Product", new { area = "" });
-    string link1 = Model.Categories.Count > 0
-        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[0].Id }) : allUrl;
-    string link2 = Model.Categories.Count > 1
-        ? Url.Action("Index", "Product", new { area = "", categoryId = Model.Categories[1].Id }) : allUrl;
+    string newArrivalsUrl = Url.Action("Index", "Product", new { area = "", filter = "new" });
+    string bestSellerUrl = Url.Action("Index", "Product", new { area = "", filter = "bestseller" });
+    string saleUrl = Url.Action("Index", "Product", new { area = "", filter = "sale" });
 
     var slides = new[]
     {
-        new { Img = "~/Content/images/hero/hero-1.jpg", Alt = "Bộ sưu tập mới", Url = allUrl },
-        new { Img = "~/Content/images/hero/hero-2.jpg", Alt = "Ưu đãi thành viên", Url = link1 },
-        new { Img = "~/Content/images/hero/hero-3.jpg", Alt = "Xu hướng mới", Url = link2 }
+        new
+        {
+            Img = "~/Content/images/hero/hero-1.jpg",
+            Badge = "BỘ SƯU TẬP 2026",
+            Title = "Xu Hướng Mùa Mới",
+            Sub = "Khẳng định phong cách riêng với các thiết kế thời trang hiện đại, tối giản và tinh tế.",
+            CtaText = "Khám phá ngay",
+            Url = allUrl
+        },
+        new
+        {
+            Img = "~/Content/images/hero/hero-2.jpg",
+            Badge = "BEST SELLER & TRENDING",
+            Title = "Phong Cách Đẳng Cấp",
+            Sub = "Chất liệu cao cấp chuẩn form tôn dáng, nâng niu từng chuyển động và tạo ấn tượng khó phai.",
+            CtaText = "Xem sản phẩm bán chạy",
+            Url = bestSellerUrl
+        },
+        new
+        {
+            Img = "~/Content/images/hero/hero-3.jpg",
+            Badge = "ƯU ĐÃI ĐẶC QUYỀN",
+            Title = "Flash Sale Giảm Tới 30%",
+            Sub = "Cơ hội sở hữu các mẫu trang phục cao cấp được yêu thích nhất với mức giá ưu đãi có hạn.",
+            CtaText = "Săn sale ngay",
+            Url = saleUrl
+        }
     };
 }
 
+<!-- SECTION 3: HERO BANNER / CAROUSEL -->
 <section class="hero-carousel container" aria-label="Banner nổi bật">
-    <div id="heroCarousel" class="carousel slide hero-frame" data-bs-ride="carousel" data-bs-interval="4800" data-bs-pause="hover">
+    <div id="heroCarousel" class="carousel slide carousel-fade hero-frame" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
         <div class="carousel-inner">
             @for (int i = 0; i < slides.Length; i++)
             {
+                var s = slides[i];
                 <div class="carousel-item @(i == 0 ? "active" : "")">
-                    <a class="hero-slide" href="@slides[i].Url" aria-label="@slides[i].Alt"
-                       style="background-image:url('@Url.Content(slides[i].Img)')"></a>
+                    <div class="hero-slide" style="background-image:url('@Url.Content(s.Img)')">
+                        <div class="hero-overlay">
+                            <div class="hero-content">
+                                <span class="hero-badge">@s.Badge</span>
+                                <h1 class="hero-title">@s.Title</h1>
+                                <p class="hero-sub">@s.Sub</p>
+                                <a href="@s.Url" class="btn btn-hero-cta">
+                                    @s.CtaText <i class="bi bi-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
 
         @if (slides.Length > 1)
         {
-            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Banner trước">
                 <span class="hero-arrow" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
-                <span class="visually-hidden">Banner trước</span>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Banner sau">
                 <span class="hero-arrow" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
-                <span class="visually-hidden">Banner sau</span>
             </button>
 
             <div class="carousel-indicators">
@@ -55,65 +88,180 @@
     </div>
 </section>
 
+<!-- SECTION 7: TRUST BADGES / USP -->
+<section class="usp-bar">
+    <div class="container">
+        <div class="usp-grid">
+            <div class="usp-item">
+                <div class="usp-icon"><i class="bi bi-arrow-repeat"></i></div>
+                <div class="usp-text">
+                    <h4 class="usp-title">Đổi trả 15 ngày</h4>
+                    <p class="usp-desc">Dễ dàng đổi size hoặc mẫu tận nhà</p>
+                </div>
+            </div>
+            <div class="usp-item">
+                <div class="usp-icon"><i class="bi bi-truck"></i></div>
+                <div class="usp-text">
+                    <h4 class="usp-title">Giao hàng toàn quốc</h4>
+                    <p class="usp-desc">Giao nhanh 1-3 ngày & đồng kiểm an tâm</p>
+                </div>
+            </div>
+            <div class="usp-item">
+                <div class="usp-icon"><i class="bi bi-shield-check"></i></div>
+                <div class="usp-text">
+                    <h4 class="usp-title">Thanh toán an toàn</h4>
+                    <p class="usp-desc">COD nhận hàng trả tiền hoặc thẻ ATM/Visa</p>
+                </div>
+            </div>
+            <div class="usp-item">
+                <div class="usp-icon"><i class="bi bi-headset"></i></div>
+                <div class="usp-text">
+                    <h4 class="usp-title">Hỗ trợ 24/7</h4>
+                    <p class="usp-desc">Tư vấn phối đồ và chọn size tận tâm</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 @if (Model.Categories.Any())
 {
-    <section class="section container">
-        <div class="section-head">
-            <h2 class="section-title">Danh mục</h2>
+    <!-- CATEGORY PILLS / QUICK EXPLORATION -->
+    <section class="section container pt-4 pb-2">
+        <div class="section-head mb-3">
+            <h2 class="section-title">Danh mục sản phẩm</h2>
         </div>
         <div class="cat-pills">
-            <button type="button" class="cat-pill cat-pill--all is-active" data-category-id="">
+            <a class="cat-pill is-active" href="@allUrl">
                 <span>Tất cả</span>
                 <i class="bi bi-arrow-up-right"></i>
-            </button>
+            </a>
             @foreach (var c in Model.Categories)
             {
-                <button type="button" class="cat-pill" data-category-id="@c.Id">
+                <a class="cat-pill" href="@Url.Action("Index", "Product", new { area = "", categoryId = c.Id })">
                     <span>@c.Name</span>
                     <i class="bi bi-arrow-up-right"></i>
-                </button>
+                </a>
             }
         </div>
     </section>
 }
 
-<section class="section container" id="products">
-    <div class="section-head">
-        <h2 class="section-title" id="productGridTitle">Sản phẩm mới</h2>
-        @Html.Partial("_SortDropdown", Model.Sort)
-    </div>
-
-    <div id="ajaxProductContainer" style="transition: opacity 0.3s ease;">
-        @if (Model.NewProducts.Any())
-        {
-            <div class="product-grid product-grid--4">
-                @foreach (var p in Model.NewProducts)
-                {
-                    @Html.Partial("_ProductCard", p)
-                }
-            </div>
-        }
-        else
-        {
-            <p class="text-center text-muted py-5">Chưa có sản phẩm nào.</p>
-        }
-    </div>
-</section>
-
-@if (Model.FeaturedProducts.Any())
-{
-    <section class="section container">
-        <div class="section-head">
-            <h2 class="section-title">Sản phẩm nổi bật</h2>
+<!-- SECTION 4.1: SẢN PHẨM MỚI VỀ (NEW ARRIVALS) -->
+<section class="section container" id="new-arrivals">
+    <div class="section-head d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge-sub">MỚI CẬP BẾN</span>
+            <h2 class="section-title mb-1">Sản phẩm mới về</h2>
+            <p class="text-muted small mb-0">Các thiết kế thời trang mới nhất vừa ra mắt tuần này</p>
         </div>
+        <a href="@newArrivalsUrl" class="btn btn-outline-dark btn-sm rounded-0">
+            Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    @if (Model.NewProducts != null && Model.NewProducts.Any())
+    {
         <div class="product-grid product-grid--4">
-            @foreach (var p in Model.FeaturedProducts)
+            @foreach (var p in Model.NewProducts.Take(8))
             {
                 @Html.Partial("_ProductCard", p)
             }
         </div>
-    </section>
-}
+    }
+    else
+    {
+        <p class="text-center text-muted py-4">Chưa có sản phẩm mới nào.</p>
+    }
+</section>
+
+<!-- SECTION 6: PROMO BANNER 1 (FREESHIP) -->
+<section class="container my-4 my-md-5">
+    <div class="promo-banner promo-banner--shipping">
+        <div class="promo-banner__content">
+            <span class="promo-badge"><i class="bi bi-lightning-charge-fill me-1"></i>FREESHIP TOÀN QUỐC</span>
+            <h3 class="promo-title">Miễn phí vận chuyển cho đơn hàng từ 500.000₫</h3>
+            <p class="promo-desc mb-0">Tự động áp dụng tại giỏ hàng cho mọi đơn hàng giao tận nơi trên toàn quốc.</p>
+        </div>
+        <div class="promo-banner__cta">
+            <a href="@allUrl" class="btn btn-light promo-btn">
+                Khám phá ngay <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 4.2: SẢN PHẨM BÁN CHẠY (BEST SELLERS) -->
+<section class="section container" id="best-sellers">
+    <div class="section-head d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge-sub badge-sub--hot"><i class="bi bi-fire me-1"></i>XU HƯỚNG THỊNH HÀNH</span>
+            <h2 class="section-title mb-1">Sản phẩm bán chạy</h2>
+            <p class="text-muted small mb-0">Những mẫu trang phục được khách hàng đặt mua nhiều nhất</p>
+        </div>
+        <a href="@bestSellerUrl" class="btn btn-outline-dark btn-sm rounded-0">
+            Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    @if (Model.BestSellerProducts != null && Model.BestSellerProducts.Any())
+    {
+        <div class="product-grid product-grid--4">
+            @foreach (var p in Model.BestSellerProducts.Take(8))
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center text-muted py-4">Chưa có sản phẩm bán chạy nào.</p>
+    }
+</section>
+
+<!-- SECTION 6: PROMO BANNER 2 (MEMBER DISCOUNT) -->
+<section class="container my-4 my-md-5">
+    <div class="promo-banner promo-banner--discount">
+        <div class="promo-banner__content">
+            <span class="promo-badge promo-badge--wine"><i class="bi bi-gift-fill me-1"></i>ƯU ĐÃI THÀNH VIÊN</span>
+            <h3 class="promo-title">Tặng mã giảm giá 15% cho đơn hàng đầu tiên</h3>
+            <p class="promo-desc mb-0">Nhập mã ưu đãi <span class="promo-code">NEWUSER</span> khi thanh toán để áp dụng khuyến mãi.</p>
+        </div>
+        <div class="promo-banner__cta">
+            <a href="@saleUrl" class="btn btn-lime promo-btn">
+                Nhận ưu đãi ngay <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 4.3: SẢN PHẨM KHUYẾN MÃI (FLASH SALE / HOT DEALS) -->
+<section class="section container mb-5" id="flash-sale">
+    <div class="section-head d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge-sub badge-sub--sale"><i class="bi bi-tags-fill me-1"></i>TIẾT KIỆM TỐI ĐA</span>
+            <h2 class="section-title mb-1">Sản phẩm khuyến mãi (Hot Deals)</h2>
+            <p class="text-muted small mb-0">Mức giá tốt nhất cho các thiết kế chọn lọc — Số lượng có hạn</p>
+        </div>
+        <a href="@saleUrl" class="btn btn-outline-dark btn-sm rounded-0">
+            Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    @if (Model.SaleProducts != null && Model.SaleProducts.Any())
+    {
+        <div class="product-grid product-grid--4">
+            @foreach (var p in Model.SaleProducts.Take(8))
+            {
+                @Html.Partial("_ProductCard", p)
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center text-muted py-4">Hiện chưa có sản phẩm nào trong chương trình khuyến mãi.</p>
+    }
+</section>
 
 @section Scripts {
     <script>
@@ -121,83 +269,10 @@
             var heroEl = document.getElementById('heroCarousel');
             if (heroEl && window.bootstrap && bootstrap.Carousel) {
                 bootstrap.Carousel.getOrCreateInstance(heroEl, {
-                    interval: 4800,
+                    interval: 5000,
                     pause: 'hover',
                     ride: 'carousel',
                     wrap: true
-                });
-            }
-
-            var pills = document.querySelectorAll('.cat-pill');
-            var container = document.getElementById('ajaxProductContainer');
-            var titleEl = document.getElementById('productGridTitle');
-            var sortSelect = document.getElementById('catalogSort') || document.querySelector('.sort-select');
-
-            function loadCategoryProducts(categoryId, sortValue) {
-                if (!container) return;
-                container.style.opacity = '0.4';
-
-                var url = '@Url.Action("Index", "Product")';
-                var data = { page: 1 };
-                if (categoryId) data.categoryId = categoryId;
-                if (sortValue) data.sort = sortValue;
-
-                $.get(url, data, function (html) {
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-
-                    var newGrid = tempDiv.querySelector('.product-grid');
-                    var emptyCatalog = tempDiv.querySelector('.empty-catalog');
-
-                    container.innerHTML = '';
-                    if (newGrid) {
-                        container.appendChild(newGrid);
-                    } else if (emptyCatalog) {
-                        container.innerHTML = '<p class="text-center text-muted py-5">Chưa có sản phẩm nào thuộc danh mục này.</p>';
-                    } else {
-                        container.innerHTML = '<p class="text-center text-muted py-5">Chưa có sản phẩm nào.</p>';
-                    }
-                    container.style.opacity = '1';
-                }).fail(function () {
-                    container.style.opacity = '1';
-                });
-            }
-
-            pills.forEach(function (pill) {
-                pill.addEventListener('click', function () {
-                    pills.forEach(function (p) { p.classList.remove('is-active'); });
-                    pill.classList.add('is-active');
-
-                    var catId = pill.getAttribute('data-category-id');
-                    var catName = pill.querySelector('span').textContent;
-                    titleEl.textContent = catId ? 'Khám phá ' + catName : 'Sản phẩm mới';
-
-                    var currentSort = sortSelect ? sortSelect.value : '';
-                    if (currentSort.includes('sort=')) {
-                        var urlParams = new URLSearchParams(currentSort.substring(currentSort.indexOf('?')));
-                        currentSort = urlParams.get('sort');
-                    }
-
-                    loadCategoryProducts(catId, currentSort);
-                });
-            });
-
-            if (sortSelect) {
-                var oldOnChange = sortSelect.onchange;
-                sortSelect.onchange = null;
-
-                sortSelect.addEventListener('change', function () {
-                    var activePill = document.querySelector('.cat-pill.is-active');
-                    var catId = activePill ? activePill.getAttribute('data-category-id') : '';
-
-                    var val = sortSelect.value;
-                    var sortParam = val;
-                    if (val.includes('sort=')) {
-                        var urlParams = new URLSearchParams(val.substring(val.indexOf('?')));
-                        sortParam = urlParams.get('sort');
-                    }
-
-                    loadCategoryProducts(catId, sortParam);
                 });
             }
         })();
