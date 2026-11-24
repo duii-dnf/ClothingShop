@@ -12,42 +12,90 @@
             : Url.Content(rawImg.StartsWith("~") || rawImg.StartsWith("/") ? rawImg : "~/Content/images/products/" + rawImg));
 
     var onSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
+    var finalPrice = onSale ? Model.DiscountPrice.Value : Model.Price;
+    int discountPercent = onSale && Model.Price > 0
+        ? (int)Math.Round((Model.Price - Model.DiscountPrice.Value) / Model.Price * 100)
+        : 0;
+    var detailsUrl = Url.Action("Details", "Product", new { area = "", id = Model.ProductId });
 
-    <a class="product-card" href="@Url.Action("Details", "Product", new { area = "", id = Model.ProductId })">
+    <div class="product-card" data-product-id="@Model.ProductId">
         <div class="product-card__media">
-            <img src="@imgSrc"
-                 alt="@Model.Name"
-                 loading="lazy"
-                 onerror="this.onerror=null;this.src='@fallbackImg';" />
-            @if (Model.Stock <= 0)
-            {
-                <span class="tag tag--soldout">Hết hàng</span>
-            }
-            else if (onSale)
-            {
-                <span class="tag tag--sale">Giảm giá</span>
-            }
-            else if (Model.IsFeatured)
-            {
-                <span class="tag">Nổi bật</span>
-            }
-            else if (Model.IsNew)
-            {
-                <span class="tag">Mới</span>
-            }
-            <span class="product-card__quick">Xem chi tiết</span>
+            <a href="@detailsUrl" class="product-card__img-link" aria-label="@Model.Name">
+                <img src="@imgSrc"
+                     alt="@Model.Name"
+                     loading="lazy"
+                     class="product-card__img"
+                     onerror="this.onerror=null;this.src='@fallbackImg';" />
+            </a>
+
+            <!-- Status Badges -->
+            <div class="product-card__badges">
+                @if (Model.Stock <= 0)
+                {
+                    <span class="tag tag--soldout">Hết hàng</span>
+                }
+                else
+                {
+                    if (onSale && discountPercent > 0)
+                    {
+                        <span class="tag tag--sale">-@discountPercent%</span>
+                    }
+                    if (Model.IsNew)
+                    {
+                        <span class="tag tag--new">NEW</span>
+                    }
+                    else if (Model.IsFeatured)
+                    {
+                        <span class="tag tag--hot">HOT</span>
+                    }
+                }
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="product-card__actions">
+                <a href="@detailsUrl" class="card-action-btn card-action-btn--view" title="Xem chi tiết">
+                    <i class="bi bi-eye"></i>
+                    <span class="action-text">Chi tiết</span>
+                </a>
+                @if (Model.Stock > 0)
+                {
+                    <button type="button"
+                            class="card-action-btn card-action-btn--cart js-quick-add"
+                            title="Thêm nhanh vào giỏ"
+                            data-url="@Url.Action("Add", "Cart", new { area = "" })"
+                            data-id="@Model.ProductId"
+                            data-name="@Model.Name"
+                            data-price="@finalPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                            data-img="@(Model.ImageUrl ?? "default.jpg")">
+                        <i class="bi bi-bag-plus"></i>
+                        <span class="action-text">Thêm giỏ</span>
+                    </button>
+                }
+            </div>
         </div>
-        <h3 class="product-card__name" title="@Model.Name">@Model.Name</h3>
-        <p class="product-card__price">
-            @if (onSale)
+
+        <div class="product-card__body">
+            @if (Model.Category != null)
             {
-                <span class="price-now">@PriceFormatter.Vnd(Model.DiscountPrice)</span>
-                <s class="price-old">@PriceFormatter.Vnd(Model.Price)</s>
+                <span class="product-card__category">@Model.Category.Name</span>
             }
-            else
-            {
-                <span class="price-now">@PriceFormatter.Vnd(Model.Price)</span>
-            }
-        </p>
-    </a>
+            <h3 class="product-card__name">
+                <a href="@detailsUrl" title="@Model.Name">@Model.Name</a>
+            </h3>
+
+            <div class="product-card__price-wrapper">
+                <p class="product-card__price mb-0">
+                    <span class="price-now">@PriceFormatter.Vnd(finalPrice)</span>
+                    @if (onSale)
+                    {
+                        <s class="price-old">@PriceFormatter.Vnd(Model.Price)</s>
+                    }
+                </p>
+                @if (onSale && discountPercent > 0)
+                {
+                    <span class="sale-percent-label">Tiết kiệm @discountPercent%</span>
+                }
+            </div>
+        </div>
+    </div>
 }

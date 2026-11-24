@@ -8,22 +8,28 @@
 }
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewBag.Title - ClothingShop</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet" />
     @Styles.Render("~/Content/css")
+    <link rel="stylesheet" href="@Url.Content("~/Content/Site.css")?v=@(System.IO.File.GetLastWriteTime(Server.MapPath("~/Content/Site.css")).Ticks)" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 </head>
+
 <body class="store-body">
 
     <header class="site-header">
         <div class="site-header__inner">
             <div class="header-left">
-                <button class="icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-label="Mở menu">
+                <button class="icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"
+                    aria-label="Mở menu">
                     <i class="bi bi-list"></i>
                 </button>
                 <span class="header-est d-none d-lg-inline-block">Est. 2026 &mdash; Saigon</span>
@@ -32,16 +38,14 @@
             @Html.ActionLink("ClothingShop", "Index", "Home", new { area = "" }, new { @class = "brand" })
 
             <div class="header-actions">
-                <button class="icon-btn" type="button" data-bs-toggle="collapse" data-bs-target="#searchBar" aria-expanded="false" aria-label="Tìm kiếm">
+                <button class="icon-btn" type="button" data-bs-toggle="collapse" data-bs-target="#searchBar"
+                    aria-expanded="false" aria-label="Tìm kiếm">
                     <i class="bi bi-search"></i>
                 </button>
 
-                <a class="icon-btn" href="@Url.Action("Index", "Cart", new { area = "" })" aria-label="Giỏ hàng">
+                <a class="icon-btn position-relative" href="@Url.Action("Index", "Cart", new { area = "" })" aria-label="Giỏ hàng">
                     <i class="bi bi-bag"></i>
-                    @if (cartCount > 0)
-                    {
-                        <span class="cart-count">@cartCount</span>
-                    }
+                    <span class="cart-count" id="headerCartCount" style="@(cartCount > 0 ? "" : "display:none;")">@cartCount</span>
                 </a>
 
                 @if (currentUser == null)
@@ -53,23 +57,30 @@
                 else
                 {
                     <div class="dropdown">
-                        <button class="icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản">
+                        <button class="icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                            aria-label="Tài khoản">
                             <i class="bi bi-person-check"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text fw-semibold">@currentUser.FullName</span></li>
-                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <hr class="dropdown-divider" />
+                            </li>
                             @if (currentUser.CanAccessAdmin)
                             {
-                                <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new { area = "Admin" }, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new
+                            { area = "Admin" }, new { @class = "dropdown-item" })</li>
                             }
-                            <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, new { @class = "dropdown-item" })</li>
-                            <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, new { @class = "dropdown-item" })</li>
+                            <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, new { @class =
+                            "dropdown-item" })</li>
+                            <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, new { @class =
+                            "dropdown-item" })</li>
                         </ul>
                     </div>
                 }
 
-                <button class="menu-btn d-none d-lg-inline-flex" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
+                <button class="menu-btn d-none d-lg-inline-flex" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#mobileMenu">
                     <i class="bi bi-list"></i> Menu
                 </button>
             </div>
@@ -80,12 +91,19 @@
                 <li class="main-nav__item">
                     <a class="main-nav__link" href="@Url.Action("Index", "Home", new { area = "" })">Trang chủ</a>
                 </li>
-                <li class="main-nav__item">
-                    <a class="main-nav__link" href="@Url.Action("Index", "Product", new { area = "" })">Bộ sưu tập</a>
+                <li class="main-nav__item main-nav__item--shop">
+                    <a class="main-nav__link" href="@Url.Action("Index", "Product", new { area = "" })" id="shopNavToggle">
+                        Cửa hàng <i class="bi bi-chevron-down ms-1 shop-chevron"></i>
+                    </a>
+                    @Html.Action("CategoryMenu", "Menu", new { area = "", mode = "shop_dropdown" })
                 </li>
-                
                 <li class="main-nav__item">
-                    <a class="main-nav__link" href="@Url.Action("Index", "Product", new { area = "", sort = "newest" })">Hàng mới về</a>
+                    <a class="main-nav__link"
+                        href="@Url.Action("Index", "Product", new { area = "", sort = "newest" })">Hàng mới về</a>
+                </li>
+                <li class="main-nav__item">
+                    <a class="main-nav__link"
+                        href="@Url.Action("Index", "Product", new { area = "", filter = "sale" })">Khuyến mãi</a>
                 </li>
                 <li class="main-nav__item">
                     <a class="main-nav__link" href="#store-footer">Liên hệ</a>
@@ -94,10 +112,16 @@
         </nav>
 
         <div class="collapse search-bar" id="searchBar">
-            <form action="@Url.Action("Index", "Product", new { area = "" })" method="get">
-                <input type="text" name="searchString" class="form-control" placeholder="Tìm sản phẩm..." aria-label="Từ khóa" />
-                <button class="btn btn-primary" type="submit">Tìm</button>
-            </form>
+            <div class="container search-bar__container position-relative">
+                <form action="@Url.Action("Index", "Product", new { area = "" })" method="get" id="headerSearchForm" class="search-form" autocomplete="off">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="searchString" id="headerSearchInput" class="form-control border-start-0 ps-0" placeholder="Nhập tên sản phẩm để tìm kiếm..." aria-label="Từ khóa" autocomplete="off" />
+                        <button class="btn btn-primary px-4" type="submit">Tìm kiếm</button>
+                    </div>
+                </form>
+                <div id="headerSearchSuggestions" class="search-suggestions" style="display:none;" aria-live="polite"></div>
+            </div>
         </div>
     </header>
 
@@ -119,7 +143,8 @@
                     <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, null)</li>
                     if (currentUser.CanAccessAdmin)
                     {
-                        <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new { area = "Admin" }, null)</li>
+                        <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new { area
+                    = "Admin" }, null)</li>
                     }
                     <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, null)</li>
                 }
@@ -167,11 +192,14 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-wordmark mb-3">ClothingShop</div>
                     <p class="small text-white-50 mb-3" style="line-height:1.7;">
-                        Thời trang tối giản đương đại, đề cao phom dáng chuẩn mực và chất liệu tự nhiên bền vững cho nhịp sống hiện đại.
+                        Thời trang tối giản đương đại, đề cao phom dáng chuẩn mực và chất liệu tự nhiên bền vững cho
+                        nhịp sống hiện đại.
                     </p>
                     <p class="footer-label mt-3">Flagship Store</p>
-                    <p class="small text-white mb-1"><i class="bi bi-geo-alt me-1"></i> 140 Lê Trọng Tấn, Tân Phú, TP.HCM</p>
-                    <p class="small text-white-50 mb-3"><i class="bi bi-clock me-1"></i> 09:00 &ndash; 22:00 (Hàng ngày)</p>
+                    <p class="small text-white mb-1"><i class="bi bi-geo-alt me-1"></i> 140 Lê Trọng Tấn, Tân Phú,
+                        TP.HCM</p>
+                    <p class="small text-white-50 mb-3"><i class="bi bi-clock me-1"></i> 09:00 &ndash; 22:00 (Hàng ngày)
+                    </p>
                     <div class="footer-socials">
                         <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
                         <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
@@ -209,15 +237,17 @@
                 <div class="col-lg-4 col-md-6">
                     <p class="footer-label mb-3">Bản đồ cửa hàng</p>
                     <div class="footer-map">
-                        <iframe src="https://maps.google.com/maps?q=140%20L%C3%AA%20Tr%E1%BB%8Dng%20T%E1%BA%A5n,%20T%C3%A2n%20Ph%C3%BA,%20H%E1%BB%93%20Ch%C3%AD%20Minh&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                                loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Bản đồ ClothingShop"></iframe>
+                        <iframe
+                            src="https://maps.google.com/maps?q=140%20L%C3%AA%20Tr%E1%BB%8Dng%20T%E1%BA%A5n,%20T%C3%A2n%20Ph%C3%BA,%20H%E1%BB%93%20Ch%C3%AD%20Minh&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                            loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                            title="Bản đồ ClothingShop"></iframe>
                     </div>
                 </div>
             </div>
 
             <div class="footer-bottom-bar">
                 <div class="small text-white-50">
-                    &copy; 2026 ClothingShop Studio. Đồ án môn Lập trình Web.
+                    &copy; 2026 ClothingShop Studio.
                 </div>
                 <div class="pay-badges">
                     <span class="pay-badge pay-badge--visa">VISA</span>
@@ -233,5 +263,225 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
+
+    <script>
+        (function () {
+            // Live Search Autocomplete
+            var searchInput = document.getElementById('headerSearchInput');
+            var searchSuggestions = document.getElementById('headerSearchSuggestions');
+            var searchBar = document.getElementById('searchBar');
+            var debounceTimer = null;
+            var currentSuggestions = [];
+            var selectedIndex = -1;
+
+            if (searchInput && searchSuggestions) {
+                searchInput.addEventListener('input', function () {
+                    var term = this.value.trim();
+                    clearTimeout(debounceTimer);
+                    selectedIndex = -1;
+
+                    if (term.length < 1) {
+                        searchSuggestions.innerHTML = '';
+                        searchSuggestions.style.display = 'none';
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(function () {
+                        searchSuggestions.innerHTML = '<div class="search-suggestions__loading"><i class="bi bi-arrow-repeat spin"></i> Đang tìm kiếm...</div>';
+                        searchSuggestions.style.display = 'block';
+
+                        $.getJSON('@Url.Action("Suggestions", "Product", new { area = "" })', { term: term }, function (res) {
+                            if (!res || !res.success || !res.items || res.items.length === 0) {
+                                searchSuggestions.innerHTML = '<div class="search-suggestions__empty"><i class="bi bi-search text-muted me-2"></i>Không tìm thấy sản phẩm phù hợp với "<strong>' + escapeHtml(term) + '</strong>"</div>';
+                                currentSuggestions = [];
+                                return;
+                            }
+
+                            currentSuggestions = res.items;
+                            var html = '<div class="search-suggestions__header"><span>Gợi ý sản phẩm (' + res.items.length + ')</span><a href="@Url.Action("Index", "Product", new { area = "" })?searchString=' + encodeURIComponent(term) + '">Xem tất cả &rarr;</a></div>';
+                            html += '<ul class="search-suggestions__list">';
+
+                            res.items.forEach(function (item, idx) {
+                                html += '<li class="search-suggestions__item" data-index="' + idx + '" data-url="' + item.url + '">';
+                                html += '  <img src="' + item.imageUrl + '" alt="' + escapeHtml(item.name) + '" class="search-suggestions__img" />';
+                                html += '  <div class="search-suggestions__info">';
+                                html += '    <div class="search-suggestions__name">' + highlightMatch(item.name, term) + '</div>';
+                                if (item.category) {
+                                    html += '    <div class="search-suggestions__cat">' + escapeHtml(item.category) + '</div>';
+                                }
+                                html += '    <div class="search-suggestions__pricing">';
+                                html += '      <span class="search-suggestions__price">' + item.price + '</span>';
+                                if (item.oldPrice) {
+                                    html += '      <span class="search-suggestions__old-price">' + item.oldPrice + '</span>';
+                                }
+                                if (item.discountPercent) {
+                                    html += '      <span class="search-suggestions__badge">' + item.discountPercent + '</span>';
+                                }
+                                html += '    </div>';
+                                html += '  </div>';
+                                html += '</li>';
+                            });
+
+                            html += '</ul>';
+                            html += '<div class="search-suggestions__footer"><small class="text-muted">Nhấn Enter để xem toàn bộ kết quả tìm kiếm</small></div>';
+                            searchSuggestions.innerHTML = html;
+
+                            // Click item
+                            searchSuggestions.querySelectorAll('.search-suggestions__item').forEach(function (el) {
+                                el.addEventListener('click', function () {
+                                    var url = this.getAttribute('data-url');
+                                    if (url) window.location.href = url;
+                                });
+                            });
+                        }).fail(function () {
+                            searchSuggestions.innerHTML = '<div class="search-suggestions__empty text-danger">Có lỗi khi tìm kiếm, vui lòng thử lại sau.</div>';
+                        });
+                    }, 220);
+                });
+
+                // Keyboard navigation
+                searchInput.addEventListener('keydown', function (e) {
+                    var items = searchSuggestions.querySelectorAll('.search-suggestions__item');
+                    if (!items || items.length === 0 || searchSuggestions.style.display === 'none') return;
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedIndex = (selectedIndex + 1) % items.length;
+                        updateSelection(items);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                        updateSelection(items);
+                    } else if (e.key === 'Enter') {
+                        if (selectedIndex >= 0 && selectedIndex < items.length) {
+                            e.preventDefault();
+                            var url = items[selectedIndex].getAttribute('data-url');
+                            if (url) window.location.href = url;
+                        }
+                    } else if (e.key === 'Escape') {
+                        searchSuggestions.style.display = 'none';
+                    }
+                });
+
+                function updateSelection(items) {
+                    items.forEach(function (el, idx) {
+                        if (idx === selectedIndex) {
+                            el.classList.add('is-active');
+                            el.scrollIntoView({ block: 'nearest' });
+                        } else {
+                            el.classList.remove('is-active');
+                        }
+                    });
+                }
+
+                function escapeHtml(text) {
+                    var div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+
+                function highlightMatch(text, term) {
+                    if (!term) return escapeHtml(text);
+                    var regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                    return escapeHtml(text).replace(regex, '<mark>$1</mark>');
+                }
+
+                // Close suggestions on outside click
+                document.addEventListener('click', function (e) {
+                    if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                        searchSuggestions.style.display = 'none';
+                    }
+                });
+            }
+
+            // Mobile menu / Shop Dropdown touch enhancement
+            var shopToggle = document.getElementById('shopNavToggle');
+            var shopDropdown = document.getElementById('shopDropdown');
+            if (shopToggle && shopDropdown && 'ontouchstart' in window) {
+                shopToggle.addEventListener('click', function (e) {
+                    if (!shopDropdown.classList.contains('is-touch-open')) {
+                        e.preventDefault();
+                        shopDropdown.classList.add('is-touch-open');
+                    }
+                });
+                document.addEventListener('click', function (e) {
+                    if (!shopToggle.contains(e.target) && !shopDropdown.contains(e.target)) {
+                        shopDropdown.classList.remove('is-touch-open');
+                    }
+                });
+            }
+
+            // Quick Add to Cart Handler (delegated)
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('.js-quick-add');
+                if (!btn) return;
+                e.preventDefault();
+
+                var url = btn.getAttribute('data-url');
+                var productId = btn.getAttribute('data-id');
+                var productName = btn.getAttribute('data-name');
+                var price = btn.getAttribute('data-price');
+                var img = btn.getAttribute('data-img');
+
+                if (btn.disabled) return;
+                btn.disabled = true;
+                var originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        productId: productId,
+                        productName: productName,
+                        imageUrl: img,
+                        price: price,
+                        quantity: 1
+                    },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (res) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+
+                        if (res && res.cartCount !== undefined) {
+                            var cartBadge = document.getElementById('headerCartCount');
+                            if (cartBadge) {
+                                cartBadge.textContent = res.cartCount;
+                                cartBadge.style.display = res.cartCount > 0 ? 'inline-block' : 'none';
+                            }
+                        }
+
+                        var toastEl = document.getElementById('cartToast');
+                        var toastMsg = document.getElementById('cartToastMsg');
+                        if (toastEl && window.bootstrap && bootstrap.Toast) {
+                            if (toastMsg) {
+                                toastMsg.innerHTML = 'Đã thêm <strong>' + escapeHtml(productName) + '</strong> vào giỏ hàng!';
+                            }
+                            var toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500 });
+                            toast.show();
+                        }
+                    },
+                    error: function () {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                        alert('Không thể thêm sản phẩm vào giỏ hàng lúc này. Vui lòng thử lại!');
+                    }
+                });
+            });
+        })();
+    </script>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+        <div id="cartToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2" id="cartToastBody">
+                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    <span id="cartToastMsg">Đã thêm sản phẩm vào giỏ hàng!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>

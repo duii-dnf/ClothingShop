@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -33,20 +34,52 @@ namespace ClothingShop.Controllers
                 vm.Categories.Add(new HomeCategoryTile { Id = parent.CategoryId, Name = parent.Name, ImageUrl = image });
             }
 
-            // Lưới chính: sắp xếp toàn bộ sản phẩm đang bán rồi lấy 12 sản phẩm đầu
-            vm.NewProducts = ProductSorting.Apply(db.Products.Where(p => p.IsActive), vm.Sort)
-                                           .Take(12).ToList();
+            // 1. Phân khu 1: Sản phẩm mới về (New Arrivals) - ưu tiên IsNew hoặc mới nhất
+            vm.NewProducts = db.Products
+                .Include(p => p.Category)
+                .Where(p => p.IsActive)
+                .OrderByDescending(p => p.IsNew)
+                .ThenByDescending(p => p.CreatedAt)
+                .Take(8)
+                .ToList();
 
-            // Lưới phụ "nổi bật" chỉ hiện khi để sắp xếp mặc định (tránh lẫn với danh sách người dùng đã chọn)
-            if (vm.Sort == ProductSorting.Newest)
+            // 2. Phân khu 2: Sản phẩm bán chạy (Best Sellers) - tính từ OrderDetails thực tế + IsFeatured
+            var topSoldIds = db.OrderDetails
+                .GroupBy(d => d.ProductId)
+                .OrderByDescending(g => g.Sum(x => x.Quantity))
+                .Select(g => g.Key)
+                .Take(8)
+                .ToList();
+
+            var bestSellers = db.Products
+                .Include(p => p.Category)
+                .Where(p => p.IsActive && topSoldIds.Contains(p.ProductId))
+                .ToList();
+
+            if (bestSellers.Count < 8)
             {
-                var shownIds = vm.NewProducts.Select(p => p.ProductId).ToList();
-                vm.FeaturedProducts = db.Products
-                                        .Where(p => p.IsActive && !shownIds.Contains(p.ProductId))
-                                        .OrderByDescending(p => p.IsFeatured)
-                                        .ThenByDescending(p => p.CreatedAt)
-                                        .Take(8).ToList();
+                var existingIds = bestSellers.Select(p => p.ProductId).ToList();
+                var fallback = db.Products
+                    .Include(p => p.Category)
+                    .Where(p => p.IsActive && !existingIds.Contains(p.ProductId))
+                    .OrderByDescending(p => p.IsFeatured)
+                    .ThenByDescending(p => p.CreatedAt)
+                    .Take(8 - bestSellers.Count)
+                    .ToList();
+                bestSellers.AddRange(fallback);
             }
+            vm.BestSellerProducts = bestSellers;
+
+            // 3. Phân khu 3: Sản phẩm khuyến mãi (Flash Sale / Hot Deals) - thực sự có DiscountPrice < Price
+            var saleList = db.Products
+                .Include(p => p.Category)
+                .Where(p => p.IsActive && p.DiscountPrice.HasValue && p.DiscountPrice.Value < p.Price)
+                .ToList();
+
+            vm.SaleProducts = saleList
+                .OrderByDescending(p => p.Price > 0 ? (p.Price - p.DiscountPrice.Value) / p.Price : 0)
+                .Take(8)
+                .ToList();
 
             return View(vm);
         }

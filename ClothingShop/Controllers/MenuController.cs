@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -35,6 +35,7 @@ namespace ClothingShop.Controllers
 
                 string view = mode == "mobile" ? "_CategoryMenuMobile"
                             : mode == "footer" ? "_CategoryMenuFooter"
+                            : mode == "shop_dropdown" ? "_ShopDropdown"
                             : "_CategoryMenu";
                 return PartialView(view, menu);
             }

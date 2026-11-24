@@ -1,4 +1,4 @@
-﻿@using ClothingShop.Models
+@using ClothingShop.Models
 @using ClothingShop.Services
 @model IEnumerable<ClothingShop.Models.Product>
 
@@ -14,6 +14,7 @@
     bool onSale = ViewBag.OnSale ?? false;
     bool isNew = ViewBag.IsNew ?? false;
 
+    string filter = ViewBag.Filter as string ?? string.Empty;
     int totalItems = ViewBag.TotalItems ?? 0;
     int totalPages = ViewBag.TotalPages ?? 1;
     int currentPage = ViewBag.CurrentPage ?? 1;
@@ -29,6 +30,25 @@
     var genderOptions = new[] { "Nam", "Nữ", "Unisex" };
 
     ViewBag.Title = activeCategory != null ? activeCategory.Name : "Tất cả sản phẩm";
+    string pageHeading = "Tất cả sản phẩm";
+    if (activeCategory != null)
+    {
+        pageHeading = activeCategory.Name;
+    }
+    else if (filter == "sale" || filter == "deal")
+    {
+        pageHeading = "Sản phẩm khuyến mãi (Hot Deals)";
+    }
+    else if (filter == "new")
+    {
+        pageHeading = "Sản phẩm mới về (New Arrivals)";
+    }
+    else if (filter == "bestseller" || filter == "hot" || filter == "featured")
+    {
+        pageHeading = "Sản phẩm bán chạy (Best Sellers)";
+    }
+
+    ViewBag.Title = pageHeading;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -301,9 +321,14 @@
         <span class="sep">/</span>
         <span>@activeCategory.Name</span>
     }
+    else if (!string.IsNullOrEmpty(filter))
+    {
+        <span class="sep">/</span>
+        <span>@pageHeading</span>
+    }
 </nav>
 
-<h1 class="page-title">@(activeCategory != null ? activeCategory.Name : "Tất cả sản phẩm")</h1>
+<h1 class="page-title">@pageHeading</h1>
 <p class="page-intro">
     @if (!string.IsNullOrEmpty(keyword))
     {
@@ -330,6 +355,13 @@
             {<input type="hidden" name="onSale" value="true" />}
             @if (isNew)
             {<input type="hidden" name="isNew" value="true" />}
+            {
+                <input type="hidden" name="categoryId" value="@categoryId" />
+            }
+            @if (!string.IsNullOrEmpty(filter))
+            {
+                <input type="hidden" name="filter" value="@filter" />
+            }
             <input type="hidden" name="sort" value="@sort" />
             <input type="text" name="keyword" value="@keyword" placeholder="Tìm sản phẩm..." aria-label="Tìm sản phẩm" />
             <button type="submit" aria-label="Tìm"><i class="bi bi-search"></i></button>
@@ -512,6 +544,8 @@
                         onSale = onSale ? (bool?)true : null,
                         isNew = isNew ? (bool?)true : null,
                         sort = opt.Key
+                        sort = opt.Key,
+                        filter = string.IsNullOrEmpty(filter) ? null : filter
                     });
                     <option value="@url" @(sort == opt.Key ? "selected" : null)>@opt.Value</option>
                 }
@@ -542,6 +576,7 @@
                 @if (currentPage > 1)
                 {
                     <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage - 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort = sort })">Trước</a>
+                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage - 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort, filter = string.IsNullOrEmpty(filter) ? null : filter })">Trước</a>
                 }
                 else
                 {
@@ -557,12 +592,14 @@
                     else
                     {
                         <a href="@Url.Action("Index", "Product", new { page = i, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort = sort })">@i</a>
+                        <a href="@Url.Action("Index", "Product", new { page = i, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort, filter = string.IsNullOrEmpty(filter) ? null : filter })">@i</a>
                     }
                 }
 
                 @if (currentPage < totalPages)
                 {
                     <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage + 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender, minPrice = minPrice, maxPrice = maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort = sort })">Sau</a>
+                    <a class="pager__nav" href="@Url.Action("Index", "Product", new { page = currentPage + 1, categoryId = categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, sort = sort, filter = string.IsNullOrEmpty(filter) ? null : filter })">Sau</a>
                 }
                 else
                 {
