@@ -141,22 +141,27 @@ namespace ClothingShop.Controllers
             {
                 try
                 {
-                    decimal subtotal = _cartService.GetCartTotal();
-                    decimal shippingFee = subtotal >= 500000m || subtotal == 0 ? 0m : 30000m;
+                    decimal subTotal = _cartService.GetCartTotal();
+                    decimal shippingFee = subTotal >= 500000m || subTotal == 0 ? 0m : 30000m;
                     decimal discountAmount = 0m;
                     int? couponId = null;
 
-                    if (!string.IsNullOrEmpty(model.CouponCode))
+                    if (!string.IsNullOrWhiteSpace(model.CouponCode))
                     {
-                        var coupon = db.Coupons.FirstOrDefault(c => c.Code == model.CouponCode && c.IsActive);
-                        if (coupon != null)
+                        var check = EvaluateCoupon(model.CouponCode, subTotal);
+                        if (!check.IsValid)
                         {
-                            discountAmount = subtotal * (coupon.DiscountPercent / 100m);
-                            couponId = coupon.CouponId;
+                            ModelState.AddModelError("CouponCode", check.Message);
+                            ViewBag.CartItems = cart;
+                            ViewBag.SubTotal = subTotal;
+                            return View(model);
                         }
+                        discountAmount = check.DiscountAmount;
+                        couponId = check.Coupon.CouponId;
+                        check.Coupon.UsedCount += 1;
                     }
 
-                    decimal totalAmount = Math.Max(0m, subtotal + shippingFee - discountAmount);
+                    decimal totalAmount = Math.Max(0m, subTotal + shippingFee - discountAmount);
 
                     bool isOnlinePayment = model.PaymentMethod == "Online" || model.PaymentMethod == "VNPay" || model.PaymentMethod == "Momo";
                     string paymentStatus = isOnlinePayment ? "Paid" : "Unpaid";
@@ -175,7 +180,7 @@ namespace ClothingShop.Controllers
                         Status = OrderStatus.Pending,
                         Note = model.Note,
                         CouponId = couponId,
-                        Subtotal = subtotal,
+                        Subtotal = subTotal,
                         ShippingFee = shippingFee,
                         DiscountAmount = discountAmount,
                         TotalAmount = totalAmount
@@ -409,6 +414,154 @@ namespace ClothingShop.Controllers
         {
             if (disposing) db.Dispose();
             base.Dispose(disposing);
+        }
+
+        // Hàm kiểm tra điều kiện Coupon dùng chung cho cả AJAX và lúc bấm Đặt hàng
+        private (bool IsValid, string Message, Coupon Coupon, decimal DiscountAmount) EvaluateCoupon(string couponCode, decimal subTotal)
+        {
+            if (string.IsNullOrWhiteSpace(couponCode))
+                return (false, "Vui lòng nhập mã giảm giá.", null, 0m);
+
+            string normalizedCode = couponCode.Trim().ToUpper();
+            var coupon = db.Coupons.FirstOrDefault(c => c.Code.ToUpper() == normalizedCode);
+
+            if (coupon == null)
+                return (false, $"Mã ưu đãi \"{normalizedCode}\" không tồn tại.", null, 0m);
+
+            if (!coupon.IsActive)
+                return (false, $"Mã ưu đãi \"{normalizedCode}\" hiện không khả dụng.", null, 0m);
+
+            var now = DateTime.Now;
+            if (now < coupon.StartDate)
+                return (false, $"Mã \"{normalizedCode}\" chỉ áp dụng từ ngày {coupon.StartDate:dd/MM/yyyy}.", null, 0m);
+
+            if (now > coupon.EndDate)
+                return (false, $"Mã \"{normalizedCode}\" đã hết hạn vào ngày {coupon.EndDate:dd/MM/yyyy}.", null, 0m);
+
+            if (coupon.UsageLimit > 0 && coupon.UsedCount >= coupon.UsageLimit)
+                return (false, $"Mã \"{normalizedCode}\" đã hết lượt sử dụng.", null, 0m);
+
+            if (subTotal < coupon.MinOrder)
+                return (false, $"Đơn hàng tối thiểu {coupon.MinOrder:N0} VNĐ để dùng mã \"{normalizedCode}\".", null, 0m);
+
+            decimal discount = Math.Round(subTotal * coupon.DiscountPercent / 100m, 0);
+            if (discount > subTotal) discount = subTotal;
+
+            return (true, $"Áp dụng thành công mã {coupon.Code} (giảm {coupon.DiscountPercent}%).", coupon, discount);
+        }
+
+        // Action AJAX gọi khi bấm nút "ÁP DỤNG"
+        [HttpPost]
+        public JsonResult CheckCoupon(string couponCode)
+        {
+            var cart = _cartService.GetCart();
+            decimal subTotal = _cartService.GetCartTotal();
+            decimal shippingFee = subTotal > 500000m ? 0m : 30000m;
+
+            var result = EvaluateCoupon(couponCode, subTotal);
+            decimal finalTotal = Math.Max(0m, subTotal + shippingFee - result.DiscountAmount);
+
+            return Json(new
+            {
+                success = result.IsValid,
+                message = result.Message,
+                code = result.Coupon?.Code,
+                discountPercent = result.Coupon?.DiscountPercent ?? 0,
+                discountAmount = result.DiscountAmount,
+                finalTotal = finalTotal
+            });
+        }
+
+        [HttpGet]
+        public JsonResult GetCoupons()
+        {
+            decimal subTotal = _cartService.GetCartTotal();
+            DateTime now = DateTime.Now;
+            var allCoupons = db.Coupons.ToList();
+
+            var usable = new System.Collections.Generic.List<object>();
+            var unavailable = new System.Collections.Generic.List<object>();
+
+            // Tính trước danh sách dùng được để tìm mã giảm nhiều nhất
+            var usableEntities = allCoupons
+                .Where(c => c.IsActive
+                            && now >= c.StartDate
+                            && now <= c.EndDate
+                            && (c.UsageLimit <= 0 || c.UsedCount < c.UsageLimit)
+                            && subTotal >= c.MinOrder)
+                .OrderByDescending(c => Math.Round(subTotal * c.DiscountPercent / 100m, 0))
+                .ThenBy(c => c.EndDate)
+                .ToList();
+
+            int? bestCouponId = usableEntities.Any() ? usableEntities.First().CouponId : (int?)null;
+
+            foreach (var c in usableEntities)
+            {
+                decimal discount = Math.Round(subTotal * c.DiscountPercent / 100m, 0);
+                if (discount > subTotal) discount = subTotal;
+
+                int usedPercent = c.UsageLimit > 0
+                    ? Math.Min(100, (int)Math.Round(c.UsedCount * 100.0 / c.UsageLimit))
+                    : 0;
+
+                usable.Add(new
+                {
+                    couponId = c.CouponId,
+                    code = c.Code,
+                    discountPercent = c.DiscountPercent,
+                    discountAmount = discount,
+                    minOrder = c.MinOrder,
+                    endDate = c.EndDate.ToString("dd/MM/yyyy"),
+                    usedPercent = usedPercent,
+                    usageLimit = c.UsageLimit,
+                    usedCount = c.UsedCount,
+                    isBest = (c.CouponId == bestCouponId)
+                });
+            }
+
+            var unavailableEntities = allCoupons
+                .Where(c => !usableEntities.Any(u => u.CouponId == c.CouponId))
+                .OrderByDescending(c => c.EndDate)
+                .ToList();
+
+            foreach (var c in unavailableEntities)
+            {
+                string reason;
+                if (!c.IsActive)
+                    reason = "Mã ưu đãi hiện tạm ngưng áp dụng.";
+                else if (now > c.EndDate)
+                    reason = $"Mã đã hết hạn vào ngày {c.EndDate:dd/MM/yyyy}.";
+                else if (now < c.StartDate)
+                    reason = $"Mã chỉ bắt đầu áp dụng từ ngày {c.StartDate:dd/MM/yyyy}.";
+                else if (c.UsageLimit > 0 && c.UsedCount >= c.UsageLimit)
+                    reason = "Mã đã hết lượt sử dụng.";
+                else if (subTotal < c.MinOrder)
+                    reason = $"Mua thêm {(c.MinOrder - subTotal):N0}đ để đạt đơn tối thiểu {c.MinOrder:N0}đ.";
+                else
+                    reason = "Đơn hàng chưa thỏa điều kiện áp dụng voucher.";
+
+                int usedPercent = c.UsageLimit > 0
+                    ? Math.Min(100, (int)Math.Round(c.UsedCount * 100.0 / c.UsageLimit))
+                    : 0;
+
+                unavailable.Add(new
+                {
+                    couponId = c.CouponId,
+                    code = c.Code,
+                    discountPercent = c.DiscountPercent,
+                    minOrder = c.MinOrder,
+                    endDate = c.EndDate.ToString("dd/MM/yyyy"),
+                    usedPercent = usedPercent,
+                    reason = reason
+                });
+            }
+
+            return Json(new
+            {
+                subTotal = subTotal,
+                usable = usable,
+                unavailable = unavailable
+            }, JsonRequestBehavior.AllowGet);
         }
     }
 }
