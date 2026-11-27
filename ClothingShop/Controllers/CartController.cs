@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using ClothingShop.Models;
-using ClothingShop.Services;
 using ClothingShop.Web.Services;
 using ClothingShop.Web.ViewModels;
 
@@ -12,7 +9,7 @@ namespace ClothingShop.Controllers
     public class CartController : Controller
     {
         private CartService _cartService = new CartService();
-        private ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         public ActionResult Index()
         {
@@ -22,70 +19,58 @@ namespace ClothingShop.Controllers
             return View(cart);
         }
 
+        // Thêm vào giỏ bằng Form POST thuần (KHÔNG dùng AJAX)
         [HttpPost]
-        public ActionResult Add(int productId, int? variantId = null, string size = null, string color = null, int quantity = 1, decimal? price = null, string productName = null, string imageUrl = null)
+        [ValidateAntiForgeryToken]
+        public ActionResult Add(int productId, int? variantId = null, int quantity = 1, string returnUrl = null)
         {
             if (quantity <= 0) quantity = 1;
 
             var product = db.Products.Find(productId);
             if (product == null || !product.IsActive)
             {
-                if (Request.IsAjaxRequest())
-                    return Json(new { success = false, message = "Sản phẩm không tồn tại hoặc đã ngừng kinh doanh." });
                 TempData["Error"] = "Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "Product");
             }
 
             ProductVariant variant = null;
             if (variantId.HasValue && variantId.Value > 0)
             {
-                variant = db.ProductVariants.FirstOrDefault(v => v.VariantId == variantId.Value && v.ProductId == productId && v.IsActive);
+                variant = db.ProductVariants
+                    .Include("ProductSize")
+                    .Include("ProductColor")
+                    .FirstOrDefault(v => v.VariantId == variantId.Value && v.ProductId == productId && v.IsActive);
             }
 
-            // If no variantId provided, try to find a matching variant by size and color, or take first active variant
             if (variant == null)
             {
-                if (!string.IsNullOrEmpty(size) && !string.IsNullOrEmpty(color))
-                {
-                    variant = db.ProductVariants.FirstOrDefault(v => v.ProductId == productId && v.IsActive &&
-                                ((v.Size != null && v.Size.Code == size) || (v.Size != null && v.Size.Name == size)) &&
-                                ((v.Color != null && v.Color.Name == color) || (v.Color != null && v.Color.Code == color)));
-                }
-
-                if (variant == null)
-                {
-                    variant = db.ProductVariants.FirstOrDefault(v => v.ProductId == productId && v.IsActive && v.Stock > 0)
-                           ?? db.ProductVariants.FirstOrDefault(v => v.ProductId == productId && v.IsActive);
-                }
+                variant = db.ProductVariants
+                    .Include("ProductSize")
+                    .Include("ProductColor")
+                    .FirstOrDefault(v => v.ProductId == productId && v.IsActive && v.Stock > 0)
+                    ?? db.ProductVariants
+                    .Include("ProductSize")
+                    .Include("ProductColor")
+                    .FirstOrDefault(v => v.ProductId == productId && v.IsActive);
             }
 
             int availableStock = variant != null ? variant.Stock : product.Stock;
             if (availableStock <= 0)
             {
-                if (Request.IsAjaxRequest())
-                    return Json(new { success = false, message = "Biến thể hoặc sản phẩm đã hết hàng!" });
-                TempData["Error"] = "Biến thể hoặc sản phẩm đã hết hàng!";
-                return RedirectToAction("Index");
+                TempData["Error"] = "Sản phẩm / biến thể đã hết hàng.";
+                return RedirectToAction("Details", "Product", new { id = productId });
             }
 
-            // Check current in-cart quantity
-            string selectedSize = variant?.Size?.Name ?? variant?.Size?.Code ?? size ?? "Freesize";
-            string selectedColor = variant?.Color?.Name ?? color ?? "Đen";
-            string colorHex = variant?.Color?.HexCode ?? "#1a1a1a";
-            int? selectedVariantId = variant?.VariantId;
-            string sku = variant?.SKU ?? $"SP{product.ProductId:03d}";
-
+            string selectedSize = variant?.ProductSize?.Name ?? variant?.ProductSize?.Code ?? "Freesize";
+            string selectedColor = variant?.ProductColor?.Name ?? "Mặc định";
+            string colorHex = variant?.ProductColor?.HexCode ?? "#1a1a1a";
             decimal unitPrice = variant?.Price ?? product.DiscountPrice ?? product.Price;
-            if (price.HasValue && price.Value > 0 && !variant?.Price.HasValue == true)
-            {
-                unitPrice = price.Value;
-            }
 
             var item = new CartItemVM
             {
                 ProductId = productId,
-                ProductVariantId = selectedVariantId,
-                SKU = sku,
+                ProductVariantId = variant?.VariantId,
+                SKU = variant?.SKU ?? ("SP" + product.ProductId.ToString("000")),
                 Size = selectedSize,
                 Color = selectedColor,
                 ColorHex = colorHex,
@@ -96,78 +81,40 @@ namespace ClothingShop.Controllers
                 MaxStock = availableStock
             };
 
-            var existingInCart = _cartService.GetCart().FirstOrDefault(x => x.ItemKey == item.ItemKey);
-            int currentQty = existingInCart != null ? existingInCart.Quantity : 0;
+            var existing = _cartService.GetCart().FirstOrDefault(x => x.ItemKey == item.ItemKey);
+            int currentQty = existing != null ? existing.Quantity : 0;
             if (currentQty + quantity > availableStock)
             {
-                string msg = $"Tồn kho chỉ còn {availableStock} sản phẩm (bạn đã có {currentQty} trong giỏ).";
-                if (Request.IsAjaxRequest())
-                    return Json(new { success = false, message = msg });
-                TempData["Error"] = msg;
-                return RedirectToAction("Index");
+                TempData["Error"] = $"Tồn kho chỉ còn {availableStock} sản phẩm (bạn đã có {currentQty} trong giỏ).";
+                return RedirectToAction("Details", "Product", new { id = productId });
             }
 
             _cartService.AddItem(item);
-            int newCartCount = _cartService.GetCartCount();
-            Session["CartCount"] = newCartCount;
-
-            if (Request.IsAjaxRequest())
-            {
-                return Json(new
-                {
-                    success = true,
-                    message = $"Đã thêm {product.Name} ({selectedSize} - {selectedColor}) vào giỏ hàng!",
-                    cartCount = newCartCount
-                });
-            }
-
-            TempData["Success"] = $"Đã thêm {product.Name} vào giỏ hàng!";
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        public ActionResult Update(string itemKey, int quantity, int? productId = null)
-        {
-            if (string.IsNullOrEmpty(itemKey) && productId.HasValue)
-            {
-                _cartService.UpdateQuantity(productId.Value, quantity);
-            }
-            else
-            {
-                _cartService.UpdateQuantity(itemKey, quantity);
-            }
-
-            int newCartCount = _cartService.GetCartCount();
-            Session["CartCount"] = newCartCount;
-
-            if (Request.IsAjaxRequest())
-            {
-                var cart = _cartService.GetCart();
-                var item = cart.FirstOrDefault(x => x.ItemKey == itemKey || (productId.HasValue && x.ProductId == productId.Value));
-                return Json(new
-                {
-                    success = true,
-                    itemTotal = item != null ? item.TotalPrice.ToString("N0") + " VNĐ" : "0 VNĐ",
-                    cartTotal = _cartService.GetCartTotal().ToString("N0") + " VNĐ",
-                    cartCount = newCartCount
-                });
-            }
-
-            return RedirectToAction("Index");
-        }
-
-        public ActionResult Remove(string itemKey, int? productId = null)
-        {
-            if (!string.IsNullOrEmpty(itemKey))
-            {
-                _cartService.RemoveItem(itemKey);
-            }
-            else if (productId.HasValue)
-            {
-                _cartService.RemoveItem(productId.Value);
-            }
-
             Session["CartCount"] = _cartService.GetCartCount();
+            TempData["Success"] = $"Đã thêm \"{product.Name}\" ({selectedSize} - {selectedColor}) vào giỏ hàng!";
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index");
+        }
+
+        // Cập nhật số lượng bằng Form POST thuần (KHÔNG dùng AJAX)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Update(string itemKey, int quantity)
+        {
+            _cartService.UpdateQuantity(itemKey, quantity);
+            Session["CartCount"] = _cartService.GetCartCount();
+            TempData["Success"] = "Đã cập nhật giỏ hàng.";
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult Remove(string itemKey)
+        {
+            _cartService.RemoveItem(itemKey);
+            Session["CartCount"] = _cartService.GetCartCount();
+            TempData["Success"] = "Đã xóa sản phẩm khỏi giỏ hàng.";
             return RedirectToAction("Index");
         }
 

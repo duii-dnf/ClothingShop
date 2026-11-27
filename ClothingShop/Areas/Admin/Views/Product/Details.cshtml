@@ -1,32 +1,67 @@
-﻿@using ClothingShop.Services
-@model ClothingShop.Models.Product
-
+﻿@model ClothingShop.Models.Product
+@using ClothingShop.Services
 @{
     ViewBag.Title = "Chi tiết sản phẩm";
-    var rawImg = (Model.ImageUrl ?? string.Empty).Trim();
-    var imgSrc = string.IsNullOrEmpty(rawImg) ? "/Content/images/products/default.jpg"
-        : (rawImg.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? rawImg
-        : (rawImg.StartsWith("/") ? rawImg : "/Content/images/products/" + rawImg));
+    string img = string.IsNullOrEmpty(Model.ImageUrl)
+        ? Url.Content("~/Content/images/products/default.jpg")
+        : (Model.ImageUrl.StartsWith("http") || Model.ImageUrl.StartsWith("/")
+            ? Model.ImageUrl
+            : Url.Content("~/Content/images/products/" + Model.ImageUrl));
 }
 
-<h4 class="fw-bold mb-3">Chi tiết sản phẩm #@Model.ProductId</h4>
+<h3 class="fw-bold mb-4">Chi tiết sản phẩm</h3>
 
-<div class="row g-4">
-    <div class="col-md-4">
-        <img src="@imgSrc" alt="@Model.Name" class="img-fluid rounded border" onerror="this.onerror=null;this.src='/Content/images/products/default.jpg';" />
+<div class="card border-0 shadow-sm col-lg-9">
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <img src="@img" alt="@Model.Name" class="img-fluid rounded border w-100" />
+            </div>
+            <div class="col-md-8">
+                <h4 class="fw-bold">@Model.Name</h4>
+                <dl class="row small mt-3">
+                    <dt class="col-sm-4">Loại sản phẩm</dt>
+                    <dd class="col-sm-8">@(Model.Category != null ? Model.Category.Name : "-")</dd>
+
+                    <dt class="col-sm-4">Giá gốc</dt>
+                    <dd class="col-sm-8">@PriceFormatter.Vnd(Model.Price)</dd>
+
+                    <dt class="col-sm-4">Giá khuyến mãi</dt>
+                    <dd class="col-sm-8 text-danger fw-bold">@(Model.DiscountPrice.HasValue ? PriceFormatter.Vnd(Model.DiscountPrice) : "Không")</dd>
+
+                    <dt class="col-sm-4">Giới tính</dt>
+                    <dd class="col-sm-8">@Model.Gender</dd>
+
+                    <dt class="col-sm-4">Tổng tồn kho</dt>
+                    <dd class="col-sm-8">@Model.Stock</dd>
+
+                    <dt class="col-sm-4">Trạng thái</dt>
+                    <dd class="col-sm-8"><span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">@(Model.IsActive ? "Đang bán" : "Đã ẩn")</span></dd>
+
+                    <dt class="col-sm-4">Phong cách</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.ProductStyles != null && Model.ProductStyles.Any())
+                        {
+                            foreach (var st in Model.ProductStyles)
+                            {
+                                <span class="badge bg-info text-dark me-1">@st.Name</span>
+                            }
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Mô tả</dt>
+                    <dd class="col-sm-8">@Model.Description</dd>
+                </dl>
+            </div>
+        </div>
     </div>
-    <div class="col-md-8">
-        <table class="table table-bordered">
-            <tr><th style="width: 160px;">Tên sản phẩm</th><td>@Model.Name</td></tr>
-            <tr><th>Loại</th><td>@(Model.Category != null ? Model.Category.Name : "")</td></tr>
-            <tr><th>Giá gốc</th><td>@PriceFormatter.Vnd(Model.Price)</td></tr>
-            <tr><th>Giá KM</th><td>@PriceFormatter.Vnd(Model.DiscountPrice)</td></tr>
-            <tr><th>Giới tính</th><td>@Model.Gender</td></tr>
-            <tr><th>Kích cỡ / Màu</th><td>@Model.Sizes | @Model.Colors</td></tr>
-            <tr><th>Tồn kho</th><td>@Model.Stock</td></tr>
-            <tr><th>Mô tả</th><td>@Model.Description</td></tr>
-        </table>
-        <a href="@Url.Action("Edit", new { id = Model.ProductId })" class="btn btn-warning">Sửa</a>
-        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+    <div class="card-footer bg-white d-flex gap-2">
+        <a href="@Url.Action("Edit", new { id = Model.ProductId })" class="btn btn-dark btn-sm">Sửa</a>
+        <a href="@Url.Action("Variants", new { id = Model.ProductId })" class="btn btn-outline-info btn-sm">Quản lý biến thể</a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">Quay lại</a>
     </div>
 </div>

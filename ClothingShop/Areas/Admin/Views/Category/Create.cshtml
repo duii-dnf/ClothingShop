@@ -1,58 +1,38 @@
 @model ClothingShop.Models.Category
-
 @{
     ViewBag.Title = "Thêm loại sản phẩm";
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h5 class="mb-0 fw-semibold">Thêm loại sản phẩm mới</h5>
-    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i> Quay lại
-    </a>
-</div>
+<h3 class="fw-bold mb-4">Thêm loại sản phẩm mới</h3>
 
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+<div class="card border-0 shadow-sm col-lg-7">
+    <div class="card-body">
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 small" })
 
-    <div class="row g-3" style="max-width: 600px;">
-        <div class="col-12">
-            <label class="form-label fw-medium">Tên loại sản phẩm <span class="text-danger">*</span></label>
-            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Ví dụ: Áo thun, Quần jeans...", autofocus = "autofocus" })
-            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
-        </div>
-
-        <div class="col-12">
-            <label class="form-label fw-medium">Mô tả danh mục</label>
-            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 2, placeholder = "Mô tả ngắn về danh mục này..." })
-        </div>
-
-        <div class="col-12">
-            <label class="form-label fw-medium">Hình ảnh đại diện (URL)</label>
-            @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control", placeholder = "https://... hoặc /Content/images/..." })
-        </div>
-
-        <div class="col-12">
-            <label class="form-label fw-medium">Danh mục cha (nếu có)</label>
-            @Html.DropDownList("ParentId", null, "-- Là danh mục gốc --", new { @class = "form-select" })
-            <div class="form-text">Để trống nếu muốn tạo danh mục cấp 1 trên thanh điều hướng.</div>
-            @Html.ValidationMessageFor(m => m.ParentId, "", new { @class = "text-danger small" })
-        </div>
-
-        <div class="col-12">
-            <div class="form-check form-switch">
-                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", id = "IsActive" })
-                <label class="form-check-label" for="IsActive">Hiển thị trên cửa hàng</label>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Tên loại sản phẩm <span class="text-danger">*</span></label>
+                @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
+                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
             </div>
-        </div>
 
-        <div class="col-12 pt-2 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg me-1"></i> Lưu lại
-            </button>
-            <a href="@Url.Action("Index")" class="btn btn-light border">Hủy</a>
-        </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Danh mục cha (để trống nếu là danh mục gốc)</label>
+                @Html.DropDownList("ParentId", null, "-- Danh mục gốc (Cấp 1) --", new { @class = "form-select" })
+                @Html.ValidationMessageFor(m => m.ParentId, "", new { @class = "text-danger small" })
+            </div>
+
+            <div class="form-check mb-4">
+                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", id = "chkActive" })
+                <label class="form-check-label" for="chkActive">Hiển thị trên cửa hàng</label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-dark">Lưu lại</button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+            </div>
+        }
     </div>
-}
+</div>

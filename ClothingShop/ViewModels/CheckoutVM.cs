@@ -16,6 +16,7 @@ namespace ClothingShop.Web.ViewModels
         public string ReceiverName { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0")]
         [Display(Name = "Số điện thoại")]
         public string Phone { get; set; }
 

@@ -154,6 +154,7 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\Api\ProductsController.cs" />
     <Compile Include="Controllers\CartController.cs" />
+    <Compile Include="Controllers\FavoriteController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\OrderController.cs" />
@@ -163,27 +164,63 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202610081748595_InitialCreate.cs" />
-    <Compile Include="Migrations\202610081748595_InitialCreate.Designer.cs">
-      <DependentUpon>202610081748595_InitialCreate.cs</DependentUpon>
+    <Compile Include="Models\Category.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\AppUser.cs" />
-    <Compile Include="Models\Category.cs" />
-    <Compile Include="Models\Constants.cs" />
-    <Compile Include="Models\Coupon.cs" />
-    <Compile Include="Models\Order.cs" />
-    <Compile Include="Models\OrderDetail.cs" />
-    <Compile Include="Models\Product.cs" />
-    <Compile Include="Models\ProductStyle.cs" />
-    <Compile Include="Models\ProductSize.cs" />
-    <Compile Include="Models\ProductColor.cs" />
-    <Compile Include="Models\ProductVariant.cs" />
-    <Compile Include="Models\InventoryLog.cs" />
-    <Compile Include="Models\UserAddress.cs" />
-    <Compile Include="Models\ShopDbContext.cs" />
+    <Compile Include="Models\Coupon.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Favorite.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\InventoryLog.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Model1.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Model1.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Model1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Model1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Model1.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Order.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\OrderDetail.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Product.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProductColor.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProductSize.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProductStyle.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\ProductVariant.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\User.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\UserAddress.cs">
+      <DependentUpon>Model1.tt</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\CartService.cs" />
+    <Compile Include="Services\Constants.cs" />
     <Compile Include="Services\PasswordHasher.cs" />
     <Compile Include="Services\PriceFormatter.cs" />
     <Compile Include="Services\ProductSorting.cs" />
@@ -214,14 +251,75 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\images\hero\banner-men.jpg" />
+    <Content Include="Content\images\hero\banner-women.jpg" />
     <Content Include="Content\images\hero\hero-1.jpg" />
     <Content Include="Content\images\hero\hero-2.jpg" />
-    <Content Include="Content\images\hero\hero-3.JPG" />
-    <Content Include="Content\images\products\ao-thun.jpg" />
+    <Content Include="Content\images\hero\hero-3.jpg" />
     <Content Include="Content\images\products\default.jpg" />
+    <Content Include="Content\images\products\sp-01.jpg" />
+    <Content Include="Content\images\products\sp-02.jpg" />
+    <Content Include="Content\images\products\sp-03.jpg" />
+    <Content Include="Content\images\products\sp-04.jpg" />
+    <Content Include="Content\images\products\sp-05.jpg" />
+    <Content Include="Content\images\products\sp-06.jpg" />
+    <Content Include="Content\images\products\sp-07.jpg" />
+    <Content Include="Content\images\products\sp-08.jpg" />
+    <Content Include="Content\images\products\sp-09.jpg" />
+    <Content Include="Content\images\products\sp-10.jpg" />
+    <Content Include="Content\images\products\sp-11.jpg" />
+    <Content Include="Content\images\products\sp-12.jpg" />
+    <Content Include="Content\images\products\sp-13.jpg" />
+    <Content Include="Content\images\products\sp-14.jpg" />
+    <Content Include="Content\images\products\sp-15.jpg" />
+    <Content Include="Content\images\products\sp-16.jpg" />
+    <Content Include="Content\images\products\sp-17.jpg" />
+    <Content Include="Content\images\products\sp-18.jpg" />
+    <Content Include="Content\images\products\sp-19.jpg" />
+    <Content Include="Content\images\products\sp-20.jpg" />
+    <Content Include="Content\images\products\sp-21.jpg" />
+    <Content Include="Content\images\products\sp-22.jpg" />
+    <Content Include="Content\images\products\sp-23.jpg" />
+    <Content Include="Content\images\products\sp-24.jpg" />
+    <Content Include="Content\images\products\sp-25.jpg" />
+    <Content Include="Content\images\products\sp-26.jpg" />
+    <Content Include="Content\images\products\sp-27.jpg" />
+    <Content Include="Content\images\products\sp-28.jpg" />
+    <Content Include="Content\images\products\sp-29.jpg" />
+    <Content Include="Content\images\products\sp-30.jpg" />
+    <Content Include="Content\images\products\sp-31.jpg" />
+    <Content Include="Content\images\products\sp-32.jpg" />
+    <Content Include="Content\images\products\sp-33.jpg" />
+    <Content Include="Content\images\products\sp-34.jpg" />
+    <Content Include="Content\images\products\sp-35.jpg" />
+    <Content Include="Content\images\products\sp-36.jpg" />
+    <Content Include="Content\images\products\sp-37.jpg" />
+    <Content Include="Content\images\products\sp-38.jpg" />
+    <Content Include="Content\images\products\sp-39.jpg" />
+    <Content Include="Content\images\products\sp-40.jpg" />
+    <Content Include="Content\images\products\sp-41.jpg" />
+    <Content Include="Content\images\products\sp-42.jpg" />
+    <Content Include="Content\images\products\sp-43.jpg" />
+    <Content Include="Content\images\products\sp-44.jpg" />
+    <Content Include="Content\images\products\sp-45.jpg" />
+    <Content Include="Content\images\products\sp-46.jpg" />
+    <Content Include="Content\images\products\sp-47.jpg" />
+    <Content Include="Content\images\products\sp-48.jpg" />
+    <Content Include="Content\images\products\sp-49.jpg" />
+    <Content Include="Content\images\products\sp-50.jpg" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Models\Model1.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Model1.edmx</DependentUpon>
+      <LastGenOutput>Model1.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\Model1.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Model1.edmx</DependentUpon>
+      <LastGenOutput>Model1.cs</LastGenOutput>
+    </Content>
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -250,8 +348,16 @@
     <Content Include="Areas\Admin\Views\Product\Details.cshtml" />
     <Content Include="Areas\Admin\Views\Product\Edit.cshtml" />
     <Content Include="Areas\Admin\Views\Product\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Product\Variants.cshtml" />
     <Content Include="Areas\Admin\Views\User\Create.cshtml" />
     <Content Include="Areas\Admin\Views\User\Index.cshtml" />
+    <EntityDeploy Include="Models\Model1.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>Model1.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\Model1.edmx.diagram">
+      <DependentUpon>Model1.edmx</DependentUpon>
+    </Content>
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -276,18 +382,18 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\_CategoryMenu.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Account\Profile.cshtml" />
     <Content Include="Views\Account\Register.cshtml" />
     <Content Include="Views\Account\AccessDenied.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Shared\_CategoryMenuMobile.cshtml" />
     <Content Include="Views\Shared\_CategoryMenuFooter.cshtml" />
     <Content Include="Views\Shared\_ProductCard.cshtml" />
-    <Content Include="Views\Shared\_ShopDropdown.cshtml" />
-    <Content Include="Views\Shared\_SortDropdown.cshtml" />
     <Content Include="Views\product\Details.cshtml" />
     <Content Include="Views\product\Index.cshtml" />
     <Content Include="Views\Cart\Index.cshtml" />
+    <Content Include="Views\Favorite\Index.cshtml" />
     <Content Include="Views\Order\Checkout.cshtml" />
+    <Content Include="Views\Order\History.cshtml" />
     <Content Include="Views\Order\Success.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -322,11 +428,6 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202610081748595_InitialCreate.resx">
-      <DependentUpon>202610081748595_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

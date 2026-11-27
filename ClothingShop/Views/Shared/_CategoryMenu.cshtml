@@ -1,26 +1,40 @@
 ﻿@model IEnumerable<ClothingShop.ViewModels.MenuItemViewModel>
 
-@{
-    int activeId;
-    int.TryParse(Request.QueryString["categoryId"], out activeId);
-}
-
-@foreach (var parent in Model)
+@if (Model != null)
 {
-    bool isActive = activeId != 0 && (activeId == parent.Id || parent.Children.Any(c => c.Id == activeId));
-    <li class="main-nav__item">
-        <a class="main-nav__link @(isActive ? "is-active" : "")" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">@parent.Name</a>
-        @if (parent.Children.Any())
+    foreach (var parent in Model)
+    {
+        if (parent.Children != null && parent.Children.Any())
         {
-            <div class="mega">
-                <ul class="mega__list">
-                    <li><a class="mega__all" href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">Tất cả @parent.Name</a></li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle fw-semibold" href="@Url.Action("Index", "Product", new { categoryId = parent.Id })" role="button" data-bs-toggle="dropdown">
+                    @parent.Name
+                </a>
+                <ul class="dropdown-menu shadow-sm">
+                    <li>
+                        <a class="dropdown-item fw-semibold" href="@Url.Action("Index", "Product", new { categoryId = parent.Id })">
+                            Tất cả @parent.Name
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider" /></li>
                     @foreach (var child in parent.Children)
                     {
-                        <li><a href="@Url.Action("Index", "Product", new { area = "", categoryId = child.Id })">@child.Name</a></li>
+                        <li>
+                            <a class="dropdown-item" href="@Url.Action("Index", "Product", new { categoryId = child.Id })">
+                                @child.Name
+                            </a>
+                        </li>
                     }
                 </ul>
-            </div>
+            </li>
         }
-    </li>
+        else
+        {
+            <li class="nav-item">
+                <a class="nav-link fw-semibold" href="@Url.Action("Index", "Product", new { categoryId = parent.Id })">
+                    @parent.Name
+                </a>
+            </li>
+        }
+    }
 }

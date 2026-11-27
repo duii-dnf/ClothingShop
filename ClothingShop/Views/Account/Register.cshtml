@@ -1,60 +1,70 @@
 ﻿@model ClothingShop.ViewModels.RegisterViewModel
-
 @{
-    ViewBag.Title = "Đăng ký";
+    ViewBag.Title = "Đăng ký tài khoản";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card auth-card">
-            <div class="card-header"><h5 class="card-title mb-0">Đăng ký tài khoản</h5></div>
-            <div class="card-body">
-                @using (Html.BeginForm("Register", "Account", FormMethod.Post))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+                <div class="row g-0">
+                    <!-- Cột trái: Ảnh Lookbook -->
+                    <div class="col-md-5 d-none d-md-block position-relative">
+                        <img src="~/Content/images/hero/banner-women.jpg" class="w-100 h-100" style="object-fit:cover;" alt="ClothingShop Register" />
+                        <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex flex-column justify-content-end p-4 text-white">
+                            <span class="badge badge-lime rounded-pill align-self-start mb-2 fw-bold">NEW MEMBER -15%</span>
+                            <h4 class="font-display fw-bold mb-1">GIA NHẬP CLOTHINGSHOP</h4>
+                            <p class="small text-white-50 mb-0">Tạo tài khoản trong 30 giây và dùng ngay mã NEWUSER giảm 15% cho đơn đầu tiên.</p>
+                        </div>
+                    </div>
 
-                    <div class="mb-3">
-                        @Html.LabelFor(m => m.FullName, new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
-                        @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+                    <!-- Cột phải: Form Đăng ký -->
+                    <div class="col-md-7 p-4 p-lg-5 bg-white">
+                        <h3 class="font-display fw-bold mb-1">Tạo tài khoản mới</h3>
+                        <p class="text-muted small mb-4">Điền thông tin để bắt đầu mua sắm cực chất</p>
+
+                        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger border-0 rounded-3 py-2 small" })
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(m => m.FullName, new { @class = "form-control rounded-3", placeholder = "Nguyễn Văn A" })
+                                @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Email <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control rounded-3", type = "email", placeholder = "email@example.com" })
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
+                                    @Html.PasswordFor(m => m.Password, new { @class = "form-control rounded-3", placeholder = "Tối thiểu 6 ký tự" })
+                                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control rounded-3", placeholder = "Nhập lại mật khẩu" })
+                                    @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger small" })
+                                </div>
+                            </div>
+
+                            <div class="d-grid mb-3 mt-4">
+                                <button type="submit" class="btn btn-dark btn-lg rounded-pill fw-bold">Đăng ký tài khoản</button>
+                            </div>
+
+                            <div class="text-center small">
+                                Đã có tài khoản?
+                                <a href="@Url.Action("Login", "Account")" class="fw-bold text-dark">Đăng nhập</a>
+                            </div>
+                        }
                     </div>
-                    <div class="mb-3">
-                        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
-                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-                    </div>
-                    <div class="mb-3">
-                        @Html.LabelFor(m => m.Phone, new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.Phone, new { @class = "form-control" })
-                        @Html.ValidationMessageFor(m => m.Phone, "", new { @class = "text-danger" })
-                    </div>
-                    <div class="mb-3">
-                        @Html.LabelFor(m => m.Address, new { @class = "form-label" })
-                        @Html.TextBoxFor(m => m.Address, new { @class = "form-control" })
-                        @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger" })
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            @Html.LabelFor(m => m.Password, new { @class = "form-label" })
-                            @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "form-label" })
-                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
-                }
-                <hr />
-                <p class="text-center mb-0">Đã có tài khoản? @Html.ActionLink("Đăng nhập", "Login")</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}

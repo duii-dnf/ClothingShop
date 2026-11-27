@@ -1,101 +1,95 @@
-@using ClothingShop.Services
 @model ClothingShop.Models.Product
+@using System.Collections.Generic
+@using ClothingShop.Services
+@{
+    bool hasSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
+    int salePct = hasSale && Model.Price > 0 ? (int)Math.Round((1m - Model.DiscountPrice.Value / Model.Price) * 100m) : 0;
+    var favIds = Session["FavIds"] as List<int>;
+    bool isFav = favIds != null && favIds.Contains(Model.ProductId);
+    string currentUrl = Request.RawUrl;
+    string img = string.IsNullOrEmpty(Model.ImageUrl)
+        ? Url.Content("~/Content/images/products/default.jpg")
+        : (Model.ImageUrl.StartsWith("http") || Model.ImageUrl.StartsWith("/")
+            ? Model.ImageUrl
+            : Url.Content("~/Content/images/products/" + Model.ImageUrl));
+}
 
-@if (Model != null)
-{
-    var rawImg = (Model.ImageUrl ?? string.Empty).Trim();
-    var fallbackImg = Url.Content("~/Content/images/products/default.jpg");
-    var imgSrc = string.IsNullOrEmpty(rawImg)
-        ? fallbackImg
-        : (rawImg.StartsWith("http://", System.StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", System.StringComparison.OrdinalIgnoreCase)
-            ? rawImg
-            : Url.Content(rawImg.StartsWith("~") || rawImg.StartsWith("/") ? rawImg : "~/Content/images/products/" + rawImg));
+<div class="card h-100 border-0 bg-white shadow-sm product-card">
+    <div class="position-relative product-img-wrap">
+        <a href="@Url.Action("Details", "Product", new { id = Model.ProductId })">
+            <img src="@img" alt="@Model.Name" />
+        </a>
 
-    var onSale = Model.DiscountPrice.HasValue && Model.DiscountPrice.Value < Model.Price;
-    var finalPrice = onSale ? Model.DiscountPrice.Value : Model.Price;
-    int discountPercent = onSale && Model.Price > 0
-        ? (int)Math.Round((Model.Price - Model.DiscountPrice.Value) / Model.Price * 100)
-        : 0;
-    var detailsUrl = Url.Action("Details", "Product", new { area = "", id = Model.ProductId });
+        <!-- Badges góc trái -->
+        <div class="position-absolute top-0 start-0 p-2 d-flex flex-column gap-1">
+            @if (hasSale && salePct > 0)
+            {
+                <span class="badge bg-danger rounded-pill px-2 py-1 fw-bold">-@salePct%</span>
+            }
+            @if (Model.IsNew)
+            {
+                <span class="badge bg-obsidian rounded-pill px-2 py-1">NEW</span>
+            }
+            @if (Model.Stock <= 0)
+            {
+                <span class="badge bg-secondary rounded-pill px-2 py-1">Hết hàng</span>
+            }
+        </div>
 
-    <div class="product-card" data-product-id="@Model.ProductId">
-        <div class="product-card__media">
-            <a href="@detailsUrl" class="product-card__img-link" aria-label="@Model.Name">
-                <img src="@imgSrc"
-                     alt="@Model.Name"
-                     loading="lazy"
-                     class="product-card__img"
-                     onerror="this.onerror=null;this.src='@fallbackImg';" />
+        <!-- Badge giới tính góc phải -->
+        @if (!string.IsNullOrEmpty(Model.Gender))
+        {
+            <span class="position-absolute top-0 end-0 m-2 badge bg-white bg-opacity-90 text-dark rounded-pill shadow-sm fw-semibold" style="font-size:0.7rem;">
+                @Model.Gender
+            </span>
+        }
+    </div>
+
+    <div class="card-body d-flex flex-column p-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">
+                @(Model.Category != null ? Model.Category.Name : "Thời trang")
+            </small>
+            @if (!string.IsNullOrEmpty(Model.Colors))
+            {
+                <small class="text-muted" style="font-size: 0.72rem;">@Model.Colors</small>
+            }
+        </div>
+
+        <h6 class="card-title mb-2 lh-sm">
+            <a href="@Url.Action("Details", "Product", new { id = Model.ProductId })" class="text-dark text-decoration-none fw-bold">
+                @Model.Name
             </a>
+        </h6>
 
-            <!-- Status Badges -->
-            <div class="product-card__badges">
-                @if (Model.Stock <= 0)
+        <div class="mt-auto pt-2">
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+                @if (hasSale)
                 {
-                    <span class="tag tag--soldout">Hết hàng</span>
+                    <span class="fw-bold text-danger fs-6">@PriceFormatter.Vnd(Model.DiscountPrice)</span>
+                    <small class="text-muted text-decoration-line-through">@PriceFormatter.Vnd(Model.Price)</small>
                 }
                 else
                 {
-                    if (onSale && discountPercent > 0)
-                    {
-                        <span class="tag tag--sale">-@discountPercent%</span>
-                    }
-                    if (Model.IsNew)
-                    {
-                        <span class="tag tag--new">NEW</span>
-                    }
-                    else if (Model.IsFeatured)
-                    {
-                        <span class="tag tag--hot">HOT</span>
-                    }
+                    <span class="fw-bold text-dark fs-6">@PriceFormatter.Vnd(Model.Price)</span>
                 }
             </div>
 
-            <!-- Quick Action Buttons -->
-            <div class="product-card__actions">
-                <a href="@detailsUrl" class="card-action-btn card-action-btn--view" title="Xem chi tiết">
-                    <i class="bi bi-eye"></i>
-                    <span class="action-text">Chi tiết</span>
+            <div class="d-flex gap-2">
+                <a href="@Url.Action("Details", "Product", new { id = Model.ProductId })" class="btn btn-dark btn-sm rounded-pill fw-semibold flex-grow-1">
+                    Chọn size
                 </a>
-                @if (Model.Stock > 0)
+                @using (Html.BeginForm("Toggle", "Favorite", FormMethod.Post, new { @class = "d-inline" }))
                 {
-                    <button type="button"
-                            class="card-action-btn card-action-btn--cart js-quick-add"
-                            title="Thêm nhanh vào giỏ"
-                            data-url="@Url.Action("Add", "Cart", new { area = "" })"
-                            data-id="@Model.ProductId"
-                            data-name="@Model.Name"
-                            data-price="@finalPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                            data-img="@(Model.ImageUrl ?? "default.jpg")">
-                        <i class="bi bi-bag-plus"></i>
-                        <span class="action-text">Thêm giỏ</span>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@Model.ProductId" />
+                    <input type="hidden" name="returnUrl" value="@currentUrl" />
+                    <button type="submit" class="btn btn-sm rounded-circle @(isFav ? "btn-danger" : "btn-outline-danger")"
+                            title="@(isFav ? "Bỏ yêu thích" : "Thêm vào yêu thích")">
+                        <i class="bi @(isFav ? "bi-heart-fill" : "bi-heart")"></i>
                     </button>
                 }
             </div>
         </div>
-
-        <div class="product-card__body">
-            @if (Model.Category != null)
-            {
-                <span class="product-card__category">@Model.Category.Name</span>
-            }
-            <h3 class="product-card__name">
-                <a href="@detailsUrl" title="@Model.Name">@Model.Name</a>
-            </h3>
-
-            <div class="product-card__price-wrapper">
-                <p class="product-card__price mb-0">
-                    <span class="price-now">@PriceFormatter.Vnd(finalPrice)</span>
-                    @if (onSale)
-                    {
-                        <s class="price-old">@PriceFormatter.Vnd(Model.Price)</s>
-                    }
-                </p>
-                @if (onSale && discountPercent > 0)
-                {
-                    <span class="sale-percent-label">Tiết kiệm @discountPercent%</span>
-                }
-            </div>
-        </div>
     </div>
-}
+</div>

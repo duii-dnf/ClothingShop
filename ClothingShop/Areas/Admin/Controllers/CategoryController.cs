@@ -9,7 +9,7 @@ namespace ClothingShop.Areas.Admin.Controllers
 {
     public class CategoryController : AdminBaseController
     {
-        private readonly ShopDbContext db = new ShopDbContext();
+        private readonly ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         public ActionResult Index(string keyword, string level, string status)
         {
@@ -20,8 +20,8 @@ namespace ClothingShop.Areas.Admin.Controllers
             ViewBag.ActiveCount = allCategories.Count(c => c.IsActive);
 
             var query = db.Categories
-                .Include(c => c.Parent)
-                .Include(c => c.Children)
+                .Include(c => c.Category1)
+                .Include(c => c.Categories1)
                 .Include(c => c.Products)
                 .AsQueryable();
 
@@ -33,22 +33,14 @@ namespace ClothingShop.Areas.Admin.Controllers
             }
 
             if (level == "root")
-            {
                 query = query.Where(c => c.ParentId == null);
-            }
             else if (level == "child")
-            {
                 query = query.Where(c => c.ParentId != null);
-            }
 
             if (status == "active")
-            {
                 query = query.Where(c => c.IsActive);
-            }
             else if (status == "hidden")
-            {
                 query = query.Where(c => !c.IsActive);
-            }
 
             ViewBag.Level = level;
             ViewBag.Status = status;
@@ -67,8 +59,8 @@ namespace ClothingShop.Areas.Admin.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
             var category = db.Categories
-                .Include(c => c.Parent)
-                .Include(c => c.Children)
+                .Include(c => c.Category1)
+                .Include(c => c.Categories1)
                 .Include(c => c.Products)
                 .FirstOrDefault(c => c.CategoryId == id);
 
@@ -86,7 +78,7 @@ namespace ClothingShop.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "CategoryId,Name,Description,ImageUrl,ParentId,IsActive")] Category category)
+        public ActionResult Create([Bind(Include = "CategoryId,Name,ParentId,IsActive")] Category category)
         {
             if (string.IsNullOrWhiteSpace(category.Name))
             {
@@ -97,7 +89,7 @@ namespace ClothingShop.Areas.Admin.Controllers
                 string cleanName = category.Name.Trim();
                 bool isDuplicate = db.Categories.Any(c =>
                     c.ParentId == category.ParentId &&
-                    c.Name.Equals(cleanName, StringComparison.OrdinalIgnoreCase));
+                    c.Name.ToLower() == cleanName.ToLower());
 
                 if (isDuplicate)
                 {
@@ -134,12 +126,12 @@ namespace ClothingShop.Areas.Admin.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
             var category = db.Categories
-                .Include(c => c.Children)
+                .Include(c => c.Categories1)
                 .FirstOrDefault(c => c.CategoryId == id);
 
             if (category == null) return HttpNotFound();
 
-            ViewBag.HasChildren = category.Children != null && category.Children.Any();
+            ViewBag.HasChildren = category.Categories1 != null && category.Categories1.Any();
             ViewBag.ParentId = new SelectList(
                 db.Categories.Where(c => c.ParentId == null && c.CategoryId != category.CategoryId).OrderBy(c => c.CategoryId),
                 "CategoryId", "Name", category.ParentId);
@@ -149,7 +141,7 @@ namespace ClothingShop.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "CategoryId,Name,Description,ImageUrl,ParentId,IsActive")] Category category)
+        public ActionResult Edit([Bind(Include = "CategoryId,Name,ParentId,IsActive")] Category category)
         {
             bool hasChildren = db.Categories.Any(c => c.ParentId == category.CategoryId);
 
@@ -163,7 +155,7 @@ namespace ClothingShop.Areas.Admin.Controllers
                 bool isDuplicate = db.Categories.Any(c =>
                     c.CategoryId != category.CategoryId &&
                     c.ParentId == category.ParentId &&
-                    c.Name.Equals(cleanName, StringComparison.OrdinalIgnoreCase));
+                    c.Name.ToLower() == cleanName.ToLower());
 
                 if (isDuplicate)
                 {
@@ -218,8 +210,8 @@ namespace ClothingShop.Areas.Admin.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
             var category = db.Categories
-                .Include(c => c.Parent)
-                .Include(c => c.Children)
+                .Include(c => c.Category1)
+                .Include(c => c.Categories1)
                 .Include(c => c.Products)
                 .FirstOrDefault(c => c.CategoryId == id);
 
@@ -232,13 +224,13 @@ namespace ClothingShop.Areas.Admin.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             var category = db.Categories
-                .Include(c => c.Children)
+                .Include(c => c.Categories1)
                 .Include(c => c.Products)
                 .FirstOrDefault(c => c.CategoryId == id);
 
             if (category == null) return HttpNotFound();
 
-            if (category.Children.Any())
+            if (category.Categories1.Any())
             {
                 TempData["Error"] = "Không thể xóa vì loại này đang có danh mục con.";
                 return RedirectToAction("Index");

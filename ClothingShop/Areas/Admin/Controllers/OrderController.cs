@@ -4,12 +4,13 @@ using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using ClothingShop.Models;
+using ClothingShop.Services;
 
 namespace ClothingShop.Areas.Admin.Controllers
 {
     public class OrderController : AdminBaseController
     {
-        private ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         // GET: Admin/Order
         public ActionResult Index(string status, string keyword)
@@ -35,9 +36,9 @@ namespace ClothingShop.Areas.Admin.Controllers
             var order = db.Orders
                 .Include(o => o.User)
                 .Include(o => o.Coupon)
-                .Include(o => o.OrderDetails.Select(d => d.Product))
-                .Include(o => o.OrderDetails.Select(d => d.Variant.Size))
-                .Include(o => o.OrderDetails.Select(d => d.Variant.Color))
+                .Include("OrderDetails.Product")
+                .Include("OrderDetails.ProductVariant.ProductSize")
+                .Include("OrderDetails.ProductVariant.ProductColor")
                 .FirstOrDefault(o => o.OrderId == id);
 
             if (order == null) return HttpNotFound();
@@ -59,9 +60,7 @@ namespace ClothingShop.Areas.Admin.Controllers
             {
                 order.PaymentStatus = paymentStatus;
                 if (paymentStatus == "Paid" && !order.PaymentDate.HasValue)
-                {
                     order.PaymentDate = DateTime.Now;
-                }
             }
             else if (status == OrderStatus.Completed && order.PaymentStatus == "Unpaid")
             {
@@ -69,9 +68,10 @@ namespace ClothingShop.Areas.Admin.Controllers
                 order.PaymentDate = DateTime.Now;
             }
 
-            // If changing to Cancelled, restore variant inventory & log
+            // Hoàn tồn kho nếu chuyển sang trạng thái Hủy
             if (status == OrderStatus.Cancelled && oldStatus != OrderStatus.Cancelled)
             {
+                var staff = SessionHelper.GetCurrentUser(Session);
                 foreach (var detail in order.OrderDetails)
                 {
                     if (detail.ProductVariantId.HasValue)
@@ -89,18 +89,16 @@ namespace ClothingShop.Areas.Admin.Controllers
                                 StockAfter = variant.Stock,
                                 ReferenceType = "AdminOrder",
                                 ReferenceId = order.OrderId,
-                                Note = $"Admin đổi trạng thái thành Hủy đơn #{order.OrderId} (hoàn tồn kho)",
+                                Note = $"Hủy đơn #{order.OrderId} (hoàn tồn kho)",
                                 CreatedAt = DateTime.Now,
-                                CreatedBy = User.Identity?.Name ?? "Admin"
+                                CreatedBy = staff != null ? staff.Email : "Admin"
                             });
                         }
                     }
 
                     var prod = db.Products.Find(detail.ProductId);
                     if (prod != null)
-                    {
                         prod.Stock += detail.Quantity;
-                    }
                 }
             }
 

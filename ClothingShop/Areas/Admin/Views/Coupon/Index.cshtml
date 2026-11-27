@@ -1,50 +1,61 @@
-﻿@using ClothingShop.Services
-@model IEnumerable<ClothingShop.Models.Coupon>
-
+﻿@model IEnumerable<ClothingShop.Models.Coupon>
+@using ClothingShop.Services
 @{
-    ViewBag.Title = "Quản lý Khuyến mãi";
+    ViewBag.Title = "Quản lý khuyến mãi";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="fw-bold mb-0"><i class="bi bi-ticket-perforated me-2"></i>Danh sách Khuyến mãi</h4>
-    <a href="@Url.Action("Create")" class="btn btn-primary btn-sm rounded-pill px-3">
-        <i class="bi bi-plus-lg me-1"></i> Thêm mới
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="text-muted small">Quản lý các mã voucher giảm giá cho khách hàng</div>
+    <a href="@Url.Action("Create")" class="btn btn-dark rounded-pill px-4 fw-semibold">
+        <i class="bi bi-plus-lg me-1"></i>Thêm mã khuyến mãi
     </a>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Mã</th>
-                <th>Giảm (%)</th>
-                <th>Từ ngày</th>
-                <th>Đến ngày</th>
-                <th>Đơn tối thiểu</th>
-                <th>Lượt dùng</th>
-                <th>Trạng thái</th>
-                <th class="text-end">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
+<div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase">
                 <tr>
-                    <td><span class="badge bg-dark">@item.Code</span></td>
-                    <td class="text-danger fw-bold">-@item.DiscountPercent%</td>
-                    <td>@item.StartDate.ToString("dd/MM/yyyy")</td>
-                    <td>@item.EndDate.ToString("dd/MM/yyyy")</td>
-                    <td>@PriceFormatter.Vnd(item.MinOrder)</td>
-                    <td>@item.UsedCount / @item.UsageLimit</td>
-                    <td>
-                        <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary")">@(item.IsActive ? "Hoạt động" : "Tạm khóa")</span>
-                    </td>
-                    <td class="text-end">
-                        <a href="@Url.Action("Edit", new { id = item.CouponId })" class="btn btn-sm btn-outline-warning">Sửa</a>
-                        <a href="@Url.Action("Delete", new { id = item.CouponId })" class="btn btn-sm btn-outline-danger">Xóa</a>
-                    </td>
+                    <th class="ps-4">Mã Code</th>
+                    <th class="text-center">Giảm (%)</th>
+                    <th class="text-end">Đơn tối thiểu</th>
+                    <th>Thời gian áp dụng</th>
+                    <th class="text-center">Lượt dùng</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-end pe-4">Thao tác</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    bool expired = DateTime.Today > item.EndDate.Date;
+                    <tr>
+                        <td class="ps-4"><span class="badge bg-obsidian font-display fs-6 px-3 py-2 rounded-3">@item.Code</span></td>
+                        <td class="text-center fw-bold text-danger fs-5">-@item.DiscountPercent%</td>
+                        <td class="text-end">@PriceFormatter.Vnd(item.MinOrder)</td>
+                        <td class="small text-muted">@item.StartDate.ToString("dd/MM/yyyy") &rarr; @item.EndDate.ToString("dd/MM/yyyy")</td>
+                        <td class="text-center fw-semibold">@item.UsedCount / @item.UsageLimit</td>
+                        <td class="text-center">
+                            @if (!item.IsActive)
+                            {
+                                <span class="badge bg-secondary rounded-pill px-3">Đã khóa</span>
+                            }
+                            else if (expired)
+                            {
+                                <span class="badge bg-danger rounded-pill px-3">Hết hạn</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success rounded-pill px-3">Đang chạy</span>
+                            }
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="@Url.Action("Edit", new { id = item.CouponId })" class="btn btn-outline-primary btn-sm rounded-pill">Sửa</a>
+                            <a href="@Url.Action("Delete", new { id = item.CouponId })" class="btn btn-outline-danger btn-sm rounded-pill">Xóa</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

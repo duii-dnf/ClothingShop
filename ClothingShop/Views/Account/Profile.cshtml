@@ -1,268 +1,195 @@
-@using ClothingShop.Services
 @model ClothingShop.ViewModels.UserProfileVM
-
+@using ClothingShop.Services
 @{
-    ViewBag.Title = "Hồ sơ cá nhân & Sổ địa chỉ";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Hồ sơ cá nhân";
 }
 
 <div class="container py-4">
-    <div class="row g-4">
-        <!-- Sidebar tài khoản -->
-        <div class="col-lg-3">
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white text-center">
-                <div class="position-relative d-inline-block mx-auto mb-3">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border"
-                         style="width: 90px; height: 90px; font-size: 2.5rem;">
-                        @if (!string.IsNullOrEmpty(Model.Avatar))
-                        {
-                            <img src="@Url.Content(Model.Avatar)" alt="@Model.FullName" class="rounded-circle w-100 h-100 object-fit-cover" />
-                        }
-                        else
-                        {
-                            <i class="bi bi-person-fill"></i>
-                        }
-                    </div>
-                </div>
-                <h5 class="fw-bold mb-1">@Model.FullName</h5>
-                <p class="text-muted small mb-3">@Model.Email</p>
+    <h3 class="fw-bold mb-4"><i class="bi bi-person-circle me-2"></i>Hồ sơ cá nhân &amp; Sổ địa chỉ</h3>
 
-                <div class="list-group list-group-flush text-start border-top pt-3">
-                    <a href="#tab-profile" class="list-group-item list-group-item-action active border-0 rounded-2 mb-1" data-bs-toggle="tab">
-                        <i class="bi bi-person me-2"></i>Thông tin cá nhân
-                    </a>
-                    <a href="#tab-addresses" class="list-group-item list-group-item-action border-0 rounded-2 mb-1" data-bs-toggle="tab">
-                        <i class="bi bi-geo-alt me-2"></i>Sổ địa chỉ (@(Model.Addresses?.Count ?? 0))
-                    </a>
-                    <a href="@Url.Action("History", "Order")" class="list-group-item list-group-item-action border-0 rounded-2 mb-1">
-                        <i class="bi bi-receipt me-2"></i>Lịch sử đơn hàng
-                    </a>
-                    <a href="@Url.Action("Logout", "Account")" class="list-group-item list-group-item-action border-0 rounded-2 text-danger">
-                        <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
-                    </a>
+    <div class="row g-4">
+        <!-- Cột trái: Cập nhật thông tin cá nhân & đổi mật khẩu -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-dark text-white fw-semibold">Thông tin tài khoản</div>
+                <div class="card-body">
+                    @using (Html.BeginForm("UpdateProfile", "Account", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="text" class="form-control" value="@Model.Email" disabled />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Họ và tên</label>
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Số điện thoại (10 số, bắt đầu bằng 0)</label>
+                                @Html.TextBoxFor(m => m.Phone, new { @class = "form-control", pattern = "0[0-9]{9}", maxlength = "10", placeholder = "0901234567", title = "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0" })
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Giới tính</label>
+                                <select name="Gender" class="form-select">
+                                    <option value="Nam" @(Model.Gender == "Nam" ? "selected" : "")>Nam</option>
+                                    <option value="Nữ" @(Model.Gender == "Nữ" ? "selected" : "")>Nữ</option>
+                                    <option value="Unisex" @(Model.Gender == "Unisex" ? "selected" : "")>Khác</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Ngày sinh</label>
+                                <input type="date" name="BirthDate" value="@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("yyyy-MM-dd") : "")" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Địa chỉ chính</label>
+                                @Html.TextBoxFor(m => m.Address, new { @class = "form-control" })
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h6 class="fw-bold mb-3">Đổi mật khẩu (bỏ trống nếu không đổi)</h6>
+                        <div class="mb-2">
+                            <label class="form-label small">Mật khẩu hiện tại</label>
+                            @Html.PasswordFor(m => m.CurrentPassword, new { @class = "form-control form-control-sm" })
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small">Mật khẩu mới</label>
+                                @Html.PasswordFor(m => m.NewPassword, new { @class = "form-control form-control-sm" })
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Xác nhận mật khẩu mới</label>
+                                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control form-control-sm" })
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark">
+                            <i class="bi bi-save me-1"></i>Lưu thay đổi
+                        </button>
+                    }
                 </div>
             </div>
         </div>
 
-        <!-- Nội dung chính -->
-        <div class="col-lg-9">
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <!-- Cột phải: Sổ địa chỉ & Đơn hàng gần đây -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-geo-alt me-1"></i>Sổ địa chỉ giao hàng
                 </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-
-            <div class="tab-content">
-                <!-- TAB 1: THÔNG TIN CÁ NHÂN -->
-                <div class="tab-pane fade show active" id="tab-profile">
-                    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                        <h4 class="fw-bold mb-3 border-bottom pb-2">Hồ sơ cá nhân</h4>
-
-                        @using (Html.BeginForm("UpdateProfile", "Account", FormMethod.Post))
-                        {
-                            @Html.AntiForgeryToken()
-                            @Html.HiddenFor(m => m.UserId)
-
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Họ và tên</label>
-                                    @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", required = "required" })
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Email (Không thể thay đổi)</label>
-                                    <input type="text" class="form-control bg-light" value="@Model.Email" readonly />
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Số điện thoại</label>
-                                    @Html.TextBoxFor(m => m.Phone, new { @class = "form-control", placeholder = "090xxxxxxx" })
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Giới tính</label>
-                                    <div class="d-flex gap-4 mt-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="Gender" id="gender_nam" value="Nam" @(Model.Gender == "Nam" ? "checked" : "") />
-                                            <label class="form-check-label" for="gender_nam">Nam</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="Gender" id="gender_nu" value="Nữ" @(Model.Gender == "Nữ" ? "checked" : "") />
-                                            <label class="form-check-label" for="gender_nu">Nữ</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="Gender" id="gender_khac" value="Khác" @(Model.Gender == "Khác" || Model.Gender == "Unisex" ? "checked" : "") />
-                                            <label class="form-check-label" for="gender_khac">Khác</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Ngày sinh</label>
-                                    @Html.TextBoxFor(m => m.BirthDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Ảnh đại diện (URL)</label>
-                                    @Html.TextBoxFor(m => m.Avatar, new { @class = "form-control", placeholder = "https://... hoặc /Content/images/..." })
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label fw-semibold">Địa chỉ liên hệ chính</label>
-                                    @Html.TextBoxFor(m => m.Address, new { @class = "form-control", placeholder = "Số nhà, tên đường..." })
-                                </div>
-                            </div>
-
-                            <hr class="my-4" />
-                            <h5 class="fw-bold mb-3">Đổi mật khẩu (Bỏ trống nếu không muốn đổi)</h5>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
-                                    @Html.PasswordFor(m => m.CurrentPassword, new { @class = "form-control" })
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Mật khẩu mới</label>
-                                    @Html.PasswordFor(m => m.NewPassword, new { @class = "form-control" })
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Xác nhận mật khẩu</label>
-                                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
-                                </div>
-                            </div>
-
-                            <div class="mt-4 text-end">
-                                <button type="submit" class="btn btn-danger px-4 py-2 fw-semibold">
-                                    <i class="bi bi-save me-1"></i> Lưu thay đổi
-                                </button>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <!-- TAB 2: SỔ ĐỊA CHỈ -->
-                <div class="tab-pane fade" id="tab-addresses">
-                    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-                            <div>
-                                <h4 class="fw-bold mb-1">Sổ địa chỉ giao hàng</h4>
-                                <p class="text-muted small mb-0">Quản lý các địa chỉ nhận hàng của bạn để thanh toán nhanh hơn</p>
-                            </div>
-                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#collapseNewAddress">
-                                <i class="bi bi-plus-lg me-1"></i> Thêm địa chỉ mới
-                            </button>
-                        </div>
-
-                        <!-- Form thêm địa chỉ mới -->
-                        <div class="collapse mb-4 border rounded-3 p-3 bg-light" id="collapseNewAddress">
-                            <h5 class="fw-bold mb-3 text-dark">Thêm địa chỉ giao hàng mới</h5>
-                            @using (Html.BeginForm("AddAddress", "Account", FormMethod.Post))
+                <div class="card-body">
+                    @if (Model.Addresses != null && Model.Addresses.Any())
+                    {
+                        <div class="list-group mb-3">
+                            @foreach (var addr in Model.Addresses)
                             {
-                                @Html.AntiForgeryToken()
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold small">Tên người nhận *</label>
-                                        <input type="text" name="ReceiverName" class="form-control" required placeholder="Họ tên người nhận" />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold small">Số điện thoại *</label>
-                                        <input type="text" name="ReceiverPhone" class="form-control" required placeholder="09xxxxxxxx" />
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-semibold small">Tỉnh / Thành phố</label>
-                                        <input type="text" name="Province" class="form-control" placeholder="TP. Hồ Chí Minh" />
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-semibold small">Quận / Huyện</label>
-                                        <input type="text" name="District" class="form-control" placeholder="Quận 1" />
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-semibold small">Phường / Xã</label>
-                                        <input type="text" name="Ward" class="form-control" placeholder="Phường Bến Nghé" />
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold small">Địa chỉ chi tiết *</label>
-                                        <input type="text" name="DetailAddress" class="form-control" required placeholder="Số nhà, tên đường, tòa nhà..." />
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-semibold small">Ghi chú</label>
-                                        <input type="text" name="Notes" class="form-control" placeholder="Ghi chú thêm (vd: giao giờ hành chính)" />
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="IsDefault" value="true" id="isDefaultNew" />
-                                            <label class="form-check-label small" for="isDefaultNew">Đặt làm địa chỉ mặc định</label>
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>@addr.ReceiverName</strong> - @addr.ReceiverPhone
+                                            @if (addr.IsDefault)
+                                            {
+                                                <span class="badge bg-dark ms-1">Mặc định</span>
+                                            }
+                                            <div class="small text-muted">
+                                                @string.Join(", ", new[] { addr.DetailAddress, addr.Ward, addr.District, addr.Province }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-12 text-end">
-                                        <button type="submit" class="btn btn-danger px-4">Lưu địa chỉ</button>
+                                        <div class="d-flex gap-1">
+                                            @if (!addr.IsDefault)
+                                            {
+                                                using (Html.BeginForm("SetDefaultAddress", "Account", FormMethod.Post, new { @class = "d-inline" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="addressId" value="@addr.AddressId" />
+                                                    <button type="submit" class="btn btn-outline-dark btn-sm">Mặc định</button>
+                                                }
+                                            }
+                                            @using (Html.BeginForm("DeleteAddress", "Account", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="addressId" value="@addr.AddressId" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa địa chỉ này?');">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             }
                         </div>
+                    }
 
-                        <!-- Danh sách địa chỉ đã lưu -->
-                        @if (Model.Addresses != null && Model.Addresses.Any())
-                        {
-                            <div class="d-flex flex-column gap-3">
-                                @foreach (var addr in Model.Addresses)
+                    <h6 class="fw-bold mb-2">Thêm địa chỉ mới</h6>
+                    @using (Html.BeginForm("AddAddress", "Account", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <input type="text" name="ReceiverName" class="form-control form-control-sm" placeholder="Tên người nhận *" required />
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="ReceiverPhone" class="form-control form-control-sm" pattern="0[0-9]{9}" maxlength="10" placeholder="SĐT 10 số (0xxxxxxxxx) *" title="Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0" required />
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="Province" class="form-control form-control-sm" placeholder="Tỉnh / TP" />
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="District" class="form-control form-control-sm" placeholder="Quận / Huyện" />
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="Ward" class="form-control form-control-sm" placeholder="Phường / Xã" />
+                            </div>
+                            <div class="col-12">
+                                <input type="text" name="DetailAddress" class="form-control form-control-sm" placeholder="Số nhà, tên đường *" required />
+                            </div>
+                            <div class="col-12 d-flex justify-content-between align-items-center mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="IsDefault" value="true" id="chkNewDef" />
+                                    <label class="form-check-label small" for="chkNewDef">Đặt làm mặc định</label>
+                                </div>
+                                <button type="submit" class="btn btn-dark btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>Thêm địa chỉ
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold"><i class="bi bi-receipt me-1"></i>Đơn hàng gần đây</span>
+                    <a href="@Url.Action("History", "Order")" class="small text-dark">Xem tất cả</a>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.RecentOrders == null || !Model.RecentOrders.Any())
+                    {
+                        <div class="p-3 text-muted small text-center">Chưa có đơn hàng nào.</div>
+                    }
+                    else
+                    {
+                        <table class="table table-sm mb-0 align-middle">
+                            <tbody>
+                                @foreach (var o in Model.RecentOrders)
                                 {
-                                    <div class="border rounded-3 p-3 position-relative @(addr.IsDefault ? "border-danger bg-light" : "bg-white")">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <h6 class="mb-0 fw-bold">@addr.ReceiverName</h6>
-                                                    <span class="text-muted small">| @addr.ReceiverPhone</span>
-                                                    @if (addr.IsDefault)
-                                                    {
-                                                        <span class="badge bg-danger">Mặc định</span>
-                                                    }
-                                                </div>
-                                                <p class="mb-1 text-secondary mt-1 small">
-                                                    @addr.DetailAddress
-                                                    @if (!string.IsNullOrEmpty(addr.Ward)) { <span>, @addr.Ward</span> }
-                                                    @if (!string.IsNullOrEmpty(addr.District)) { <span>, @addr.District</span> }
-                                                    @if (!string.IsNullOrEmpty(addr.Province)) { <span>, @addr.Province</span> }
-                                                </p>
-                                                @if (!string.IsNullOrEmpty(addr.Notes))
-                                                {
-                                                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>@addr.Notes</small>
-                                                }
-                                            </div>
-                                            <div class="d-flex gap-2">
-                                                @if (!addr.IsDefault)
-                                                {
-                                                    <form action="@Url.Action("SetDefaultAddress", "Account")" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="addressId" value="@addr.AddressId" />
-                                                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Đặt làm mặc định">
-                                                            Thiết lập mặc định
-                                                        </button>
-                                                    </form>
-                                                }
-                                                <form action="@Url.Action("DeleteAddress", "Account")" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa địa chỉ này?');">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="addressId" value="@addr.AddressId" />
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <tr>
+                                        <td class="ps-3 fw-semibold">#@o.OrderId</td>
+                                        <td class="small text-muted">@o.OrderDate.ToString("dd/MM/yyyy")</td>
+                                        <td><span class="badge bg-secondary">@o.Status</span></td>
+                                        <td class="text-end pe-3 fw-semibold text-danger">@PriceFormatter.Vnd(o.TotalAmount)</td>
+                                    </tr>
                                 }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-info text-center py-4">
-                                <i class="bi bi-geo-alt fs-2 d-block mb-2 text-muted"></i>
-                                Bạn chưa lưu địa chỉ giao hàng nào. Hãy thêm địa chỉ để thuận tiện hơn khi đặt hàng!
-                            </div>
-                        }
-                    </div>
+                            </tbody>
+                        </table>
+                    }
                 </div>
             </div>
         </div>
