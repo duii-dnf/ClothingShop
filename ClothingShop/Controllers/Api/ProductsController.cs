@@ -8,7 +8,7 @@ namespace ClothingShop.Controllers.Api
 {
     public class ProductsController : ApiController
     {
-        private ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         public ProductsController()
         {
@@ -33,8 +33,8 @@ namespace ClothingShop.Controllers.Api
         // POST: api/products
         public IHttpActionResult Post([FromBody] Product product)
         {
-            if (product == null || !ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (product == null || string.IsNullOrWhiteSpace(product.Name))
+                return BadRequest("Dữ liệu sản phẩm không hợp lệ.");
 
             if (string.IsNullOrWhiteSpace(product.ImageUrl))
                 product.ImageUrl = "default.jpg";
@@ -49,8 +49,8 @@ namespace ClothingShop.Controllers.Api
         // PUT: api/products/5
         public IHttpActionResult Put(int id, [FromBody] Product product)
         {
-            if (product == null || !ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (product == null || string.IsNullOrWhiteSpace(product.Name))
+                return BadRequest("Dữ liệu sản phẩm không hợp lệ.");
 
             var existing = db.Products.Find(id);
             if (existing == null) return NotFound();

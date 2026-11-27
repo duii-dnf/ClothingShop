@@ -11,7 +11,7 @@ namespace ClothingShop.Areas.Admin.Controllers
     [AdminAuthorize(Roles = AppRoles.Admin)]
     public class CouponController : AdminBaseController
     {
-        private ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         // GET: Admin/Coupon
         public ActionResult Index()

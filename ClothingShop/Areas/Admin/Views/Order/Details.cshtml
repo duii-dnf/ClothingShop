@@ -1,141 +1,117 @@
+@model ClothingShop.Models.Order
 @using ClothingShop.Models
 @using ClothingShop.Services
-@model ClothingShop.Models.Order
-
 @{
     ViewBag.Title = "Chi tiết đơn hàng #" + Model.OrderId;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="fw-bold mb-0">Đơn hàng #@Model.OrderId - <span class="badge @(Model.Status == OrderStatus.Completed ? "bg-success" : Model.Status == OrderStatus.Cancelled ? "bg-danger" : "bg-primary")">@Model.Status</span></h4>
-    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">Quay lại</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Chi tiết đơn hàng #@Model.OrderId</h3>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">Quay lại danh sách</a>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
-<div class="row g-3 mb-4">
-    <div class="col-md-7">
-        <div class="card border p-3 bg-white shadow-sm">
-            <h6 class="fw-bold border-bottom pb-2">Thông tin giao hàng & Thanh toán</h6>
-            <p class="mb-1"><strong>Người nhận:</strong> @Model.ReceiverName</p>
-            <p class="mb-1"><strong>SĐT:</strong> @Model.Phone</p>
-            <p class="mb-1"><strong>Địa chỉ:</strong> @Model.Address</p>
-            <p class="mb-1"><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-            <p class="mb-1">
-                <strong>Thanh toán:</strong> @Model.PaymentMethod - 
-                @if (Model.PaymentStatus == "Paid")
-                {
-                    <span class="badge bg-success">Đã thanh toán</span>
-                    if (Model.PaymentDate.HasValue)
-                    {
-                        <small class="text-muted">(@Model.PaymentDate.Value.ToString("dd/MM/yyyy HH:mm"))</small>
-                    }
-                }
-                else
-                {
-                    <span class="badge bg-warning text-dark">Chưa thanh toán</span>
-                }
-            </p>
-            <p class="mb-1"><strong>Mã KM:</strong> @(Model.Coupon != null ? Model.Coupon.Code : "Không có")</p>
-            @if (!string.IsNullOrEmpty(Model.Note))
-            {
-                <p class="mb-0"><strong>Ghi chú:</strong> @Model.Note</p>
-            }
-        </div>
-    </div>
-
-    <div class="col-md-5">
-        <div class="card border p-3 bg-white shadow-sm">
-            <h6 class="fw-bold border-bottom pb-2">Cập nhật đơn hàng</h6>
-            @using (Html.BeginForm("UpdateStatus", "Order", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="id" value="@Model.OrderId" />
-
-                <div class="mb-2">
-                    <label class="form-label small fw-semibold">Trạng thái đơn hàng</label>
-                    <select name="status" class="form-select form-select-sm">
-                        <option value="@OrderStatus.Pending" @(Model.Status == OrderStatus.Pending ? "selected" : "")>Chờ xác nhận (Pending)</option>
-                        <option value="@OrderStatus.Confirmed" @(Model.Status == OrderStatus.Confirmed ? "selected" : "")>Đã xác nhận (Confirmed)</option>
-                        <option value="@OrderStatus.Shipping" @(Model.Status == OrderStatus.Shipping ? "selected" : "")>Đang giao (Shipping)</option>
-                        <option value="@OrderStatus.Completed" @(Model.Status == OrderStatus.Completed ? "selected" : "")>Hoàn thành (Completed)</option>
-                        <option value="@OrderStatus.Cancelled" @(Model.Status == OrderStatus.Cancelled ? "selected" : "")>Đã hủy - Tự hoàn kho (Cancelled)</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold">Trạng thái thanh toán</label>
-                    <select name="paymentStatus" class="form-select form-select-sm">
-                        <option value="Unpaid" @(Model.PaymentStatus == "Unpaid" ? "selected" : "")>Chưa thanh toán (Unpaid)</option>
-                        <option value="Paid" @(Model.PaymentStatus == "Paid" ? "selected" : "")>Đã thanh toán (Paid)</option>
-                        <option value="Refunded" @(Model.PaymentStatus == "Refunded" ? "selected" : "")>Đã hoàn tiền (Refunded)</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100 btn-sm">Lưu cập nhật</button>
-            }
-        </div>
-    </div>
-</div>
-
-<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-    <table class="table table-bordered align-middle mb-0">
-        <thead class="table-light">
-            <tr>
-                <th>Sản phẩm</th>
-                <th>Biến thể (Size / Màu)</th>
-                <th class="text-end">Đơn giá</th>
-                <th class="text-center">Số lượng</th>
-                <th class="text-end">Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var d in Model.OrderDetails)
-            {
-                <tr>
-                    <td>
-                        <div class="fw-semibold">@(d.Product != null ? d.Product.Name : "SP #" + d.ProductId)</div>
-                        @if (d.Variant != null && !string.IsNullOrEmpty(d.Variant.SKU))
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Sản phẩm trong đơn</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Phân loại</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Đơn giá</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.OrderDetails)
                         {
-                            <small class="text-muted">SKU: @d.Variant.SKU</small>
+                            <tr>
+                                <td class="fw-semibold">@(d.Product != null ? d.Product.Name : "SP #" + d.ProductId)</td>
+                                <td class="small text-muted">@d.Size / @d.Color</td>
+                                <td class="text-center">@d.Quantity</td>
+                                <td class="text-end">@PriceFormatter.Vnd(d.UnitPrice)</td>
+                                <td class="text-end fw-semibold">@PriceFormatter.Vnd(d.UnitPrice * d.Quantity)</td>
+                            </tr>
                         }
-                    </td>
-                    <td>
-                        <span class="badge bg-light text-dark border">Size: @(d.Size ?? "FS")</span>
-                        <span class="badge bg-light text-dark border">Màu: @(d.Color ?? "Mặc định")</span>
-                    </td>
-                    <td class="text-end">@PriceFormatter.Vnd(d.UnitPrice)</td>
-                    <td class="text-center">@d.Quantity</td>
-                    <td class="text-end fw-semibold">@PriceFormatter.Vnd(d.Subtotal)</td>
-                </tr>
-            }
-        </tbody>
-        <tfoot class="table-light">
-            <tr>
-                <th colspan="4" class="text-end">Tạm tính:</th>
-                <th class="text-end">@PriceFormatter.Vnd(Model.Subtotal)</th>
-            </tr>
-            <tr>
-                <th colspan="4" class="text-end">Phí giao hàng:</th>
-                <th class="text-end">@PriceFormatter.Vnd(Model.ShippingFee)</th>
-            </tr>
-            @if (Model.DiscountAmount > 0)
-            {
-                <tr>
-                    <th colspan="4" class="text-end">Giảm giá:</th>
-                    <th class="text-end text-success">-@PriceFormatter.Vnd(Model.DiscountAmount)</th>
-                </tr>
-            }
-            <tr>
-                <th colspan="4" class="text-end fs-6">Tổng cộng:</th>
-                <th class="text-end text-danger fs-5">@PriceFormatter.Vnd(Model.TotalAmount)</th>
-            </tr>
-        </tfoot>
-    </table>
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="text-end">Tạm tính:</td>
+                            <td class="text-end">@PriceFormatter.Vnd(Model.Subtotal)</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">Phí vận chuyển:</td>
+                            <td class="text-end">@PriceFormatter.Vnd(Model.ShippingFee)</td>
+                        </tr>
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <tr>
+                                <td colspan="4" class="text-end text-success">
+                                    Giảm giá @(Model.Coupon != null ? "(" + Model.Coupon.Code + ")" : ""):
+                                </td>
+                                <td class="text-end text-success">-@PriceFormatter.Vnd(Model.DiscountAmount)</td>
+                            </tr>
+                        }
+                        <tr class="fw-bold fs-5">
+                            <td colspan="4" class="text-end">Tổng cộng:</td>
+                            <td class="text-end text-danger">@PriceFormatter.Vnd(Model.TotalAmount)</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-dark text-white fw-semibold">Cập nhật trạng thái đơn</div>
+            <div class="card-body">
+                @using (Html.BeginForm("UpdateStatus", "Order", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.OrderId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Trạng thái đơn hàng</label>
+                        <select name="status" class="form-select">
+                            @foreach (var st in OrderStatus.All)
+                            {
+                                <option value="@st" @(Model.Status == st ? "selected" : "")>@st</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Trạng thái thanh toán</label>
+                        <select name="paymentStatus" class="form-select">
+                            <option value="Unpaid" @(Model.PaymentStatus == "Unpaid" ? "selected" : "")>Chưa thanh toán (Unpaid)</option>
+                            <option value="Paid" @(Model.PaymentStatus == "Paid" ? "selected" : "")>Đã thanh toán (Paid)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark">Cập nhật đơn hàng</button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Thông tin giao hàng</div>
+            <div class="card-body small">
+                <p class="mb-1"><strong>Người nhận:</strong> @Model.ReceiverName</p>
+                <p class="mb-1"><strong>Điện thoại:</strong> @Model.Phone</p>
+                <p class="mb-1"><strong>Địa chỉ:</strong> @Model.Address</p>
+                <p class="mb-1"><strong>Thanh toán:</strong> @Model.PaymentMethod</p>
+                <p class="mb-1"><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                @if (!string.IsNullOrEmpty(Model.Note))
+                {
+                    <p class="mb-0"><strong>Ghi chú:</strong> @Model.Note</p>
+                }
+            </div>
+        </div>
+    </div>
 </div>

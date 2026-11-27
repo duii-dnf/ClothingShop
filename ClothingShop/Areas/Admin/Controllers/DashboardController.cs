@@ -10,7 +10,7 @@ namespace ClothingShop.Areas.Admin.Controllers
     [AdminAuthorize(Roles = AppRoles.Admin)]
     public class DashboardController : AdminBaseController
     {
-        private ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         // GET: Admin/Dashboard
         public ActionResult Index(DateTime? fromDate, DateTime? toDate)

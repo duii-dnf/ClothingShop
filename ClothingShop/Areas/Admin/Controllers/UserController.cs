@@ -10,7 +10,7 @@ namespace ClothingShop.Areas.Admin.Controllers
     [AdminAuthorize(Roles = AppRoles.Admin)]
     public class UserController : AdminBaseController
     {
-        private ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         // GET: Admin/User
         public ActionResult Index()
@@ -22,20 +22,27 @@ namespace ClothingShop.Areas.Admin.Controllers
         // GET: Admin/User/Create
         public ActionResult Create()
         {
-            return View(new AppUser { Role = AppRoles.Staff });
+            return View(new User { Role = AppRoles.Staff, IsActive = true });
         }
 
         // POST: Admin/User/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(AppUser model, string password)
+        public ActionResult Create(User model, string password)
         {
             ModelState.Remove("PasswordHash");
+
+            if (string.IsNullOrWhiteSpace(model.FullName))
+                ModelState.AddModelError("FullName", "Vui lòng nhập họ tên.");
 
             if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                 ModelState.AddModelError("", "Mật khẩu phải từ 6 ký tự trở lên.");
 
-            if (!string.IsNullOrWhiteSpace(model.Email))
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                ModelState.AddModelError("Email", "Vui lòng nhập email.");
+            }
+            else
             {
                 string email = model.Email.Trim().ToLower();
                 if (db.Users.Any(u => u.Email == email))
@@ -49,6 +56,7 @@ namespace ClothingShop.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 model.PasswordHash = PasswordHasher.Hash(password);
+                model.IsActive = true;
                 model.CreatedAt = DateTime.Now;
                 db.Users.Add(model);
                 db.SaveChanges();

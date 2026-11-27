@@ -1,6 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using ClothingShop.Models;
@@ -12,7 +13,7 @@ namespace ClothingShop.Controllers
     public class AccountController : Controller
     {
         private const string RememberCookie = "remember_email";
-        private readonly ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         // ---------- ĐĂNG KÝ ----------
         [HttpGet]
@@ -35,35 +36,18 @@ namespace ClothingShop.Controllers
                 return View(model);
             }
 
-            var user = new AppUser
+            var user = new User
             {
                 FullName = model.FullName.Trim(),
                 Email = email,
                 PasswordHash = PasswordHasher.Hash(model.Password),
-                Phone = model.Phone,
-                Address = model.Address,
                 Gender = "Unisex",
+                IsActive = true,
                 Role = AppRoles.Customer,
                 CreatedAt = DateTime.Now
             };
             db.Users.Add(user);
             db.SaveChanges();
-
-            // Create initial address in UserAddresses
-            if (!string.IsNullOrEmpty(model.Address))
-            {
-                var initialAddress = new UserAddress
-                {
-                    UserId = user.UserId,
-                    ReceiverName = user.FullName,
-                    ReceiverPhone = user.Phone ?? "0987654321",
-                    DetailAddress = model.Address,
-                    IsDefault = true,
-                    CreatedAt = DateTime.Now
-                };
-                db.UserAddresses.Add(initialAddress);
-                db.SaveChanges();
-            }
 
             TempData["Success"] = "Đăng ký thành công. Vui lòng đăng nhập.";
             return RedirectToAction("Login");
@@ -98,7 +82,7 @@ namespace ClothingShop.Controllers
 
             if (user == null || !PasswordHasher.Verify(model.Password, user.PasswordHash))
             {
-                ModelState.AddModelError("", "Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị khóa");
+                ModelState.AddModelError("", "Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị khóa.");
                 return View(model);
             }
 
@@ -114,14 +98,20 @@ namespace ClothingShop.Controllers
                 Role = user.Role
             });
 
+            var favIds = db.Favorites
+                .Where(f => f.UserId == user.UserId)
+                .Select(f => f.ProductId)
+                .ToList();
+            Session["FavIds"] = favIds;
+            Session["FavCount"] = favIds.Count;
+
             if (model.RememberMe)
             {
-                var cookie = new HttpCookie(RememberCookie, HttpUtility.UrlEncode(user.Email))
+                Response.Cookies.Add(new HttpCookie(RememberCookie, HttpUtility.UrlEncode(user.Email))
                 {
                     Expires = DateTime.Now.AddDays(30),
                     HttpOnly = true
-                };
-                Response.Cookies.Add(cookie);
+                });
             }
             else if (Request.Cookies[RememberCookie] != null)
             {
@@ -158,25 +148,10 @@ namespace ClothingShop.Controllers
         {
             var currentUser = SessionHelper.GetCurrentUser(Session);
             if (currentUser == null)
-            {
                 return RedirectToAction("Login", new { returnUrl = Url.Action("Profile", "Account") });
-            }
 
             var user = db.Users.Find(currentUser.UserId);
             if (user == null) return RedirectToAction("Login");
-
-            var addresses = db.UserAddresses
-                .Where(a => a.UserId == user.UserId)
-                .OrderByDescending(a => a.IsDefault)
-                .ThenByDescending(a => a.CreatedAt)
-                .ToList();
-
-            var recentOrders = db.Orders
-                .Include("OrderDetails.Product")
-                .Where(o => o.UserId == user.UserId)
-                .OrderByDescending(o => o.OrderDate)
-                .Take(5)
-                .ToList();
 
             var vm = new UserProfileVM
             {
@@ -188,8 +163,17 @@ namespace ClothingShop.Controllers
                 Gender = user.Gender ?? "Nam",
                 BirthDate = user.BirthDate,
                 Avatar = user.Avatar,
-                Addresses = addresses,
-                RecentOrders = recentOrders
+                Addresses = db.UserAddresses
+                    .Where(a => a.UserId == user.UserId)
+                    .OrderByDescending(a => a.IsDefault)
+                    .ThenByDescending(a => a.CreatedAt)
+                    .ToList(),
+                RecentOrders = db.Orders
+                    .Include("OrderDetails.Product")
+                    .Where(o => o.UserId == user.UserId)
+                    .OrderByDescending(o => o.OrderDate)
+                    .Take(5)
+                    .ToList()
             };
 
             return View(vm);
@@ -200,42 +184,42 @@ namespace ClothingShop.Controllers
         public ActionResult UpdateProfile(UserProfileVM model)
         {
             var currentUser = SessionHelper.GetCurrentUser(Session);
-            if (currentUser == null)
-            {
-                return RedirectToAction("Login");
-            }
+            if (currentUser == null) return RedirectToAction("Login");
 
             var user = db.Users.Find(currentUser.UserId);
             if (user == null) return RedirectToAction("Login");
 
-            if (!string.IsNullOrEmpty(model.FullName)) user.FullName = model.FullName.Trim();
-            user.Phone = model.Phone?.Trim();
+            string cleanPhone = model.Phone != null ? model.Phone.Trim() : null;
+            if (!string.IsNullOrEmpty(cleanPhone) && !Regex.IsMatch(cleanPhone, @"^0\d{9}$"))
+            {
+                TempData["Error"] = "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0.";
+                return RedirectToAction("Profile");
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.FullName)) user.FullName = model.FullName.Trim();
+            user.Phone = string.IsNullOrEmpty(cleanPhone) ? null : cleanPhone;
             user.Address = model.Address?.Trim();
             user.Gender = model.Gender;
             user.BirthDate = model.BirthDate;
-            if (!string.IsNullOrEmpty(model.Avatar)) user.Avatar = model.Avatar;
+            if (!string.IsNullOrWhiteSpace(model.Avatar)) user.Avatar = model.Avatar.Trim();
 
-            // Password change check
             if (!string.IsNullOrEmpty(model.NewPassword))
             {
-                if (string.IsNullOrEmpty(model.CurrentPassword))
-                {
-                    TempData["Error"] = "Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu.";
-                    return RedirectToAction("Profile");
-                }
-
-                if (!PasswordHasher.Verify(model.CurrentPassword, user.PasswordHash))
+                if (string.IsNullOrEmpty(model.CurrentPassword) || !PasswordHasher.Verify(model.CurrentPassword, user.PasswordHash))
                 {
                     TempData["Error"] = "Mật khẩu hiện tại không chính xác.";
                     return RedirectToAction("Profile");
                 }
-
+                if (model.NewPassword != model.ConfirmPassword)
+                {
+                    TempData["Error"] = "Mật khẩu xác nhận không khớp.";
+                    return RedirectToAction("Profile");
+                }
                 user.PasswordHash = PasswordHasher.Hash(model.NewPassword);
             }
 
             db.SaveChanges();
 
-            // Sync session
             currentUser.FullName = user.FullName;
             currentUser.Phone = user.Phone;
             currentUser.Address = user.Address;
@@ -243,11 +227,10 @@ namespace ClothingShop.Controllers
             currentUser.Avatar = user.Avatar;
             SessionHelper.SignIn(Session, currentUser);
 
-            TempData["Success"] = "Cập nhật thông tin hồ sơ thành công!";
+            TempData["Success"] = "Cập nhật hồ sơ thành công!";
             return RedirectToAction("Profile");
         }
 
-        // ---------- QUẢN LÝ SỔ ĐỊA CHỈ ----------
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AddAddress(UserAddress address)
@@ -257,7 +240,14 @@ namespace ClothingShop.Controllers
 
             if (string.IsNullOrWhiteSpace(address.ReceiverName) || string.IsNullOrWhiteSpace(address.ReceiverPhone) || string.IsNullOrWhiteSpace(address.DetailAddress))
             {
-                TempData["Error"] = "Vui lòng điền đầy đủ tên người nhận, số điện thoại và địa chỉ chi tiết.";
+                TempData["Error"] = "Vui lòng nhập đầy đủ họ tên, số điện thoại và địa chỉ chi tiết.";
+                return RedirectToAction("Profile");
+            }
+
+            address.ReceiverPhone = address.ReceiverPhone.Trim();
+            if (!Regex.IsMatch(address.ReceiverPhone, @"^0\d{9}$"))
+            {
+                TempData["Error"] = "Số điện thoại nhận hàng phải gồm đúng 10 chữ số và bắt đầu bằng số 0.";
                 return RedirectToAction("Profile");
             }
 
@@ -268,15 +258,14 @@ namespace ClothingShop.Controllers
             if (isFirst || address.IsDefault)
             {
                 address.IsDefault = true;
-                // Clear default on other addresses
-                var existingDefaults = db.UserAddresses.Where(a => a.UserId == currentUser.UserId && a.IsDefault).ToList();
-                foreach (var ex in existingDefaults) ex.IsDefault = false;
+                foreach (var ex in db.UserAddresses.Where(a => a.UserId == currentUser.UserId && a.IsDefault))
+                    ex.IsDefault = false;
             }
 
             db.UserAddresses.Add(address);
             db.SaveChanges();
 
-            TempData["Success"] = "Đã thêm địa chỉ mới vào sổ địa chỉ!";
+            TempData["Success"] = "Đã thêm địa chỉ mới.";
             return RedirectToAction("Profile");
         }
 
@@ -294,19 +283,13 @@ namespace ClothingShop.Controllers
                 db.UserAddresses.Remove(addr);
                 db.SaveChanges();
 
-                // If deleted default, promote another address to default
                 if (wasDefault)
                 {
-                    var nextDefault = db.UserAddresses.FirstOrDefault(a => a.UserId == currentUser.UserId);
-                    if (nextDefault != null)
-                    {
-                        nextDefault.IsDefault = true;
-                        db.SaveChanges();
-                    }
+                    var next = db.UserAddresses.FirstOrDefault(a => a.UserId == currentUser.UserId);
+                    if (next != null) { next.IsDefault = true; db.SaveChanges(); }
                 }
-                TempData["Success"] = "Đã xóa địa chỉ thành công!";
+                TempData["Success"] = "Đã xóa địa chỉ.";
             }
-
             return RedirectToAction("Profile");
         }
 
@@ -317,14 +300,11 @@ namespace ClothingShop.Controllers
             var currentUser = SessionHelper.GetCurrentUser(Session);
             if (currentUser == null) return RedirectToAction("Login");
 
-            var addresses = db.UserAddresses.Where(a => a.UserId == currentUser.UserId).ToList();
-            foreach (var a in addresses)
-            {
+            foreach (var a in db.UserAddresses.Where(x => x.UserId == currentUser.UserId))
                 a.IsDefault = (a.AddressId == addressId);
-            }
-            db.SaveChanges();
 
-            TempData["Success"] = "Đã đặt địa chỉ làm mặc định!";
+            db.SaveChanges();
+            TempData["Success"] = "Đã đặt làm địa chỉ mặc định.";
             return RedirectToAction("Profile");
         }
 

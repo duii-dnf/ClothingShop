@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
+using ClothingShop.Services;
 
 namespace ClothingShop.Areas.Admin.Controllers
 {
-    public class DefaultController : Controller
+    public class DefaultController : AdminBaseController
     {
-        // GET: Admin/Default
         public ActionResult Index()
         {
-            return View();
+            var user = SessionHelper.GetCurrentUser(Session);
+            if (user != null && user.IsAdmin)
+                return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "Order");
         }
     }
 }

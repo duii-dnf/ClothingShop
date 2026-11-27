@@ -19,6 +19,11 @@ namespace ClothingShop.Models
         public const string Shipping = "Shipping";     // Đang giao
         public const string Completed = "Completed";   // Hoàn thành (tính doanh thu)
         public const string Cancelled = "Cancelled";   // Đã hủy
+
+        public static readonly string[] All = new[]
+        {
+            Pending, Confirmed, Shipping, Completed, Cancelled
+        };
     }
 
     public static class PaymentMethods

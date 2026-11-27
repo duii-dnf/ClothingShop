@@ -1,489 +1,226 @@
 @using ClothingShop.Services
-
 @{
     var currentUser = SessionHelper.CurrentUser;
-    var cart = Session["ShoppingCart"] as List<ClothingShop.Web.ViewModels.CartItemVM>;
-    int cartCount = cart != null ? cart.Sum(x => x.Quantity) : ((Session[SessionHelper.CartCountKey] as int?) ?? 0);
-    var promoClass = ViewBag.PromoWine == true ? "promo-strip promo-strip--wine" : "promo-strip";
+    int cartCount = Session[SessionHelper.CartCountKey] != null ? (int)Session[SessionHelper.CartCountKey] : 0;
+    int favCount = Session["FavCount"] != null ? (int)Session["FavCount"] : 0;
+    string currentKeyword = Request.QueryString["keyword"] ?? "";
 }
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewBag.Title - ClothingShop</title>
+    <title>@ViewBag.Title - CLOTHINGSHOP.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
-        rel="stylesheet" />
-    @Styles.Render("~/Content/css")
-    <link rel="stylesheet" href="@Url.Content("~/Content/Site.css")?v=@(System.IO.File.GetLastWriteTime(Server.MapPath("~/Content/Site.css")).Ticks)" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="~/Content/Site.css" rel="stylesheet" />
 </head>
-
-<body class="store-body">
-
-    <header class="site-header">
-        <div class="site-header__inner">
-            <div class="header-left">
-                <button class="icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"
-                    aria-label="Mở menu">
-                    <i class="bi bi-list"></i>
-                </button>
-                <span class="header-est d-none d-lg-inline-block">Est. 2026 &mdash; Saigon</span>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Top Promo Strip -->
+    <div class="bg-obsidian text-white py-2 small">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge badge-lime rounded-pill fw-bold px-2">NEW DROP</span>
+                <span>Freeship đơn từ <strong>500K</strong> &bull; Nhập mã <strong class="text-warning">SALE10</strong> giảm ngay 10%</span>
             </div>
-
-            @Html.ActionLink("ClothingShop", "Index", "Home", new { area = "" }, new { @class = "brand" })
-
-            <div class="header-actions">
-                <button class="icon-btn" type="button" data-bs-toggle="collapse" data-bs-target="#searchBar"
-                    aria-expanded="false" aria-label="Tìm kiếm">
-                    <i class="bi bi-search"></i>
-                </button>
-
-                <a class="icon-btn position-relative" href="@Url.Action("Index", "Cart", new { area = "" })" aria-label="Giỏ hàng">
-                    <i class="bi bi-bag"></i>
-                    <span class="cart-count" id="headerCartCount" style="@(cartCount > 0 ? "" : "display:none;")">@cartCount</span>
-                </a>
-
-                @if (currentUser == null)
-                {
-                    <a class="icon-btn" href="@Url.Action("Login", "Account", new { area = "" })" aria-label="Đăng nhập">
-                        <i class="bi bi-person"></i>
-                    </a>
-                }
-                else
-                {
-                    <div class="dropdown">
-                        <button class="icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                            aria-label="Tài khoản">
-                            <i class="bi bi-person-check"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text fw-semibold">@currentUser.FullName</span></li>
-                            <li>
-                                <hr class="dropdown-divider" />
-                            </li>
-                            @if (currentUser.CanAccessAdmin)
-                            {
-                                <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new
-                            { area = "Admin" }, new { @class = "dropdown-item" })</li>
-                            }
-                            <li>@Html.ActionLink("Hồ sơ & Sổ địa chỉ", "Profile", "Account", new { area = "" }, new { @class = "dropdown-item" })</li>
-                            <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, new { @class =
-                            "dropdown-item" })</li>
-                            <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, new { @class =
-                            "dropdown-item" })</li>
-                        </ul>
-                    </div>
-                }
-
-                <button class="menu-btn d-none d-lg-inline-flex" type="button" data-bs-toggle="offcanvas"
-                    data-bs-target="#mobileMenu">
-                    <i class="bi bi-list"></i> Menu
-                </button>
+            <div class="d-none d-md-flex align-items-center gap-3 text-white-50">
+                <span><i class="bi bi-arrow-repeat me-1"></i>Đổi size 7 ngày</span>
+                <span><i class="bi bi-telephone me-1"></i>1900 636 888</span>
             </div>
-        </div>
-
-        <nav class="wine-nav d-none d-lg-block" aria-label="Điều hướng chính">
-            <ul class="main-nav__list wine-nav__list">
-                <li class="main-nav__item">
-                    <a class="main-nav__link" href="@Url.Action("Index", "Home", new { area = "" })">Trang chủ</a>
-                </li>
-                <li class="main-nav__item main-nav__item--shop">
-                    <a class="main-nav__link" href="@Url.Action("Index", "Product", new { area = "" })" id="shopNavToggle">
-                        Cửa hàng <i class="bi bi-chevron-down ms-1 shop-chevron"></i>
-                    </a>
-                    @Html.Action("CategoryMenu", "Menu", new { area = "", mode = "shop_dropdown" })
-                </li>
-                <li class="main-nav__item">
-                    <a class="main-nav__link"
-                        href="@Url.Action("Index", "Product", new { area = "", sort = "newest" })">Hàng mới về</a>
-                </li>
-                <li class="main-nav__item">
-                    <a class="main-nav__link"
-                        href="@Url.Action("Index", "Product", new { area = "", filter = "sale" })">Khuyến mãi</a>
-                </li>
-                <li class="main-nav__item">
-                    <a class="main-nav__link" href="#store-footer">Liên hệ</a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="collapse search-bar" id="searchBar">
-            <div class="container search-bar__container position-relative">
-                <form action="@Url.Action("Index", "Product", new { area = "" })" method="get" id="headerSearchForm" class="search-form" autocomplete="off">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="searchString" id="headerSearchInput" class="form-control border-start-0 ps-0" placeholder="Nhập tên sản phẩm để tìm kiếm..." aria-label="Từ khóa" autocomplete="off" />
-                        <button class="btn btn-primary px-4" type="submit">Tìm kiếm</button>
-                    </div>
-                </form>
-                <div id="headerSearchSuggestions" class="search-suggestions" style="display:none;" aria-live="polite"></div>
-            </div>
-        </div>
-    </header>
-
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
-        <div class="offcanvas-header">
-            <span class="brand brand--sm" id="mobileMenuLabel">ClothingShop</span>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
-        </div>
-        <div class="offcanvas-body">
-            @Html.Action("CategoryMenu", "Menu", new { area = "", mode = "mobile" })
-            <ul class="mobile-links">
-                @if (currentUser == null)
-                {
-                    <li>@Html.ActionLink("Đăng nhập", "Login", "Account", new { area = "" }, null)</li>
-                    <li>@Html.ActionLink("Đăng ký", "Register", "Account", new { area = "" }, null)</li>
-                }
-                else
-                {
-                    <li>@Html.ActionLink("Hồ sơ & Sổ địa chỉ", "Profile", "Account", new { area = "" }, null)</li>
-                    <li>@Html.ActionLink("Đơn hàng của tôi", "History", "Order", new { area = "" }, null)</li>
-                    if (currentUser.CanAccessAdmin)
-                    {
-                        <li>@Html.ActionLink("Trang quản trị", "Index", currentUser.IsAdmin ? "Dashboard" : "Order", new { area
-                    = "Admin" }, null)</li>
-                    }
-                    <li>@Html.ActionLink("Đăng xuất", "Logout", "Account", new { area = "" }, null)</li>
-                }
-                <li>@Html.ActionLink("Giỏ hàng", "Index", "Cart", new { area = "" }, null)</li>
-            </ul>
         </div>
     </div>
 
-    <main>
-        @if (TempData["Success"] != null || TempData["Error"] != null)
-        {
-            <div class="container pt-3">
-                @if (TempData["Success"] != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        @TempData["Success"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-                    </div>
-                }
-                @if (TempData["Error"] != null)
-                {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        @TempData["Error"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-                    </div>
-                }
-            </div>
-        }
+    <!-- Main Glass Navbar (Bootstrap 5 + Menu 2 cấp động) -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-glass border-bottom sticky-top py-3">
+        <div class="container">
+            <a class="navbar-brand font-display fw-bold fs-4 text-uppercase d-flex align-items-center gap-1" href="@Url.Action("Index", "Home")">
+                <span class="bg-obsidian text-white px-2 py-1 rounded-3 fs-6 lh-1">CS</span>
+                <span>CLOTHINGSHOP<span class="text-danger">.</span></span>
+            </a>
 
-        @if (ViewBag.FullWidth == true)
-        {
-            @RenderBody()
-        }
-        else
-        {
-            <div class="container page-wrap">
-                @RenderBody()
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-1">
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold px-3" href="@Url.Action("Index", "Home")">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold px-3" href="@Url.Action("Index", "Product")">Cửa hàng</a>
+                    </li>
+                    @Html.Action("CategoryMenu", "Menu", new { mode = "desktop" })
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold text-danger px-3" href="@Url.Action("Index", "Product", new { onSale = true })">
+                            <i class="bi bi-fire me-1"></i>Sale
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Tìm kiếm bằng Form GET thuần (KHÔNG AJAX) -->
+                <form class="d-flex me-lg-3 my-2 my-lg-0" method="get" action="@Url.Action("Index", "Product")">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="keyword" value="@currentKeyword"
+                               class="form-control rounded-start-pill bg-light border-end-0 ps-3"
+                               placeholder="Tìm áo, quần, phụ kiện..." />
+                        <button class="btn btn-light border border-start-0 rounded-end-pill pe-3" type="submit" title="Tìm kiếm">
+                            <i class="bi bi-search text-dark"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Yêu thích, Giỏ hàng & Tài khoản -->
+                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                    <a href="@Url.Action("Index", "Favorite")" class="btn btn-outline-danger btn-sm rounded-pill px-3 position-relative fw-semibold" title="Sản phẩm yêu thích">
+                        <i class="bi bi-heart-fill"></i>
+                        @if (favCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
+                                @favCount
+                            </span>
+                        }
+                    </a>
+
+                    <a href="@Url.Action("Index", "Cart")" class="btn btn-outline-dark btn-sm rounded-pill px-3 position-relative fw-semibold">
+                        <i class="bi bi-bag me-1"></i>Giỏ
+                        @if (cartCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                @cartCount
+                            </span>
+                        }
+                    </a>
+
+                    @if (currentUser == null)
+                    {
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-dark btn-sm rounded-pill px-3 fw-semibold">Đăng nhập</a>
+                        <a href="@Url.Action("Register", "Account")" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Đăng ký</a>
+                    }
+                    else
+                    {
+                        <div class="dropdown">
+                            <button class="btn btn-dark btn-sm rounded-pill px-3 dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i>@currentUser.FullName
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-4 p-2 mt-2">
+                                <li class="px-3 py-2">
+                                    <div class="fw-bold small">@currentUser.FullName</div>
+                                    <span class="badge bg-dark-subtle text-dark rounded-pill">@currentUser.Role</span>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                @if (currentUser.CanAccessAdmin)
+                                {
+                                    <li>
+                                        <a class="dropdown-item rounded-3 fw-semibold text-primary" href="@Url.Action("Index", currentUser.IsAdmin ? "Dashboard" : "Order", new { area = "Admin" })">
+                                            <i class="bi bi-grid-1x2-fill me-2"></i>Khu vực Quản trị
+                                        </a>
+                                    </li>
+                                }
+                                <li>
+                                    <a class="dropdown-item rounded-3" href="@Url.Action("Profile", "Account")">
+                                        <i class="bi bi-person-vcard me-2"></i>Hồ sơ &amp; Sổ địa chỉ
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3" href="@Url.Action("Index", "Favorite")">
+                                        <i class="bi bi-heart-fill text-danger me-2"></i>Sản phẩm yêu thích
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3" href="@Url.Action("History", "Order")">
+                                        <i class="bi bi-bag-check me-2"></i>Đơn hàng của tôi
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 text-danger" href="@Url.Action("Logout", "Account")">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                </div>
             </div>
-        }
+        </div>
+    </nav>
+
+    <!-- Thông báo TempData -->
+    @if (TempData["Success"] != null || TempData["Error"] != null)
+    {
+        <div class="container mt-3">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success border-0 rounded-4 shadow-sm alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger border-0 rounded-4 shadow-sm alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Nội dung chính -->
+    <main class="flex-grow-1">
+        @RenderBody()
     </main>
 
-    <footer class="site-footer" id="store-footer">
+    <!-- Editorial Footer -->
+    <footer class="bg-obsidian text-light pt-5 pb-4 mt-5">
         <div class="container">
-            <div class="row g-4 pb-5">
-                <div class="col-lg-3 col-md-6">
-                    <div class="footer-wordmark mb-3">ClothingShop</div>
-                    <p class="small text-white-50 mb-3" style="line-height:1.7;">
-                        Thời trang tối giản đương đại, đề cao phom dáng chuẩn mực và chất liệu tự nhiên bền vững cho
-                        nhịp sống hiện đại.
+            <div class="row g-4 pb-4 border-bottom border-secondary border-opacity-25">
+                <div class="col-lg-4">
+                    <h4 class="font-display fw-bold mb-3">CLOTHINGSHOP<span class="text-danger">.</span></h4>
+                    <p class="text-white-50 small mb-3">
+                        Thương hiệu thời trang Gen-Z dành cho cả Nam và Nữ. Phom dáng hiện đại, chất liệu chọn lọc, cập nhật xu hướng streetwear &amp; minimal mỗi tuần.
                     </p>
-                    <p class="footer-label mt-3">Flagship Store</p>
-                    <p class="small text-white mb-1"><i class="bi bi-geo-alt me-1"></i> 140 Lê Trọng Tấn, Tân Phú,
-                        TP.HCM</p>
-                    <p class="small text-white-50 mb-3"><i class="bi bi-clock me-1"></i> 09:00 &ndash; 22:00 (Hàng ngày)
-                    </p>
-                    <div class="footer-socials">
-                        <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="#" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
-                        <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary bg-opacity-25 text-white fw-normal px-3 py-2 rounded-pill">#Streetwear</span>
+                        <span class="badge bg-secondary bg-opacity-25 text-white fw-normal px-3 py-2 rounded-pill">#Minimal</span>
+                        <span class="badge bg-secondary bg-opacity-25 text-white fw-normal px-3 py-2 rounded-pill">#GenZStyle</span>
                     </div>
                 </div>
-
-                <div class="col-lg-2 col-md-6 col-6">
-                    <p class="footer-label mb-3">Bộ sưu tập</p>
-                    <ul class="footer-list">
-                        @Html.Action("CategoryMenu", "Menu", new { area = "", mode = "footer" })
+                <div class="col-6 col-lg-2">
+                    <h6 class="fw-bold text-uppercase small mb-3 text-white">Danh mục</h6>
+                    @Html.Action("CategoryMenu", "Menu", new { mode = "footer" })
+                </div>
+                <div class="col-6 col-lg-3">
+                    <h6 class="fw-bold text-uppercase small mb-3 text-white">Khám phá nhanh</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="@Url.Action("Index", "Product", new { gender = "Nam" })" class="text-white-50 text-decoration-none">Thời trang Nam</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="text-white-50 text-decoration-none">Thời trang Nữ</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Index", "Product", new { isNew = true })" class="text-white-50 text-decoration-none">Hàng mới về (New Drop)</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Index", "Product", new { onSale = true })" class="text-warning text-decoration-none fw-semibold">Săn Deal Khuyến Mãi</a></li>
                     </ul>
                 </div>
-
-                <div class="col-lg-3 col-md-6 col-6">
-                    <p class="footer-label mb-3">Dịch vụ khách hàng</p>
-                    <ul class="footer-list">
-                        <li><a href="@Url.Action("Index", "Cart", new { area = "" })">Giỏ hàng của bạn</a></li>
-                        <li><a href="@Url.Action("History", "Order", new { area = "" })">Tra cứu đơn hàng</a></li>
-                        @if (currentUser == null)
-                        {
-                            <li><a href="@Url.Action("Login", "Account", new { area = "" })">Đăng nhập thành viên</a></li>
-                            <li><a href="@Url.Action("Register", "Account", new { area = "" })">Đăng ký ưu đãi</a></li>
-                        }
-                        else
-                        {
-                            <li><a href="@Url.Action("Logout", "Account", new { area = "" })">Đăng xuất</a></li>
-                        }
-                        <li><span class="text-white-50">Đổi trả miễn phí trong 7 ngày</span></li>
-                        <li><span class="text-white-50">Hotline: 1900 6868</span></li>
+                <div class="col-lg-3">
+                    <h6 class="fw-bold text-uppercase small mb-3 text-white">Cửa hàng &amp; Liên hệ</h6>
+                    <ul class="list-unstyled small text-white-50">
+                        <li class="mb-2"><i class="bi bi-geo-alt text-white me-2"></i>140 Lê Trọng Tấn, Tân Phú, TP.HCM</li>
+                        <li class="mb-2"><i class="bi bi-envelope text-white me-2"></i>support@clothingshop.vn</li>
+                        <li class="mb-2"><i class="bi bi-telephone text-white me-2"></i>1900 636 888 (8:00 - 21:00)</li>
                     </ul>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <p class="footer-label mb-3">Bản đồ cửa hàng</p>
-                    <div class="footer-map">
-                        <iframe
-                            src="https://maps.google.com/maps?q=140%20L%C3%AA%20Tr%E1%BB%8Dng%20T%E1%BA%A5n,%20T%C3%A2n%20Ph%C3%BA,%20H%E1%BB%93%20Ch%C3%AD%20Minh&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                            loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-                            title="Bản đồ ClothingShop"></iframe>
-                    </div>
                 </div>
             </div>
-
-            <div class="footer-bottom-bar">
-                <div class="small text-white-50">
-                    &copy; 2026 ClothingShop Studio.
-                </div>
-                <div class="pay-badges">
-                    <span class="pay-badge pay-badge--visa">VISA</span>
-                    <span class="pay-badge pay-badge--mc"><i class="bi bi-credit-card-2-front"></i> Mastercard</span>
-                    <span class="pay-badge"><i class="bi bi-apple"></i> Apple Pay</span>
-                    <span class="pay-badge">MoMo</span>
-                    <span class="pay-badge">COD</span>
-                </div>
+            <div class="d-flex flex-wrap justify-content-between align-items-center pt-4 small text-white-50">
+                <span>&copy; @DateTime.Now.Year CLOTHINGSHOP. Đồ án Lập trình Web ASP.NET MVC 5 &amp; ADO.NET.</span>
+                <span>Thiết kế thuần Bootstrap 5 &bull; Không dùng AJAX</span>
             </div>
         </div>
     </footer>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
     @RenderSection("scripts", required: false)
-
-    <script>
-        (function () {
-            // Live Search Autocomplete
-            var searchInput = document.getElementById('headerSearchInput');
-            var searchSuggestions = document.getElementById('headerSearchSuggestions');
-            var searchBar = document.getElementById('searchBar');
-            var debounceTimer = null;
-            var currentSuggestions = [];
-            var selectedIndex = -1;
-
-            if (searchInput && searchSuggestions) {
-                searchInput.addEventListener('input', function () {
-                    var term = this.value.trim();
-                    clearTimeout(debounceTimer);
-                    selectedIndex = -1;
-
-                    if (term.length < 1) {
-                        searchSuggestions.innerHTML = '';
-                        searchSuggestions.style.display = 'none';
-                        return;
-                    }
-
-                    debounceTimer = setTimeout(function () {
-                        searchSuggestions.innerHTML = '<div class="search-suggestions__loading"><i class="bi bi-arrow-repeat spin"></i> Đang tìm kiếm...</div>';
-                        searchSuggestions.style.display = 'block';
-
-                        $.getJSON('@Url.Action("Suggestions", "Product", new { area = "" })', { term: term }, function (res) {
-                            if (!res || !res.success || !res.items || res.items.length === 0) {
-                                searchSuggestions.innerHTML = '<div class="search-suggestions__empty"><i class="bi bi-search text-muted me-2"></i>Không tìm thấy sản phẩm phù hợp với "<strong>' + escapeHtml(term) + '</strong>"</div>';
-                                currentSuggestions = [];
-                                return;
-                            }
-
-                            currentSuggestions = res.items;
-                            var html = '<div class="search-suggestions__header"><span>Gợi ý sản phẩm (' + res.items.length + ')</span><a href="@Url.Action("Index", "Product", new { area = "" })?searchString=' + encodeURIComponent(term) + '">Xem tất cả &rarr;</a></div>';
-                            html += '<ul class="search-suggestions__list">';
-
-                            res.items.forEach(function (item, idx) {
-                                html += '<li class="search-suggestions__item" data-index="' + idx + '" data-url="' + item.url + '">';
-                                html += '  <img src="' + item.imageUrl + '" alt="' + escapeHtml(item.name) + '" class="search-suggestions__img" />';
-                                html += '  <div class="search-suggestions__info">';
-                                html += '    <div class="search-suggestions__name">' + highlightMatch(item.name, term) + '</div>';
-                                if (item.category) {
-                                    html += '    <div class="search-suggestions__cat">' + escapeHtml(item.category) + '</div>';
-                                }
-                                html += '    <div class="search-suggestions__pricing">';
-                                html += '      <span class="search-suggestions__price">' + item.price + '</span>';
-                                if (item.oldPrice) {
-                                    html += '      <span class="search-suggestions__old-price">' + item.oldPrice + '</span>';
-                                }
-                                if (item.discountPercent) {
-                                    html += '      <span class="search-suggestions__badge">' + item.discountPercent + '</span>';
-                                }
-                                html += '    </div>';
-                                html += '  </div>';
-                                html += '</li>';
-                            });
-
-                            html += '</ul>';
-                            html += '<div class="search-suggestions__footer"><small class="text-muted">Nhấn Enter để xem toàn bộ kết quả tìm kiếm</small></div>';
-                            searchSuggestions.innerHTML = html;
-
-                            // Click item
-                            searchSuggestions.querySelectorAll('.search-suggestions__item').forEach(function (el) {
-                                el.addEventListener('click', function () {
-                                    var url = this.getAttribute('data-url');
-                                    if (url) window.location.href = url;
-                                });
-                            });
-                        }).fail(function () {
-                            searchSuggestions.innerHTML = '<div class="search-suggestions__empty text-danger">Có lỗi khi tìm kiếm, vui lòng thử lại sau.</div>';
-                        });
-                    }, 220);
-                });
-
-                // Keyboard navigation
-                searchInput.addEventListener('keydown', function (e) {
-                    var items = searchSuggestions.querySelectorAll('.search-suggestions__item');
-                    if (!items || items.length === 0 || searchSuggestions.style.display === 'none') return;
-
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        selectedIndex = (selectedIndex + 1) % items.length;
-                        updateSelection(items);
-                    } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        selectedIndex = (selectedIndex - 1 + items.length) % items.length;
-                        updateSelection(items);
-                    } else if (e.key === 'Enter') {
-                        if (selectedIndex >= 0 && selectedIndex < items.length) {
-                            e.preventDefault();
-                            var url = items[selectedIndex].getAttribute('data-url');
-                            if (url) window.location.href = url;
-                        }
-                    } else if (e.key === 'Escape') {
-                        searchSuggestions.style.display = 'none';
-                    }
-                });
-
-                function updateSelection(items) {
-                    items.forEach(function (el, idx) {
-                        if (idx === selectedIndex) {
-                            el.classList.add('is-active');
-                            el.scrollIntoView({ block: 'nearest' });
-                        } else {
-                            el.classList.remove('is-active');
-                        }
-                    });
-                }
-
-                function escapeHtml(text) {
-                    var div = document.createElement('div');
-                    div.textContent = text;
-                    return div.innerHTML;
-                }
-
-                function highlightMatch(text, term) {
-                    if (!term) return escapeHtml(text);
-                    var regex = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-                    return escapeHtml(text).replace(regex, '<mark>$1</mark>');
-                }
-
-                // Close suggestions on outside click
-                document.addEventListener('click', function (e) {
-                    if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                        searchSuggestions.style.display = 'none';
-                    }
-                });
-            }
-
-            // Mobile menu / Shop Dropdown touch enhancement
-            var shopToggle = document.getElementById('shopNavToggle');
-            var shopDropdown = document.getElementById('shopDropdown');
-            if (shopToggle && shopDropdown && 'ontouchstart' in window) {
-                shopToggle.addEventListener('click', function (e) {
-                    if (!shopDropdown.classList.contains('is-touch-open')) {
-                        e.preventDefault();
-                        shopDropdown.classList.add('is-touch-open');
-                    }
-                });
-                document.addEventListener('click', function (e) {
-                    if (!shopToggle.contains(e.target) && !shopDropdown.contains(e.target)) {
-                        shopDropdown.classList.remove('is-touch-open');
-                    }
-                });
-            }
-
-            // Quick Add to Cart Handler (delegated)
-            document.addEventListener('click', function (e) {
-                var btn = e.target.closest('.js-quick-add');
-                if (!btn) return;
-                e.preventDefault();
-
-                var url = btn.getAttribute('data-url');
-                var productId = btn.getAttribute('data-id');
-                var productName = btn.getAttribute('data-name');
-                var price = btn.getAttribute('data-price');
-                var img = btn.getAttribute('data-img');
-
-                if (btn.disabled) return;
-                btn.disabled = true;
-                var originalHtml = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: {
-                        productId: productId,
-                        productName: productName,
-                        imageUrl: img,
-                        price: price,
-                        quantity: 1
-                    },
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (res) {
-                        btn.disabled = false;
-                        btn.innerHTML = originalHtml;
-
-                        if (res && res.cartCount !== undefined) {
-                            var cartBadge = document.getElementById('headerCartCount');
-                            if (cartBadge) {
-                                cartBadge.textContent = res.cartCount;
-                                cartBadge.style.display = res.cartCount > 0 ? 'inline-block' : 'none';
-                            }
-                        }
-
-                        var toastEl = document.getElementById('cartToast');
-                        var toastMsg = document.getElementById('cartToastMsg');
-                        if (toastEl && window.bootstrap && bootstrap.Toast) {
-                            if (toastMsg) {
-                                toastMsg.innerHTML = 'Đã thêm <strong>' + escapeHtml(productName) + '</strong> vào giỏ hàng!';
-                            }
-                            var toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500 });
-                            toast.show();
-                        }
-                    },
-                    error: function () {
-                        btn.disabled = false;
-                        btn.innerHTML = originalHtml;
-                        alert('Không thể thêm sản phẩm vào giỏ hàng lúc này. Vui lòng thử lại!');
-                    }
-                });
-            });
-        })();
-    </script>
-
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
-        <div id="cartToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body d-flex align-items-center gap-2" id="cartToastBody">
-                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                    <span id="cartToastMsg">Đã thêm sản phẩm vào giỏ hàng!</span>
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
-            </div>
-        </div>
-    </div>
 </body>
-
 </html>

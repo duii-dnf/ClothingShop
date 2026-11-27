@@ -1,244 +1,147 @@
+@model ClothingShop.Models.Product
 @using ClothingShop.Models
 @using ClothingShop.Services
-@model ClothingShop.Models.Product
-
 @{
-    ViewBag.Title = "Quản lý biến thể & Tồn kho - " + Model.Name;
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
-    var sizes = ViewBag.Sizes as List<ProductSize>;
-    var colors = ViewBag.Colors as List<ProductColor>;
-    var logs = ViewBag.Logs as List<InventoryLog>;
+    ViewBag.Title = "Biến thể & Tồn kho";
+    var sizes = ViewBag.Sizes as List<ProductSize> ?? new List<ProductSize>();
+    var colors = ViewBag.Colors as List<ProductColor> ?? new List<ProductColor>();
+    var logs = ViewBag.Logs as List<InventoryLog> ?? new List<InventoryLog>();
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-1"><i class="bi bi-boxes me-2"></i>Quản lý biến thể & Tồn kho</h4>
-        <span class="text-muted">Sản phẩm: <strong>@Model.Name</strong> (ID: #@Model.ProductId) | Tổng tồn kho: <strong class="text-danger">@Model.Stock</strong></span>
+        <h3 class="fw-bold mb-0">Biến thể &amp; Tồn kho: @Model.Name</h3>
+        <small class="text-muted">Tổng tồn kho hiện tại: <strong>@Model.Stock</strong></small>
     </div>
-    <div>
-        <a href="@Url.Action("Edit", new { id = Model.ProductId })" class="btn btn-outline-secondary btn-sm me-2">
-            <i class="bi bi-pencil me-1"></i>Sửa thông tin SP
-        </a>
-        <a href="@Url.Action("Index")" class="btn btn-outline-dark btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Danh sách SP
-        </a>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">Quay lại danh sách</a>
+</div>
+
+<!-- Danh sách biến thể hiện có -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white fw-semibold">Danh sách biến thể (Size / Màu)</div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>SKU</th>
+                    <th>Size</th>
+                    <th>Màu sắc</th>
+                    <th>Cập nhật tồn kho / giá riêng / trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model.ProductVariants)
+                {
+                    <tr>
+                        <td class="fw-semibold">@v.SKU</td>
+                        <td>@(v.ProductSize != null ? v.ProductSize.Name : "Freesize")</td>
+                        <td>@(v.ProductColor != null ? v.ProductColor.Name : "Mặc định")</td>
+                        <td>
+                            @using (Html.BeginForm("UpdateVariantStock", "Product", FormMethod.Post, new { @class = "row g-2 align-items-center" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="variantId" value="@v.VariantId" />
+                                <div class="col-auto">
+                                    <input type="number" name="stock" value="@v.Stock" min="0" class="form-control form-control-sm" style="width:90px;" title="Tồn kho" />
+                                </div>
+                                <div class="col-auto">
+                                    <input type="number" name="price" value="@v.Price" min="0" step="1000" class="form-control form-control-sm" style="width:130px;" placeholder="Giá riêng (tùy chọn)" />
+                                </div>
+                                <div class="col-auto">
+                                    <select name="isActive" class="form-select form-select-sm">
+                                        <option value="true" @(v.IsActive ? "selected" : "")>Đang bán</option>
+                                        <option value="false" @(!v.IsActive ? "selected" : "")>Ẩn</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-dark btn-sm">Lưu</button>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
-<div class="row g-4 mb-4">
-    <!-- Form tạo biến thể mới -->
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
-            <h6 class="fw-bold mb-3 border-bottom pb-2"><i class="bi bi-plus-circle me-1"></i>Thêm biến thể mới</h6>
-            @using (Html.BeginForm("CreateVariant", "Product", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="productId" value="@Model.ProductId" />
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold">Kích cỡ</label>
+<!-- Thêm biến thể mới -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold">Thêm biến thể mới</div>
+    <div class="card-body">
+        @using (Html.BeginForm("CreateVariant", "Product", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="productId" value="@Model.ProductId" />
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Size</label>
                     <select name="sizeId" class="form-select form-select-sm">
-                        <option value="">-- Chọn kích cỡ --</option>
-                        @if (sizes != null)
+                        @foreach (var s in sizes)
                         {
-                            foreach (var s in sizes)
-                            {
-                                <option value="@s.SizeId">@s.Name (@s.Code)</option>
-                            }
+                            <option value="@s.SizeId">@s.Name</option>
                         }
                     </select>
                 </div>
-
-                <div class="mb-3">
+                <div class="col-md-2">
                     <label class="form-label small fw-semibold">Màu sắc</label>
                     <select name="colorId" class="form-select form-select-sm">
-                        <option value="">-- Chọn màu sắc --</option>
-                        @if (colors != null)
+                        @foreach (var c in colors)
                         {
-                            foreach (var c in colors)
-                            {
-                                <option value="@c.ColorId">@c.Name (@c.HexCode)</option>
-                            }
+                            <option value="@c.ColorId">@c.Name</option>
                         }
                     </select>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold">Mã SKU (để trống sẽ tự sinh)</label>
-                    <input type="text" name="sku" class="form-control form-control-sm" placeholder="VD: SP001-M-BLACK" />
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">SKU (để trống tự tạo)</label>
+                    <input type="text" name="sku" class="form-control form-control-sm" placeholder="VD: SP001-L-RED" />
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold">Số lượng tồn ban đầu *</label>
-                    <input type="number" name="stock" class="form-control form-control-sm" value="10" min="0" required />
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Tồn kho</label>
+                    <input type="number" name="stock" value="10" min="0" class="form-control form-control-sm" required />
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold">Giá ghi đè (nếu khác giá gốc)</label>
-                    <input type="number" name="price" class="form-control form-control-sm" placeholder="Mặc định: @Model.Price.ToString("N0")" step="1000" />
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Giá riêng</label>
+                    <input type="number" name="price" min="0" step="1000" class="form-control form-control-sm" placeholder="Mặc định" />
                 </div>
-
-                <button type="submit" class="btn btn-primary btn-sm w-100">
-                    <i class="bi bi-check2-circle me-1"></i>Tạo biến thể
-                </button>
-            }
-        </div>
-    </div>
-
-    <!-- Bảng danh sách các biến thể hiện tại -->
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
-            <h6 class="fw-bold mb-3 border-bottom pb-2 d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-list-check me-1"></i>Danh sách biến thể (@(Model.Variants?.Count ?? 0))</span>
-                <span class="badge bg-secondary">Tổng tồn: @Model.Stock</span>
-            </h6>
-
-            @if (Model.Variants != null && Model.Variants.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle table-hover mb-0">
-                        <thead class="table-light small">
-                            <tr>
-                                <th>SKU</th>
-                                <th>Size</th>
-                                <th>Màu sắc</th>
-                                <th style="width: 100px;">Tồn kho</th>
-                                <th style="width: 120px;">Giá bán</th>
-                                <th>Trạng thái</th>
-                                <th class="text-end">Cập nhật</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var v in Model.Variants.OrderBy(v => v.Size != null ? v.Size.SortOrder : 99))
-                            {
-                                using (Html.BeginForm("UpdateVariantStock", "Product", FormMethod.Post))
-                                {
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="variantId" value="@v.VariantId" />
-                                    <tr>
-                                        <td class="fw-semibold small">@v.SKU</td>
-                                        <td>
-                                            <span class="badge bg-light text-dark border">
-                                                @(v.Size?.Name ?? "FS")
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @if (v.Color != null)
-                                            {
-                                                <span class="d-inline-flex align-items-center gap-1 small">
-                                                    <span style="width: 12px; height: 12px; border-radius: 50%; background: @v.Color.HexCode; display: inline-block; border: 1px solid #ccc;"></span>
-                                                    @v.Color.Name
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted small">Mặc định</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <input type="number" name="stock" value="@v.Stock" min="0" class="form-control form-control-sm text-center @(v.Stock <= 0 ? "border-danger text-danger fw-bold" : "")" />
-                                        </td>
-                                        <td>
-                                            <input type="number" name="price" value="@(v.Price.HasValue ? v.Price.Value.ToString("0") : "")" placeholder="@Model.Price.ToString("0")" class="form-control form-control-sm text-end" step="1000" />
-                                        </td>
-                                        <td>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" name="isActive" value="true" @(v.IsActive ? "checked" : "") />
-                                            </div>
-                                        </td>
-                                        <td class="text-end">
-                                            <button type="submit" class="btn btn-outline-primary btn-sm" title="Lưu thay đổi">
-                                                <i class="bi bi-save"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
+                <div class="col-md-1 d-grid">
+                    <button type="submit" class="btn btn-dark btn-sm">Thêm</button>
                 </div>
-            }
-            else
-            {
-                <div class="alert alert-warning small mb-0">Chưa có biến thể nào được tạo cho sản phẩm này.</div>
-            }
-        </div>
+            </div>
+        }
     </div>
 </div>
 
-<!-- Lịch sử xuất nhập tồn (Inventory Logs) -->
-<div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
-    <h6 class="fw-bold mb-3 border-bottom pb-2"><i class="bi bi-journal-text me-1"></i>Lịch sử biến động tồn kho gần đây</h6>
-    @if (logs != null && logs.Any())
-    {
-        <div class="table-responsive">
-            <table class="table table-sm align-middle table-striped mb-0 small">
-                <thead class="table-light">
+<!-- Lịch sử kho -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-semibold">Lịch sử nhập / xuất kho (25 gần nhất)</div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Loại thao tác</th>
+                    <th class="text-center">Thay đổi</th>
+                    <th class="text-center">Tồn sau</th>
+                    <th>Ghi chú</th>
+                    <th>Người thực hiện</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in logs)
+                {
                     <tr>
-                        <th>Thời gian</th>
-                        <th>Loại thay đổi</th>
-                        <th>Biến thể / SKU</th>
-                        <th class="text-center">Số lượng thay đổi</th>
-                        <th class="text-center">Tồn sau thay đổi</th>
-                        <th>Tham chiếu</th>
-                        <th>Người thực hiện</th>
-                        <th>Ghi chú</th>
+                        <td class="small">@log.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="small"><span class="badge bg-light text-dark border">@log.ChangeType</span></td>
+                        <td class="text-center fw-bold @(log.QuantityChange >= 0 ? "text-success" : "text-danger")">
+                            @(log.QuantityChange > 0 ? "+" + log.QuantityChange : log.QuantityChange.ToString())
+                        </td>
+                        <td class="text-center">@log.StockAfter</td>
+                        <td class="small">@log.Note</td>
+                        <td class="small text-muted">@log.CreatedBy</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var log in logs)
-                    {
-                        <tr>
-                            <td>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>
-                                @if (log.ChangeType == "OrderPlaced")
-                                {
-                                    <span class="badge bg-danger-subtle text-danger border border-danger">Khách đặt hàng</span>
-                                }
-                                else if (log.ChangeType == "OrderCancelled")
-                                {
-                                    <span class="badge bg-success-subtle text-success border border-success">Hoàn do hủy đơn</span>
-                                }
-                                else if (log.ChangeType == "AdminAdjustment")
-                                {
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">Admin điều chỉnh</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-info-subtle text-info-emphasis border border-info">@log.ChangeType</span>
-                                }
-                            </td>
-                            <td>@(log.Variant?.SKU ?? "Chung")</td>
-                            <td class="text-center fw-bold @(log.QuantityChange > 0 ? "text-success" : "text-danger")">
-                                @(log.QuantityChange > 0 ? "+" + log.QuantityChange : log.QuantityChange.ToString())
-                            </td>
-                            <td class="text-center fw-semibold">@log.StockAfter</td>
-                            <td>@(log.ReferenceType != null ? log.ReferenceType + " #" + log.ReferenceId : "-")</td>
-                            <td>@(log.CreatedBy ?? "Hệ thống")</td>
-                            <td class="text-muted">@log.Note</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-    else
-    {
-        <div class="text-muted small">Chưa có lịch sử biến động tồn kho.</div>
-    }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

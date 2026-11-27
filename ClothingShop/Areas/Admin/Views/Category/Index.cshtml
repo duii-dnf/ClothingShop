@@ -1,231 +1,77 @@
 ﻿@model IEnumerable<ClothingShop.Models.Category>
-
 @{
     ViewBag.Title = "Quản lý loại sản phẩm";
-    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
-
-    string keyword = ViewBag.Keyword as string;
-    string level = ViewBag.Level as string;
-    string status = ViewBag.Status as string;
-    bool hasFilter = !string.IsNullOrEmpty(keyword) || !string.IsNullOrEmpty(level) || !string.IsNullOrEmpty(status);
 }
 
-<style>
-    .cat-stat-card {
-        border: 1px solid #e9ecef;
-        border-radius: 10px;
-        padding: 14px 16px;
-        background: #fff;
-        transition: transform .22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow .22s ease, border-color .22s ease;
-    }
-
-        .cat-stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, .06);
-            border-color: #d0d7de;
-        }
-
-    .cat-table tbody tr {
-        transition: background-color .18s ease;
-    }
-
-    .cat-status-btn {
-        border: none;
-        background: transparent;
-        padding: 0;
-        cursor: pointer;
-        transition: transform .18s ease, opacity .18s ease;
-    }
-
-        .cat-status-btn:hover {
-            transform: scale(1.06);
-            opacity: .88;
-        }
-
-    .cat-action-btn {
-        transition: transform .18s ease, box-shadow .18s ease;
-    }
-
-        .cat-action-btn:hover {
-            transform: translateY(-1px);
-        }
-</style>
-
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show py-2 px-3 small" role="alert">
-        <i class="bi bi-check-circle me-1"></i> @TempData["Success"]
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show py-2 px-3 small" role="alert">
-        <i class="bi bi-exclamation-triangle me-1"></i> @TempData["Error"]
-        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="cat-stat-card">
-            <div class="text-muted small">Tổng loại sản phẩm</div>
-            <div class="fs-4 fw-bold text-dark mt-1">@(ViewBag.TotalCount ?? 0)</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="cat-stat-card">
-            <div class="text-muted small">Danh mục gốc</div>
-            <div class="fs-4 fw-bold text-primary mt-1">@(ViewBag.RootCount ?? 0)</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="cat-stat-card">
-            <div class="text-muted small">Danh mục con</div>
-            <div class="fs-4 fw-bold text-info mt-1">@(ViewBag.ChildCount ?? 0)</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="cat-stat-card">
-            <div class="text-muted small">Đang hiển thị</div>
-            <div class="fs-4 fw-bold text-success mt-1">@(ViewBag.ActiveCount ?? 0)</div>
-        </div>
-    </div>
+<div class="row g-3 mb-4 text-center">
+    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Tổng danh mục</small><strong class="fs-4 font-display">@ViewBag.TotalCount</strong></div></div>
+    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Danh mục cha</small><strong class="fs-4 font-display text-primary">@ViewBag.RootCount</strong></div></div>
+    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Danh mục con</small><strong class="fs-4 font-display text-info">@ViewBag.ChildCount</strong></div></div>
+    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Đang hiển thị</small><strong class="fs-4 font-display text-success">@ViewBag.ActiveCount</strong></div></div>
 </div>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <form method="get" class="d-flex flex-wrap align-items-center gap-2">
-        <div class="input-group" style="width: 260px;">
-            <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tìm tên loại sản phẩm..." />
-            <button type="submit" class="btn btn-outline-secondary" title="Tìm kiếm">
-                <i class="bi bi-search"></i>
-            </button>
-        </div>
-
-        <select name="level" class="form-select" style="width: 165px;" onchange="this.form.submit()">
-            <option value="">-- Tất cả cấp --</option>
-            <option value="root" @(level == "root" ? "selected" : null)>Danh mục gốc</option>
-            <option value="child" @(level == "child" ? "selected" : null)>Danh mục con</option>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <form method="get" class="d-flex flex-wrap gap-2">
+        <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm rounded-pill px-3" style="width:200px;" placeholder="Tìm tên loại..." />
+        <select name="level" class="form-select form-select-sm rounded-pill" style="width:auto;">
+            <option value="">Tất cả cấp</option>
+            <option value="root" @(ViewBag.Level == "root" ? "selected" : "")>Cấp 1 (Cha)</option>
+            <option value="child" @(ViewBag.Level == "child" ? "selected" : "")>Cấp 2 (Con)</option>
         </select>
-
-        <select name="status" class="form-select" style="width: 165px;" onchange="this.form.submit()">
-            <option value="">-- Trạng thái --</option>
-            <option value="active" @(status == "active" ? "selected" : null)>Đang hiển thị</option>
-            <option value="hidden" @(status == "hidden" ? "selected" : null)>Đang ẩn</option>
-        </select>
-
-        @if (hasFilter)
-        {
-            <a href="@Url.Action("Index")" class="btn btn-light border text-muted">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Đặt lại
-            </a>
-        }
+        <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Lọc</button>
     </form>
-
-    <a href="@Url.Action("Create")" class="btn btn-primary cat-action-btn">
-        <i class="bi bi-plus-lg me-1"></i> Thêm loại mới
+    <a href="@Url.Action("Create")" class="btn btn-dark rounded-pill px-4 fw-semibold">
+        <i class="bi bi-plus-lg me-1"></i>Thêm loại mới
     </a>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle mb-0 cat-table">
-        <thead class="table-light">
-            <tr>
-                <th style="width: 70px;">ID</th>
-                <th>Tên loại sản phẩm</th>
-                <th>Danh mục cha</th>
-                <th class="text-center" style="width: 110px;">Danh mục con</th>
-                <th class="text-center" style="width: 100px;">Số SP</th>
-                <th class="text-center" style="width: 130px;">Trạng thái</th>
-                <th class="text-end" style="width: 160px;">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                foreach (var item in Model)
+<div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase">
+                <tr>
+                    <th class="ps-4">ID</th>
+                    <th>Tên loại</th>
+                    <th>Danh mục cha</th>
+                    <th class="text-center">Số SP</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
                 {
-                    int childCount = item.Children != null ? item.Children.Count : 0;
-                    int productCount = item.Products != null ? item.Products.Count : 0;
-
                     <tr>
-                        <td class="text-muted">#@item.CategoryId</td>
+                        <td class="ps-4 text-muted">@item.CategoryId</td>
                         <td>
-                            @if (item.ParentId != null)
+                            @if (item.ParentId.HasValue)
                             {
-                                <span class="text-muted ms-2 me-1">&mdash;</span>
-                                <span class="fw-medium">@item.Name</span>
+                                <span class="text-muted ms-3">&mdash; @item.Name</span>
                             }
                             else
                             {
-                                <span class="fw-semibold text-dark">@item.Name</span>
+                                <strong class="text-dark">@item.Name</strong>
                             }
                         </td>
-                        <td>
-                            @if (item.Parent != null)
-                            {
-                                <span class="badge bg-light text-dark border">@item.Parent.Name</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted small">Danh mục gốc</span>
-                            }
+                        <td class="small">@(item.Category1 != null ? item.Category1.Name : "Danh mục gốc")</td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border rounded-pill px-3">@(item.Products != null ? item.Products.Count : 0)</span>
                         </td>
                         <td class="text-center">
-                            @if (item.ParentId == null)
-                            {
-                                <span class="badge bg-light text-secondary border">@childCount</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted small">&mdash;</span>
-                            }
+                            <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary") rounded-pill px-3">@(item.IsActive ? "Hiển thị" : "Đang ẩn")</span>
                         </td>
-                        <td class="text-center">
-                            <span class="fw-medium">@productCount</span>
-                        </td>
-                        <td class="text-center">
+                        <td class="text-end pe-4 text-nowrap">
+                            <a href="@Url.Action("Edit", new { id = item.CategoryId })" class="btn btn-outline-primary btn-sm rounded-pill">Sửa</a>
                             @using (Html.BeginForm("ToggleStatus", "Category", new { id = item.CategoryId }, FormMethod.Post, new { @class = "d-inline" }))
                             {
                                 @Html.AntiForgeryToken()
-                                if (item.IsActive)
-                                {
-                                    <button type="submit" class="cat-status-btn" title="Bấm để ẩn khỏi cửa hàng">
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                            <i class="bi bi-eye-fill me-1"></i>Hiển thị
-                                        </span>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit" class="cat-status-btn" title="Bấm để bật hiển thị">
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
-                                            <i class="bi bi-eye-slash me-1"></i>Đang ẩn
-                                        </span>
-                                    </button>
-                                }
+                                <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill">@(item.IsActive ? "Ẩn" : "Hiện")</button>
                             }
-                        </td>
-                        <td class="text-end">
-                            <a href="@Url.Action("Details", new { id = item.CategoryId })" class="btn btn-sm btn-outline-info cat-action-btn" title="Chi tiết">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a href="@Url.Action("Edit", new { id = item.CategoryId })" class="btn btn-sm btn-outline-primary cat-action-btn" title="Sửa">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="@Url.Action("Delete", new { id = item.CategoryId })" class="btn btn-sm btn-outline-danger cat-action-btn" title="Xóa">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <a href="@Url.Action("Delete", new { id = item.CategoryId })" class="btn btn-outline-danger btn-sm rounded-pill">Xóa</a>
                         </td>
                     </tr>
                 }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="7" class="text-center text-muted py-4">Không tìm thấy loại sản phẩm phù hợp.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </div>

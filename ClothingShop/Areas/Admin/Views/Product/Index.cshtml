@@ -1,83 +1,92 @@
-@using ClothingShop.Services
 @model IEnumerable<ClothingShop.Models.Product>
-
+@using ClothingShop.Services
 @{
-    ViewBag.Title = "Quản lý Sản phẩm";
+    ViewBag.Title = "Quản lý sản phẩm";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="fw-bold mb-0"><i class="bi bi-box-seam me-2"></i>Danh sách Sản phẩm</h4>
-    <a href="@Url.Action("Create")" class="btn btn-primary btn-sm rounded-pill px-3">
-        <i class="bi bi-plus-lg me-1"></i> Thêm mới
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div class="text-muted small">Tổng cộng <strong>@Model.Count()</strong> sản phẩm trong danh sách</div>
+    <a href="@Url.Action("Create")" class="btn btn-dark rounded-pill px-4 fw-semibold">
+        <i class="bi bi-plus-lg me-1"></i>Thêm sản phẩm mới
     </a>
 </div>
 
-<form method="get" class="row g-2 mb-3">
-    <div class="col-md-5">
-        <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="Tìm theo tên sản phẩm..." />
-    </div>
-    <div class="col-md-4">
-        @Html.DropDownList("categoryId", null, "-- Tất cả loại --", new { @class = "form-select" })
-    </div>
-    <div class="col-md-3 d-flex gap-2">
-        <button type="submit" class="btn btn-dark flex-grow-1">Tìm kiếm</button>
-        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Đặt lại</a>
+<form method="get" class="card border-0 rounded-4 shadow-sm p-3 mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm rounded-pill px-3" placeholder="Tìm theo tên sản phẩm..." />
+        </div>
+        <div class="col-md-4">
+            @Html.DropDownList("categoryId", null, "-- Tất cả loại sản phẩm --", new { @class = "form-select form-select-sm rounded-pill" })
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-dark btn-sm rounded-pill flex-grow-1 fw-semibold">Lọc</button>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm rounded-pill">Đặt lại</a>
+        </div>
     </div>
 </form>
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Ảnh</th>
-                <th>Tên sản phẩm</th>
-                <th>Loại</th>
-                <th>Giá</th>
-                <th>Giới tính</th>
-                <th>Tồn kho</th>
-                <th>Trạng thái</th>
-                <th class="text-end">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                var rawImg = (item.ImageUrl ?? string.Empty).Trim();
-                var imgSrc = string.IsNullOrEmpty(rawImg) ? "/Content/images/products/default.jpg"
-                    : (rawImg.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || rawImg.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? rawImg
-                    : (rawImg.StartsWith("/") ? rawImg : "/Content/images/products/" + rawImg));
+<div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase">
                 <tr>
-                    <td>
-                        <img src="@imgSrc" alt="@item.Name" class="rounded border" style="width: 55px; height: 55px; object-fit: cover;" onerror="this.onerror=null;this.src='/Content/images/products/default.jpg';" />
-                    </td>
-                    <td class="fw-medium">@item.Name</td>
-                    <td>@(item.Category != null ? item.Category.Name : "")</td>
-                    <td>
-                        @if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)
-                        {
-                            <span class="text-danger fw-bold">@PriceFormatter.Vnd(item.DiscountPrice)</span><br />
-                            <small class="text-muted text-decoration-line-through">@PriceFormatter.Vnd(item.Price)</small>
-                        }
-                        else
-                        {
-                            @PriceFormatter.Vnd(item.Price)
-                        }
-                    </td>
-                    <td>@item.Gender</td>
-                    <td>@item.Stock</td>
-                    <td>
-                        <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary")">@(item.IsActive ? "Đang bán" : "Tạm ẩn")</span>
-                        @if (item.IsNew) { <span class="badge bg-info text-dark">Mới</span> }
-                        @if (item.IsFeatured) { <span class="badge bg-primary">Nổi bật</span> }
-                    </td>
-                    <td class="text-end">
-                        <a href="@Url.Action("Variants", new { id = item.ProductId })" class="btn btn-sm btn-outline-primary" title="Quản lý biến thể & tồn kho"><i class="bi bi-boxes"></i> Biến thể</a>
-                        <a href="@Url.Action("Edit", new { id = item.ProductId })" class="btn btn-sm btn-outline-warning">Sửa</a>
-                        <a href="@Url.Action("Details", new { id = item.ProductId })" class="btn btn-sm btn-outline-info">Chi tiết</a>
-                        <a href="@Url.Action("Delete", new { id = item.ProductId })" class="btn btn-sm btn-outline-danger">Xóa</a>
-                    </td>
+                    <th class="ps-4">Sản phẩm</th>
+                    <th>Danh mục</th>
+                    <th class="text-end">Giá bán</th>
+                    <th class="text-center">Tồn kho</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-end pe-4">Thao tác</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    string img = string.IsNullOrEmpty(item.ImageUrl)
+                        ? Url.Content("~/Content/images/products/default.jpg")
+                        : (item.ImageUrl.StartsWith("http") || item.ImageUrl.StartsWith("/")
+                            ? item.ImageUrl
+                            : Url.Content("~/Content/images/products/" + item.ImageUrl));
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="@img" alt="@item.Name" class="rounded-3 border" style="width:52px;height:68px;object-fit:cover;" />
+                                <div>
+                                    <div class="fw-bold">@item.Name</div>
+                                    <div class="small text-muted mt-1">
+                                        <span class="badge bg-light text-dark border rounded-pill">@item.Gender</span>
+                                        @if (item.IsNew) { <span class="badge bg-obsidian rounded-pill">NEW</span> }
+                                        @if (item.IsFeatured) { <span class="badge badge-lime rounded-pill">HOT</span> }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="small">@(item.Category != null ? item.Category.Name : "-")</td>
+                        <td class="text-end">
+                            @if (item.DiscountPrice.HasValue && item.DiscountPrice.Value < item.Price)
+                            {
+                                <div class="fw-bold text-danger">@PriceFormatter.Vnd(item.DiscountPrice)</div>
+                                <small class="text-muted text-decoration-line-through">@PriceFormatter.Vnd(item.Price)</small>
+                            }
+                            else
+                            {
+                                <div class="fw-bold">@PriceFormatter.Vnd(item.Price)</div>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <span class="badge @(item.Stock > 5 ? "bg-light text-dark border" : "bg-danger") rounded-pill px-3">@item.Stock</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary") rounded-pill px-3">@(item.IsActive ? "Đang bán" : "Đã ẩn")</span>
+                        </td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a href="@Url.Action("Variants", new { id = item.ProductId })" class="btn btn-outline-dark btn-sm rounded-pill">Kho / Size</a>
+                            <a href="@Url.Action("Edit", new { id = item.ProductId })" class="btn btn-outline-primary btn-sm rounded-pill">Sửa</a>
+                            <a href="@Url.Action("Delete", new { id = item.ProductId })" class="btn btn-outline-danger btn-sm rounded-pill">Xóa</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

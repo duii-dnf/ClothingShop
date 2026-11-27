@@ -1,7 +1,15 @@
 ﻿@model IEnumerable<ClothingShop.ViewModels.MenuItemViewModel>
 
-<li><a href="@Url.Action("Index", "Product", new { area = "" })">Tất cả sản phẩm</a></li>
-@foreach (var parent in Model)
+@if (Model != null)
 {
-    <li><a href="@Url.Action("Index", "Product", new { area = "", categoryId = parent.Id })">@parent.Name</a></li>
+    <ul class="list-unstyled small">
+        @foreach (var parent in Model)
+        {
+            <li class="mb-1">
+                <a href="@Url.Action("Index", "Product", new { categoryId = parent.Id })" class="text-white-50 text-decoration-none">
+                    <i class="bi bi-chevron-right small me-1"></i>@parent.Name
+                </a>
+            </li>
+        }
+    </ul>
 }

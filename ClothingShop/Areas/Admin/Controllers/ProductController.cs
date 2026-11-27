@@ -6,19 +6,20 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using ClothingShop.Models;
+using ClothingShop.Services;
 
 namespace ClothingShop.Areas.Admin.Controllers
 {
     public class ProductController : AdminBaseController
     {
-        private ShopDbContext db = new ShopDbContext();
+        private ClothingShopDBEntities db = new ClothingShopDBEntities();
 
         // GET: Admin/Product
         public ActionResult Index(string keyword, int? categoryId)
         {
             var products = db.Products
                 .Include(p => p.Category)
-                .Include(p => p.Variants)
+                .Include(p => p.ProductVariants)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -39,9 +40,9 @@ namespace ClothingShop.Areas.Admin.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var product = db.Products
                 .Include(p => p.Category)
-                .Include("Variants.Size")
-                .Include("Variants.Color")
-                .Include("Styles")
+                .Include("ProductVariants.ProductSize")
+                .Include("ProductVariants.ProductColor")
+                .Include("ProductStyles")
                 .FirstOrDefault(p => p.ProductId == id);
             if (product == null) return HttpNotFound();
             return View(product);
@@ -59,6 +60,12 @@ namespace ClothingShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(Product product, HttpPostedFileBase fileUpload)
         {
+            if (string.IsNullOrWhiteSpace(product.Name))
+                ModelState.AddModelError("Name", "Vui lòng nhập tên sản phẩm.");
+
+            if (product.Price <= 0)
+                ModelState.AddModelError("Price", "Giá sản phẩm phải lớn hơn 0.");
+
             if (ModelState.IsValid)
             {
                 if (fileUpload != null && fileUpload.ContentLength > 0)
@@ -82,15 +89,14 @@ namespace ClothingShop.Areas.Admin.Controllers
                 db.Products.Add(product);
                 db.SaveChanges();
 
-                // Generate default Freesize / Black variant if none
                 var defaultSize = db.ProductSizes.FirstOrDefault(s => s.Code == "Freesize") ?? db.ProductSizes.FirstOrDefault();
                 var defaultColor = db.ProductColors.FirstOrDefault(c => c.Code == "BLACK") ?? db.ProductColors.FirstOrDefault();
                 var initialVariant = new ProductVariant
                 {
                     ProductId = product.ProductId,
-                    SizeId = defaultSize?.SizeId,
-                    ColorId = defaultColor?.ColorId,
-                    SKU = $"SP{product.ProductId:03d}-DEF",
+                    SizeId = defaultSize != null ? (int?)defaultSize.SizeId : null,
+                    ColorId = defaultColor != null ? (int?)defaultColor.ColorId : null,
+                    SKU = $"SP{product.ProductId:000}-DEF",
                     Stock = product.Stock,
                     IsActive = true,
                     CreatedAt = DateTime.Now
@@ -98,6 +104,7 @@ namespace ClothingShop.Areas.Admin.Controllers
                 db.ProductVariants.Add(initialVariant);
                 db.SaveChanges();
 
+                var staff = SessionHelper.GetCurrentUser(Session);
                 db.InventoryLogs.Add(new InventoryLog
                 {
                     ProductId = product.ProductId,
@@ -109,7 +116,7 @@ namespace ClothingShop.Areas.Admin.Controllers
                     ReferenceId = product.ProductId,
                     Note = "Khởi tạo sản phẩm mới",
                     CreatedAt = DateTime.Now,
-                    CreatedBy = User.Identity?.Name ?? "Admin"
+                    CreatedBy = staff != null ? staff.Email : "Admin"
                 });
                 db.SaveChanges();
 
@@ -137,6 +144,9 @@ namespace ClothingShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Product product, HttpPostedFileBase fileUpload)
         {
+            if (string.IsNullOrWhiteSpace(product.Name))
+                ModelState.AddModelError("Name", "Vui lòng nhập tên sản phẩm.");
+
             if (ModelState.IsValid)
             {
                 var existing = db.Products.Find(product.ProductId);
@@ -191,7 +201,12 @@ namespace ClothingShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            var product = db.Products.Find(id);
+            var product = db.Products
+                .Include(p => p.ProductStyles)
+                .Include(p => p.ProductVariants)
+                .Include(p => p.InventoryLogs)
+                .FirstOrDefault(p => p.ProductId == id);
+
             if (product == null) return HttpNotFound();
 
             if (db.OrderDetails.Any(d => d.ProductId == id))
@@ -200,8 +215,12 @@ namespace ClothingShop.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
+            product.ProductStyles.Clear();
+            db.InventoryLogs.RemoveRange(product.InventoryLogs.ToList());
+            db.ProductVariants.RemoveRange(product.ProductVariants.ToList());
             db.Products.Remove(product);
             db.SaveChanges();
+
             TempData["Success"] = "Đã xóa sản phẩm.";
             return RedirectToAction("Index");
         }
@@ -211,8 +230,8 @@ namespace ClothingShop.Areas.Admin.Controllers
         {
             var product = db.Products
                 .Include(p => p.Category)
-                .Include("Variants.Size")
-                .Include("Variants.Color")
+                .Include("ProductVariants.ProductSize")
+                .Include("ProductVariants.ProductColor")
                 .FirstOrDefault(p => p.ProductId == id);
 
             if (product == null) return HttpNotFound();
@@ -245,6 +264,7 @@ namespace ClothingShop.Areas.Admin.Controllers
 
             if (diff != 0)
             {
+                var staff = SessionHelper.GetCurrentUser(Session);
                 db.InventoryLogs.Add(new InventoryLog
                 {
                     ProductId = variant.ProductId,
@@ -254,15 +274,14 @@ namespace ClothingShop.Areas.Admin.Controllers
                     StockAfter = stock,
                     ReferenceType = "Admin",
                     ReferenceId = variant.VariantId,
-                    Note = $"Admin điều chỉnh tồn kho: {oldStock} -> {stock}",
+                    Note = $"Điều chỉnh tồn kho: {oldStock} -> {stock}",
                     CreatedAt = DateTime.Now,
-                    CreatedBy = User.Identity?.Name ?? "Admin"
+                    CreatedBy = staff != null ? staff.Email : "Admin"
                 });
             }
 
             db.SaveChanges();
 
-            // Recalculate total product stock
             var totalStock = db.ProductVariants.Where(v => v.ProductId == variant.ProductId && v.IsActive).Sum(v => (int?)v.Stock) ?? 0;
             variant.Product.Stock = totalStock;
             db.SaveChanges();
@@ -281,9 +300,11 @@ namespace ClothingShop.Areas.Admin.Controllers
 
             if (string.IsNullOrWhiteSpace(sku))
             {
-                var sCode = sizeId.HasValue ? db.ProductSizes.Find(sizeId.Value)?.Code : "FS";
-                var cCode = colorId.HasValue ? db.ProductColors.Find(colorId.Value)?.Code : "COL";
-                sku = $"SP{productId:03d}-{sCode}-{cCode}";
+                var sObj = sizeId.HasValue ? db.ProductSizes.Find(sizeId.Value) : null;
+                var cObj = colorId.HasValue ? db.ProductColors.Find(colorId.Value) : null;
+                string sCode = sObj != null ? sObj.Code : "FS";
+                string cCode = cObj != null ? cObj.Code : "COL";
+                sku = $"SP{productId:000}-{sCode}-{cCode}";
             }
 
             if (db.ProductVariants.Any(v => v.ProductId == productId && v.SKU == sku))
@@ -307,6 +328,7 @@ namespace ClothingShop.Areas.Admin.Controllers
             db.ProductVariants.Add(variant);
             db.SaveChanges();
 
+            var staff = SessionHelper.GetCurrentUser(Session);
             db.InventoryLogs.Add(new InventoryLog
             {
                 ProductId = productId,
@@ -318,7 +340,7 @@ namespace ClothingShop.Areas.Admin.Controllers
                 ReferenceId = variant.VariantId,
                 Note = $"Tạo biến thể mới SKU: {sku}",
                 CreatedAt = DateTime.Now,
-                CreatedBy = User.Identity?.Name ?? "Admin"
+                CreatedBy = staff != null ? staff.Email : "Admin"
             });
 
             var totalStock = db.ProductVariants.Where(v => v.ProductId == productId && v.IsActive).Sum(v => (int?)v.Stock) ?? 0;

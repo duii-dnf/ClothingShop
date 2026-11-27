@@ -17,7 +17,8 @@ namespace ClothingShop.ViewModels
         [Display(Name = "Địa chỉ email")]
         public string Email { get; set; }
 
-        [StringLength(20)]
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0")]
+        [StringLength(10)]
         [Display(Name = "Số điện thoại")]
         public string Phone { get; set; }
 

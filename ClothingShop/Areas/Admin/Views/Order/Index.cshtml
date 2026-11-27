@@ -1,64 +1,74 @@
-﻿@using ClothingShop.Models
+﻿@model IEnumerable<ClothingShop.Models.Order>
+@using ClothingShop.Models
 @using ClothingShop.Services
-@model IEnumerable<ClothingShop.Models.Order>
-
 @{
-    ViewBag.Title = "Quản lý Đơn hàng";
-    string currentStatus = ViewBag.Status as string;
+    ViewBag.Title = "Quản lý đơn hàng";
 }
 
-<h4 class="fw-bold mb-3"><i class="bi bi-cart-check me-2"></i>Quản lý Đơn hàng</h4>
-
-<form method="get" class="row g-2 mb-3">
-    <div class="col-md-5">
-        <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="Tìm theo người nhận hoặc SĐT..." />
-    </div>
-    <div class="col-md-4">
-        <select name="status" class="form-select">
-            <option value="">-- Tất cả trạng thái --</option>
-            <option value="@OrderStatus.Pending" @(currentStatus == OrderStatus.Pending ? "selected" : "")>Chờ xác nhận (Pending)</option>
-            <option value="@OrderStatus.Confirmed" @(currentStatus == OrderStatus.Confirmed ? "selected" : "")>Đã xác nhận (Confirmed)</option>
-            <option value="@OrderStatus.Shipping" @(currentStatus == OrderStatus.Shipping ? "selected" : "")>Đang giao (Shipping)</option>
-            <option value="@OrderStatus.Completed" @(currentStatus == OrderStatus.Completed ? "selected" : "")>Hoàn thành (Completed)</option>
-            <option value="@OrderStatus.Cancelled" @(currentStatus == OrderStatus.Cancelled ? "selected" : "")>Đã hủy (Cancelled)</option>
-        </select>
-    </div>
-    <div class="col-md-3 d-flex gap-2">
-        <button type="submit" class="btn btn-dark flex-grow-1">Lọc</button>
-        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Đặt lại</a>
+<form method="get" class="card border-0 rounded-4 shadow-sm p-3 mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col-md-4">
+            <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm rounded-pill px-3" placeholder="Tìm tên người nhận hoặc SĐT..." />
+        </div>
+        <div class="col-md-4">
+            <select name="status" class="form-select form-select-sm rounded-pill">
+                <option value="">-- Tất cả trạng thái --</option>
+                @foreach (var st in OrderStatus.All)
+                {
+                    <option value="@st" @(ViewBag.Status == st ? "selected" : "")>@st</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-dark btn-sm rounded-pill flex-grow-1 fw-semibold">Lọc đơn hàng</button>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm rounded-pill">Đặt lại</a>
+        </div>
     </div>
 </form>
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Mã đơn</th>
-                <th>Người nhận</th>
-                <th>SĐT</th>
-                <th>Ngày đặt</th>
-                <th>Thanh toán</th>
-                <th class="text-end">Tổng tiền</th>
-                <th>Trạng thái</th>
-                <th class="text-end">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
+<div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase">
                 <tr>
-                    <td class="fw-bold">#@item.OrderId</td>
-                    <td>@item.ReceiverName</td>
-                    <td>@item.Phone</td>
-                    <td>@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@item.PaymentMethod</td>
-                    <td class="text-end fw-bold text-danger">@PriceFormatter.Vnd(item.TotalAmount)</td>
-                    <td><span class="badge bg-info text-dark">@item.Status</span></td>
-                    <td class="text-end">
-                        <a href="@Url.Action("Details", new { id = item.OrderId })" class="btn btn-sm btn-outline-primary">Chi tiết / Cập nhật</a>
-                    </td>
+                    <th class="ps-4">Mã đơn</th>
+                    <th>Người nhận</th>
+                    <th>Ngày đặt</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Tổng tiền</th>
+                    <th class="text-center pe-4">Thao tác</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    string badge = item.Status == OrderStatus.Completed ? "bg-success"
+                        : item.Status == OrderStatus.Cancelled ? "bg-danger"
+                        : item.Status == OrderStatus.Shipping ? "bg-info text-dark"
+                        : item.Status == OrderStatus.Confirmed ? "bg-primary"
+                        : "bg-warning text-dark";
+                    <tr>
+                        <td class="ps-4 fw-bold">#@item.OrderId</td>
+                        <td>
+                            <div class="fw-semibold">@item.ReceiverName</div>
+                            <small class="text-muted">@item.Phone</small>
+                        </td>
+                        <td class="small text-muted">@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="small">
+                            @item.PaymentMethod
+                            <span class="badge @(item.PaymentStatus == "Paid" ? "bg-success-subtle text-success" : "bg-light text-muted border") rounded-pill ms-1">
+                                @(item.PaymentStatus == "Paid" ? "Đã TT" : "Chưa TT")
+                            </span>
+                        </td>
+                        <td><span class="badge @badge rounded-pill px-3">@item.Status</span></td>
+                        <td class="text-end fw-bold text-danger">@PriceFormatter.Vnd(item.TotalAmount)</td>
+                        <td class="text-center pe-4">
+                            <a href="@Url.Action("Details", new { id = item.OrderId })" class="btn btn-dark btn-sm rounded-pill px-3">Xử lý đơn</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
