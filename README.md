@@ -2,8 +2,8 @@
   <tr>
     <td align="center">
       <br>
-      <h1>C L O T H I N G S H O P</h1>
-      <i>Hệ Thống Quản Lý &amp; Bán Hàng Thời Trang</i>
+      <h1>A U R E L I A .</h1>
+      <i>Atelier &bull; Saigon — Hệ Thống Thương Mại Điện Tử &amp; Quản Lý Bán Hàng Thời Trang</i>
       <br><br>
     </td>
   </tr>
@@ -11,12 +11,13 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/ASP.NET-MVC%205-512BD4?style=for-the-badge&logo=dotnet&logoColor=white">
-  <img src="https://img.shields.io/badge/Entity%20Framework-6%20Code%20First-68217A?style=for-the-badge">
-  <img src="https://img.shields.io/badge/SQL%20Server-LocalDB-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white">
+  <img src="https://img.shields.io/badge/Entity%20Framework-6%20DB--First-68217A?style=for-the-badge">
+  <img src="https://img.shields.io/badge/SQL%20Server-SQLEXPRESS-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white">
   <img src="https://img.shields.io/badge/Bootstrap-5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white">
+  <img src="https://img.shields.io/badge/Zero%20AJAX-Traditional%20MVC-111111?style=for-the-badge">
 </p>
 
-Website thương mại điện tử thời trang xây dựng trên nền tảng **ASP.NET MVC 5**, **Entity Framework 6 (Code First)** và **SQL Server LocalDB**, mang phong cách thiết kế tối giản, hiện đại (Editorial UI/UX) với tông màu chủ đạo `--ink` và `--wine`.
+Website thương mại điện tử thời trang **AURELIA.** (Solution `ClothingShop`) xây dựng trên nền tảng **ASP.NET MVC 5**, **Entity Framework 6 (Database First `.edmx`)**, **SQL Server** và **Bootstrap 5**, theo phong cách **Fashion Editorial / Minimalist** và tuân thủ hoàn toàn luồng **MVC truyền thống (Không dùng AJAX)**.
 
 ---
 
@@ -24,95 +25,67 @@ Website thương mại điện tử thời trang xây dựng trên nền tảng 
 
 ### 🛍️ 1. Phía Khách Hàng (Storefront)
 
-| Trang | Controller | Chức năng chính |
-|:------|:-----------|:----------------|
-| **Trang chủ** | `Home` | Banner động mượt mà, lọc danh mục sản phẩm (không tải lại trang), khối sản phẩm mới và nổi bật. |
-| **Danh mục & Tìm kiếm** | `Product` | Kệ hàng có phân trang, lọc kết hợp danh mục, tìm kiếm từ khóa, sắp xếp theo giá / ngày tạo. |
-| **Chi tiết sản phẩm** | `Details` | Hiển thị trực quan, quản lý số lượng tồn kho, thêm giỏ hàng bất đồng bộ, gợi ý sản phẩm liên quan. |
-| **Giỏ hàng & Thanh toán** | `Cart` / `Checkout` | Giỏ hàng theo phiên (`Session`), tăng giảm số lượng cập nhật thành tiền và tổng cộng ngay lập tức, xử lý an toàn dữ liệu nhạy cảm (`Request.Form`). |
+| Trang / Module | Controller | Chức năng chính |
+|:---------------|:-----------|:----------------|
+| **Trang chủ** | `Home` | Hero lookbook, Promo/Voucher Banner (`SALE10`, `NEWUSER` kèm nút sao chép mã), dải cam kết dịch vụ (Trust Strip), khối sản phẩm mới & nổi bật. |
+| **Điều hướng & Tìm kiếm** | `Menu` / `Product` | Header 1 hàng gọn gàng, menu danh mục 2 cấp, thanh tìm kiếm gợi ý tức thì từ dữ liệu server render sẵn (`window.SEARCH_PRODUCTS`, không AJAX) + form GET tìm kiếm. |
+| **Danh mục & Chi tiết SP** | `Product` | Lọc theo danh mục cha/con, giới tính, khoảng giá, trạng thái Sale/New; sắp xếp; phân trang nâng cấp (nút trước/sau, `disabled`, rút gọn `...` khi `> 7` trang); chọn biến thể Size/Màu. |
+| **Tài khoản & Sổ địa chỉ** | `Account` | Đăng nhập, Đăng ký (nút ẩn/hiện mật khẩu, đo độ mạnh mật khẩu, validation), Quên mật khẩu (cấp mật khẩu tạm), Hồ sơ & Sổ địa chỉ với Combobox 63 Tỉnh/Thành – Quận/Huyện – Phường/Xã. |
+| **Yêu thích & Giỏ hàng** | `Favorite` / `Cart` | Thêm/xóa sản phẩm yêu thích, giỏ hàng theo phiên (`Session`), cập nhật số lượng qua Form POST thuần + thông báo `TempData`. |
+| **Đặt hàng & Thanh toán** | `Order` | Progress Bar 3 bước đồng bộ giữa `Checkout` và `Success`; áp mã giảm giá; thanh toán COD hoặc VietQR; Combobox địa chỉ 3 cấp vừa chọn vừa tự nhập + Validation Client & Server đồng bộ; lịch sử & hủy đơn hàng. |
+| **Footer** | `Shared/_Layout` | Thông tin thương hiệu `AURELIA.`, danh mục nhanh, thông tin liên hệ và bản đồ Google Maps nhúng (140 Lê Trọng Tấn, Tân Phú, TP.HCM). |
 
-### 🔐 2. Phía Quản Trị (Admin Management)
+### 🔐 2. Phía Quản Trị (`Areas/Admin` — AURELIA. Studio)
 
 | Module | Controller | Chức năng chính |
 |:-------|:-----------|:----------------|
-| **Quản lý danh mục** | `Categories` | Thêm, Sửa, Xóa, Xem chi tiết (**CRUD**) kèm kiểm tra tính hợp lệ dữ liệu. |
+| **Tổng quan** | `Dashboard` | Thống kê doanh thu, đơn hàng, sản phẩm & tổng quan vận hành. |
+| **Loại sản phẩm** | `Category` | Quản lý danh mục cha/con (CRUD), bật/tắt trạng thái hiển thị. |
+| **Sản phẩm & Kho** | `Product` | CRUD sản phẩm, hỗ trợ **nhập URL ảnh online** hoặc **upload file** kèm xem trước ảnh real-time, quản lý biến thể Size/Màu & tồn kho. |
+| **Đơn hàng** | `Order` | Xem chi tiết, cập nhật trạng thái đơn hàng & thanh toán. |
+| **Khuyến mãi** | `Coupon` | Tạo/sửa/xóa mã giảm giá (`SALE10`, `NEWUSER`,...). |
+| **Tài khoản & Quyền** | `User` | Quản lý người dùng và phân quyền (`Admin`, `Staff`, `Customer`). |
 
 ---
 
-## 🧭 Kiến Trúc Hệ Thống
+## 🧭 Kiến Trúc & Nguyên Tắc Kỹ Thuật
 
-<table align="center" width="100%">
-  <tr>
-    <td colspan="3" align="center">
-      <b>🌐 Trình duyệt (Client)</b><br>
-      HTML5 · CSS3 · Bootstrap 5 · JavaScript 
-    </td>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">⬇️ HTTP Request &nbsp;/&nbsp; Response ⬆️</td>
-  </tr>
-  <tr>
-    <td colspan="3" align="center"><b>⚙️ ASP.NET MVC 5 (IIS Express)</b></td>
-  </tr>
-  <tr>
-    <td align="center"><b>View</b><br>Razor</td>
-    <td align="center"><b>Controller</b><br>Home · Product · Cart · Categories</td>
-    <td align="center"><b>Model</b><br>Entities</td>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">⬇️ LINQ</td>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <b>🧩 Entity Framework 6</b><br>
-      Code First
-    </td>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">⬇️</td>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <b>🗄️ SQL Server LocalDB</b><br>
-      <code>ClothingShopDB</code>
-    </td>
-  </tr>
-</table>
-
----
-
-## 🛠️ Công Nghệ Sử Dụng
+- **Luồng ASP.NET MVC 5 truyền thống (Zero AJAX):** Không sử dụng `$.ajax`, `$.post`, `$.get`, `fetch(...)`, `XMLHttpRequest` hay `JsonResult`. Mọi thao tác tạo/sửa/xóa đều dùng `@using (Html.BeginForm(...))` kèm `@Html.AntiForgeryToken()` / `[ValidateAntiForgeryToken]`, `DataAnnotations` + `ModelState` và `TempData`.
+- **Dữ liệu địa giới hành chính 3 cấp tĩnh:** Toàn bộ 63 Tỉnh/Thành phố, Quận/Huyện, Phường/Xã Việt Nam được nạp tĩnh qua `Content/data/vietnam-provinces.js`, hỗ trợ tìm kiếm không dấu và nhập tự do.
 
 | Lớp | Công nghệ |
 |:----|:----------|
-| **Backend** | ASP.NET MVC 5, Entity Framework 6 (Code First), LINQ |
-| **Frontend** | HTML5, CSS3 (Custom Grid, Flexbox, Animation), Bootstrap 5, JavaScript (Fetch) |
-| **Font chữ** | Google Fonts: *Playfair Display*, *Cormorant Garamond*, *Inter* |
-| **Database** | SQL Server LocalDB (`ClothingShopDB`) |
+| **Backend** | ASP.NET MVC 5 (.NET Framework), Entity Framework 6 (Database First `.edmx`), LINQ |
+| **Frontend** | Razor View, HTML5, CSS3 (`Content/Site.css`), Bootstrap 5, Bootstrap Icons, JavaScript thuần |
+| **Font chữ** | Google Fonts: *Playfair Display*, *Urbanist*, *Nunito* |
+| **Database** | SQL Server (`ClothingShopDB`) |
 
 ---
 
 ## 🚀 Hướng Dẫn Cài Đặt & Chạy Dự Án
 
-> [!NOTE]
-> **📦 Bước 1: Clone dự án và mở bằng Visual Studio**
-> 1. Clone repository về máy và mở file solution `ClothingShop.sln` bằng **Visual Studio**.
-> 2. Kiểm tra chuỗi kết nối (`ConnectionString`) trong `Web.config` đã trỏ đến LocalDB của bạn: `(localdb)\MSSQLLocalDB`.
-
-> [!IMPORTANT]
-> **🗄️ Bước 2: Cập nhật Database & Nạp dữ liệu mẫu (Seed Data)**
->
-> Để hệ thống hiển thị đầy đủ **24 sản phẩm** thời trang kèm hình ảnh mẫu:
-> 1. Mở **Visual Studio** → **View** → **SQL Server Object Explorer**.
-> 2. Mở rộng `(localdb)\MSSQLLocalDB` → `Databases` → `ClothingShopDB`.
-> 3. Chuột phải vào `ClothingShopDB` → chọn **New Query...**
-> 4. Mở file **`SeedProducts.sql`** (có sẵn ở thư mục gốc của project), copy toàn bộ nội dung dán vào khung query rồi bấm **Execute** (mũi tên xanh hoặc `Ctrl + Shift + E`) để nạp danh mục và sản phẩm mẫu.
-
-> [!TIP]
-> **▶️ Bước 3: Chạy ứng dụng**
->
-> Nhấn nút **Play / IIS Express** trên Visual Studio (hoặc `Ctrl + F5`) để khởi chạy trang web và trải nghiệm hệ thống!
+1. **Clone & Mở Solution:**
+   - Mở `ClothingShop.sln` bằng **Visual Studio**.
+2. **Cấu hình Database (`Web.config`):**
+   - Kiểm tra chuỗi kết nối `ClothingShopDBEntities` trong `ClothingShop/Web.config`:
+     - Mặc định đang cấu hình cho SQL Server Express: `data source=.\SQLEXPRESS;initial catalog=ClothingShopDB;user id=sa;password=123;...`
+     - Hoặc chỉnh lại `data source` phù hợp với instance SQL Server / `(localdb)\MSSQLLocalDB` trên máy của bạn.
+3. **Chạy ứng dụng:**
+   - Nhấn **F5** hoặc **Ctrl + F5** trên Visual Studio để khởi chạy bằng IIS Express.
 
 ---
 
-<p align="center"><i>Cảm ơn bạn đã quan tâm đến ClothingShop ✨</i></p>
+## 🔑 Tài Khoản Kiểm Thử (Database `ClothingShopDB`)
+
+Dữ liệu mẫu trong bảng `Users` ([ClothingShopDB.sql](ClothingShopDB.sql)) bao gồm các tài khoản sau:
+
+| Vai trò (`Role`) | Họ tên | Email | Mật khẩu | Phạm vi truy cập |
+|:----------------|:-------|:------|:---------|:-----------------|
+| **Admin** | Quản trị viên | `admin@shop.com` | `Admin@123` | Toàn quyền hệ thống & khu vực `/Admin` (`Dashboard`, `Category`, `Product`, `Order`, `Coupon`, `User`) |
+| **Staff** | Lê Minh Nhân Viên | `nhanvien@shop.com` | `Staff@123` | Khu vực quản lý vận hành (`/Admin/Order`, `/Admin/Product`, `/Admin/Category`) |
+| **Customer** | Nguyễn Văn An | `khach1@shop.com` | `Khach@123` | Mua sắm, giỏ hàng, yêu thích, đặt hàng, hồ sơ & sổ địa chỉ |
+| **Customer** | Trần Thị Bình | `khach2@shop.com` | *(đã hash trong DB)* | Tài khoản khách hàng mẫu thứ 2 trong `ClothingShopDB.sql` |
+
+---
+
+<p align="center"><i>AURELIA. Atelier &bull; TP. Hồ Chí Minh</i></p>
