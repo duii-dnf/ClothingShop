@@ -269,53 +269,78 @@ namespace ClothingShop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Cancel(int orderId, string reason = null)
+        public ActionResult Cancel(int orderId, string cancelReason, string otherReason = null, string refundInfo = null)
         {
             var currentUser = SessionHelper.GetCurrentUser(Session);
-            if (currentUser == null) return RedirectToAction("Login", "Account");
+            if (currentUser == null)
+                return RedirectToAction("Login", "Account");
 
-            var order = db.Orders.Include("OrderDetails")
-                .FirstOrDefault(o => o.OrderId == orderId && o.UserId == currentUser.UserId);
-
-            if (order == null || order.Status != OrderStatus.Pending)
+            var order = db.Orders.FirstOrDefault(o => o.OrderId == orderId && o.UserId == currentUser.UserId);
+            if (order == null)
             {
-                TempData["Error"] = "Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận.";
+                TempData["Error"] = "Không tìm thấy đơn hàng.";
                 return RedirectToAction("History");
             }
 
-            order.Status = OrderStatus.Cancelled;
-            if (!string.IsNullOrWhiteSpace(reason))
-                order.Note = (order.Note + " [Lý do hủy: " + reason.Trim() + "]").Trim();
-
-            foreach (var d in order.OrderDetails)
+            // 1. Chỉ cho phép yêu cầu hủy khi đơn chưa được xác nhận (Pending)
+            if (!string.Equals(order.Status, OrderStatus.Pending, StringComparison.OrdinalIgnoreCase))
             {
-                if (d.ProductVariantId.HasValue)
-                {
-                    var v = db.ProductVariants.Find(d.ProductVariantId.Value);
-                    if (v != null)
-                    {
-                        v.Stock += d.Quantity;
-                        db.InventoryLogs.Add(new InventoryLog
-                        {
-                            ProductId = d.ProductId,
-                            VariantId = v.VariantId,
-                            ChangeType = "OrderCancelled",
-                            QuantityChange = d.Quantity,
-                            StockAfter = v.Stock,
-                            ReferenceType = "Order",
-                            ReferenceId = order.OrderId,
-                            Note = $"Khách hủy đơn #{order.OrderId}",
-                            CreatedAt = DateTime.Now,
-                            CreatedBy = currentUser.FullName
-                        });
-                    }
-                }
-                var prod = db.Products.Find(d.ProductId);
-                if (prod != null) prod.Stock += d.Quantity;
+                TempData["Error"] = "Đơn hàng đã được xác nhận hoặc đang giao, không thể gửi yêu cầu hủy.";
+                return RedirectToAction("History");
             }
 
+            // 2. Chặn gửi trùng yêu cầu hủy
+            if (!string.IsNullOrEmpty(order.Note) && order.Note.Contains("[YÊU CẦU HỦY"))
+            {
+                TempData["Error"] = "Đơn hàng này đã gửi yêu cầu hủy và đang chờ cửa hàng xác nhận.";
+                return RedirectToAction("History");
+            }
+
+            // 3. Kiểm tra lý do hủy
+            string finalReason = string.Equals(cancelReason, "Khác", StringComparison.OrdinalIgnoreCase)
+                ? (otherReason ?? string.Empty).Trim()
+                : (cancelReason ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(finalReason))
+            {
+                TempData["Error"] = "Vui lòng chọn hoặc nhập lý do hủy đơn hàng.";
+                return RedirectToAction("History");
+            }
+
+            // 4. Phân tách nghiệp vụ đơn Đã thanh toán chuyển khoản vs COD
+            bool isPaid = string.Equals(order.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase);
+            string cancelTag;
+
+            if (isPaid)
+            {
+                string cleanRefund = (refundInfo ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(cleanRefund))
+                {
+                    TempData["Error"] = "Đơn hàng đã chuyển khoản cần cung cấp thông tin tài khoản nhận hoàn tiền.";
+                    return RedirectToAction("History");
+                }
+                cancelTag = $"[YÊU CẦU HỦY - HOÀN TIỀN]: {finalReason} | TK hoàn tiền: {cleanRefund}";
+            }
+            else
+            {
+                cancelTag = $"[YÊU CẦU HỦY]: {finalReason}";
+            }
+
+            // 5. Ghi nhận yêu cầu vào Note (giữ nguyên Status = Pending để cửa hàng xác nhận)
+            string combinedNote = string.IsNullOrWhiteSpace(order.Note)
+                ? cancelTag
+                : $"{order.Note.Trim()} | {cancelTag}";
+
+            if (combinedNote.Length > 300)
+                combinedNote = combinedNote.Substring(0, 300);
+
+            order.Note = combinedNote;
             db.SaveChanges();
-            TempData["Success"] = $"Đã hủy đơn hàng #{order.OrderId} và hoàn lại tồn kho.";
+
+            TempData["Success"] = isPaid
+                ? $"Đã gửi yêu cầu hủy & hoàn tiền cho đơn hàng #{order.OrderId}. Cửa hàng sẽ xác nhận và hoàn tiền trong 1–3 ngày làm việc."
+                : $"Đã gửi yêu cầu hủy đơn hàng #{order.OrderId}. Vui lòng chờ cửa hàng xác nhận.";
+
             return RedirectToAction("History");
         }
 
@@ -327,6 +352,12 @@ namespace ClothingShop.Controllers
             ViewBag.SubTotal = subtotal;
             ViewBag.ShippingFee = shippingFee;
             ViewBag.Total = subtotal + shippingFee;
+
+            // Truyền danh sách mã khuyến mãi sang View
+            ViewBag.Coupons = db.Coupons
+                .OrderByDescending(c => c.DiscountPercent)
+                .ThenBy(c => c.EndDate)
+                .ToList();
         }
 
         protected override void Dispose(bool disposing)
