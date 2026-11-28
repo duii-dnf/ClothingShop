@@ -61,6 +61,7 @@ namespace ClothingShop.Areas.Admin.Controllers
             var category = db.Categories
                 .Include(c => c.Category1)
                 .Include(c => c.Categories1)
+                .Include("Categories1.Products")
                 .Include(c => c.Products)
                 .FirstOrDefault(c => c.CategoryId == id);
 

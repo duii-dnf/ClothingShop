@@ -1,5 +1,6 @@
 @model IEnumerable<ClothingShop.Models.Product>
 @using ClothingShop.Models
+@using ClothingShop.Services
 @{
     var currentCategory = ViewBag.CurrentCategory as Category;
     var allCategories = ViewBag.AllCategories as List<Category> ?? new List<Category>();
@@ -17,10 +18,45 @@
     int totalPages = ViewBag.TotalPages ?? 1;
     int currentPage = ViewBag.CurrentPage ?? 1;
 
+    bool hasAnyFilter = categoryId.HasValue || !string.IsNullOrEmpty(keyword) || !string.IsNullOrEmpty(gender)
+                        || minPrice.HasValue || maxPrice.HasValue || onSale || isNew;
+
     ViewBag.Title = currentCategory != null ? currentCategory.Name : "Cửa hàng";
 }
 
-<!-- Editorial Page Header -->
+<style>
+    .catalog-card-wrap {
+        transition: transform .3s ease;
+    }
+
+        .catalog-card-wrap:hover {
+            transform: translateY(-4px);
+        }
+
+        .catalog-card-wrap .card,
+        .catalog-card-wrap .position-relative,
+        .catalog-card-wrap a:has(img) {
+            overflow: hidden;
+        }
+
+        .catalog-card-wrap img {
+            transition: transform .45s cubic-bezier(.25, .8, .25, 1);
+            will-change: transform;
+        }
+
+        .catalog-card-wrap:hover img {
+            transform: scale(1.05);
+        }
+
+    .filter-toggle-btn[aria-expanded="false"] .bi-chevron-down {
+        transform: rotate(-90deg);
+    }
+
+    .filter-toggle-btn .bi-chevron-down {
+        transition: transform .25s ease;
+    }
+</style>
+
 <div class="bg-dark text-white py-4 mb-4">
     <div class="container">
         <nav aria-label="breadcrumb">
@@ -29,6 +65,17 @@
                 <li class="breadcrumb-item"><a href="@Url.Action("Index", "Product")" class="text-white-50 text-decoration-none">Cửa hàng</a></li>
                 @if (currentCategory != null)
                 {
+                    var parentCat = currentCategory.ParentId.HasValue
+                        ? allCategories.FirstOrDefault(c => c.CategoryId == currentCategory.ParentId.Value)
+                        : null;
+                    if (parentCat != null)
+                    {
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Index", "Product", new { categoryId = parentCat.CategoryId })" class="text-white-50 text-decoration-none">
+                                @parentCat.Name
+                            </a>
+                        </li>
+                    }
                     <li class="breadcrumb-item active text-white">@currentCategory.Name</li>
                 }
             </ol>
@@ -42,14 +89,18 @@
                 <p class="text-white-50 small mb-0">Hiển thị <strong class="text-white">@totalItems</strong> sản phẩm chuẩn phong cách Gen-Z</p>
             </div>
 
-            <!-- Quick Filter Pills -->
             <div class="d-flex flex-wrap gap-2">
-                <a href="@Url.Action("Index", "Product")" class="btn btn-sm rounded-pill px-3 @(categoryId == null && string.IsNullOrEmpty(gender) && !onSale && !isNew ? "btn-light fw-bold" : "btn-outline-light")">Tất cả</a>
-                <a href="@Url.Action("Index", "Product", new { gender = "Nam" })" class="btn btn-sm rounded-pill px-3 @(gender == "Nam" ? "btn-light fw-bold" : "btn-outline-light")">Nam</a>
-                <a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="btn btn-sm rounded-pill px-3 @(gender == "Nữ" ? "btn-light fw-bold" : "btn-outline-light")">Nữ</a>
-                <a href="@Url.Action("Index", "Product", new { gender = "Unisex" })" class="btn btn-sm rounded-pill px-3 @(gender == "Unisex" ? "btn-light fw-bold" : "btn-outline-light")">Unisex</a>
-                <a href="@Url.Action("Index", "Product", new { isNew = true })" class="btn btn-sm rounded-pill px-3 @(isNew ? "btn-warning text-dark fw-bold" : "btn-outline-light")">New Drop</a>
-                <a href="@Url.Action("Index", "Product", new { onSale = true })" class="btn btn-sm rounded-pill px-3 @(onSale ? "btn-danger fw-bold" : "btn-outline-danger text-white")">Flash Sale</a>
+                <a href="@Url.Action("Index", "Product")" class="btn btn-sm rounded-pill px-3 @(!hasAnyFilter ? "btn-light fw-bold" : "btn-outline-light")">Tất cả</a>
+                <a href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender == "Nam" ? null : "Nam", minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                   class="btn btn-sm rounded-pill px-3 @(gender == "Nam" ? "btn-light fw-bold" : "btn-outline-light")">Nam</a>
+                <a href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender == "Nữ" ? null : "Nữ", minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                   class="btn btn-sm rounded-pill px-3 @(gender == "Nữ" ? "btn-light fw-bold" : "btn-outline-light")">Nữ</a>
+                <a href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = gender == "Unisex" ? null : "Unisex", minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                   class="btn btn-sm rounded-pill px-3 @(gender == "Unisex" ? "btn-light fw-bold" : "btn-outline-light")">Unisex</a>
+                <a href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = !isNew ? (bool?)true : null, sort })"
+                   class="btn btn-sm rounded-pill px-3 @(isNew ? "btn-warning text-dark fw-bold" : "btn-outline-light")">New Drop</a>
+                <a href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = !onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                   class="btn btn-sm rounded-pill px-3 @(onSale ? "btn-danger fw-bold" : "btn-outline-danger text-white")">Flash Sale</a>
             </div>
         </div>
     </div>
@@ -57,112 +108,168 @@
 
 <div class="container pb-5">
     <div class="row g-4">
-        <!-- Cột trái: Danh mục & Bộ lọc -->
         <div class="col-lg-3">
             <div class="card border-0 rounded-4 shadow-sm mb-3 overflow-hidden">
-                <div class="card-header bg-white fw-bold border-bottom py-3">
-                    <i class="bi bi-grid me-2"></i>Danh mục sản phẩm
-                </div>
-                <div class="list-group list-group-flush">
-                    <a href="@Url.Action("Index", "Product")" class="list-group-item list-group-item-action border-0 @(categoryId == null ? "bg-dark text-white fw-semibold" : "")">
-                        Tất cả sản phẩm
-                    </a>
-                    @foreach (var root in rootCategories)
-                    {
-                        var children = allCategories.Where(c => c.ParentId == root.CategoryId).ToList();
-                        <a href="@Url.Action("Index", "Product", new { categoryId = root.CategoryId })"
-                           class="list-group-item list-group-item-action border-0 fw-semibold @(categoryId == root.CategoryId ? "bg-dark text-white" : "")">
-                            @root.Name
+                <button class="card-header bg-white fw-bold border-bottom py-3 d-flex justify-content-between align-items-center w-100 text-start border-0 filter-toggle-btn"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#catMenuCollapse" aria-expanded="true">
+                    <span><i class="bi bi-grid me-2"></i>Danh mục sản phẩm</span>
+                    <i class="bi bi-chevron-down small text-muted"></i>
+                </button>
+                <div class="collapse show" id="catMenuCollapse">
+                    <div class="list-group list-group-flush">
+                        <a href="@Url.Action("Index", "Product")" class="list-group-item list-group-item-action border-0 @(categoryId == null ? "bg-dark text-white fw-semibold" : "")">
+                            Tất cả sản phẩm
                         </a>
-                        foreach (var child in children)
+                        @foreach (var root in rootCategories)
                         {
-                            <a href="@Url.Action("Index", "Product", new { categoryId = child.CategoryId })"
-                               class="list-group-item list-group-item-action border-0 ps-4 small @(categoryId == child.CategoryId ? "bg-dark text-white fw-semibold" : "text-muted")">
-                                &bull; @child.Name
+                            var children = allCategories.Where(c => c.ParentId == root.CategoryId).ToList();
+                            <a href="@Url.Action("Index", "Product", new { categoryId = root.CategoryId })"
+                               class="list-group-item list-group-item-action border-0 fw-semibold @(categoryId == root.CategoryId ? "bg-dark text-white" : "")">
+                                @root.Name
                             </a>
+                            foreach (var child in children)
+                            {
+                                <a href="@Url.Action("Index", "Product", new { categoryId = child.CategoryId })"
+                                   class="list-group-item list-group-item-action border-0 ps-4 small @(categoryId == child.CategoryId ? "bg-dark text-white fw-semibold" : "text-muted")">
+                                    &bull; @child.Name
+                                </a>
+                            }
                         }
-                    }
+                    </div>
                 </div>
             </div>
 
-            <div class="card border-0 rounded-4 shadow-sm">
-                <div class="card-header bg-white fw-bold border-bottom py-3">
-                    <i class="bi bi-sliders me-2"></i>Lọc nâng cao
-                </div>
-                <div class="card-body">
-                    <form method="get" action="@Url.Action("Index", "Product")">
-                        @if (categoryId.HasValue) { <input type="hidden" name="categoryId" value="@categoryId.Value" /> }
-                        <input type="hidden" name="sort" value="@sort" />
+            <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+                <button class="card-header bg-white fw-bold border-bottom py-3 d-flex justify-content-between align-items-center w-100 text-start border-0 filter-toggle-btn"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#advFilterCollapse" aria-expanded="true">
+                    <span><i class="bi bi-sliders me-2"></i>Lọc nâng cao</span>
+                    <i class="bi bi-chevron-down small text-muted"></i>
+                </button>
+                <div class="collapse show" id="advFilterCollapse">
+                    <div class="card-body">
+                        <form method="get" action="@Url.Action("Index", "Product")">
+                            @if (categoryId.HasValue)
+                            {<input type="hidden" name="categoryId" value="@categoryId.Value" />}
+                            <input type="hidden" name="sort" value="@sort" />
 
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold">Từ khóa</label>
-                            <input type="text" name="keyword" value="@keyword" class="form-control form-control-sm rounded-3" placeholder="Áo thun, cargo, váy..." />
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Từ khóa</label>
+                                <input type="text" name="keyword" value="@keyword" class="form-control form-control-sm rounded-3" placeholder="Áo thun, cargo, váy..." />
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold">Giới tính</label>
-                            <select name="gender" class="form-select form-select-sm rounded-3">
-                                <option value="">-- Tất cả --</option>
-                                <option value="Nam" @(gender == "Nam" ? "selected" : "")>Nam</option>
-                                <option value="Nữ" @(gender == "Nữ" ? "selected" : "")>Nữ</option>
-                                <option value="Unisex" @(gender == "Unisex" ? "selected" : "")>Unisex</option>
-                            </select>
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Giới tính</label>
+                                <select name="gender" class="form-select form-select-sm rounded-3">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="Nam" @(gender == "Nam" ? "selected" : "")>Nam</option>
+                                    <option value="Nữ" @(gender == "Nữ" ? "selected" : "")>Nữ</option>
+                                    <option value="Unisex" @(gender == "Unisex" ? "selected" : "")>Unisex</option>
+                                </select>
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold">Khoảng giá (VNĐ)</label>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <input type="number" name="minPrice" value="@minPrice" class="form-control form-control-sm rounded-3" placeholder="Từ" min="0" step="50000" />
-                                </div>
-                                <div class="col-6">
-                                    <input type="number" name="maxPrice" value="@maxPrice" class="form-control form-control-sm rounded-3" placeholder="Đến" min="0" step="50000" />
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Khoảng giá (VNĐ)</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <input type="number" name="minPrice" value="@minPrice" class="form-control form-control-sm rounded-3" placeholder="Từ" min="0" step="50000" />
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="number" name="maxPrice" value="@maxPrice" class="form-control form-control-sm rounded-3" placeholder="Đến" min="0" step="50000" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="onSale" value="true" id="chkSale" @(onSale ? "checked" : "") />
-                            <label class="form-check-label small" for="chkSale">Đang khuyến mãi</label>
-                        </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="onSale" value="true" id="chkSale" @(onSale ? "checked" : "") />
+                                <label class="form-check-label small" for="chkSale">Đang khuyến mãi</label>
+                            </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="isNew" value="true" id="chkNew" @(isNew ? "checked" : "") />
-                            <label class="form-check-label small" for="chkNew">Hàng mới về</label>
-                        </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="isNew" value="true" id="chkNew" @(isNew ? "checked" : "") />
+                                <label class="form-check-label small" for="chkNew">Hàng mới về</label>
+                            </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-dark btn-sm rounded-pill fw-semibold">Áp dụng lọc</button>
-                            <a href="@Url.Action("Index", "Product")" class="btn btn-outline-secondary btn-sm rounded-pill">Đặt lại</a>
-                        </div>
-                    </form>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-dark btn-sm rounded-pill fw-semibold">Áp dụng lọc</button>
+                                <a href="@Url.Action("Index", "Product")" class="btn btn-outline-secondary btn-sm rounded-pill">Đặt lại</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Cột phải: Lưới sản phẩm -->
         <div class="col-lg-9">
-            <div class="d-flex flex-wrap justify-content-between align-items-center bg-white rounded-4 shadow-sm px-3 py-2 mb-4 gap-2">
-                <div class="small text-muted">
+            @if (hasAnyFilter)
+            {
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="small text-muted fw-semibold">Đang lọc:</span>
+                    @if (currentCategory != null)
+                    {
+                        <a href="@Url.Action("Index", new { keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                           class="badge bg-dark text-white text-decoration-none rounded-pill px-3 py-2">
+                            @currentCategory.Name &times;
+                        </a>
+                    }
                     @if (!string.IsNullOrEmpty(keyword))
                     {
-                        <span>Kết quả tìm kiếm cho: <strong class="text-dark">"@keyword"</strong></span>
+                        <a href="@Url.Action("Index", new { categoryId, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                           class="badge bg-light text-dark border text-decoration-none rounded-pill px-3 py-2">
+                            Từ khóa: "@keyword" &times;
+                        </a>
                     }
-                    else
+                    @if (!string.IsNullOrEmpty(gender))
                     {
-                        <span>Trang <strong>@currentPage</strong> / @Math.Max(1, totalPages)</span>
+                        <a href="@Url.Action("Index", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                           class="badge bg-light text-dark border text-decoration-none rounded-pill px-3 py-2">
+                            Giới tính: @gender &times;
+                        </a>
                     }
+                    @if (minPrice.HasValue || maxPrice.HasValue)
+                    {
+                        <a href="@Url.Action("Index", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort })"
+                           class="badge bg-light text-dark border text-decoration-none rounded-pill px-3 py-2">
+                            Giá: @(minPrice.HasValue ? PriceFormatter.Vnd(minPrice) : "0₫") - @(maxPrice.HasValue ? PriceFormatter.Vnd(maxPrice) : "∞") &times;
+                        </a>
+                    }
+                    @if (onSale)
+                    {
+                        <a href="@Url.Action("Index", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, isNew = isNew ? (bool?)true : null, sort })"
+                           class="badge bg-danger text-white text-decoration-none rounded-pill px-3 py-2">
+                            Đang giảm giá &times;
+                        </a>
+                    }
+                    @if (isNew)
+                    {
+                        <a href="@Url.Action("Index", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, sort })"
+                           class="badge bg-warning text-dark text-decoration-none rounded-pill px-3 py-2">
+                            Hàng mới &times;
+                        </a>
+                    }
+                    <a href="@Url.Action("Index", "Product")" class="small text-danger text-decoration-none ms-1">Xóa tất cả</a>
+                </div>
+            }
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center bg-white rounded-4 shadow-sm px-3 py-2 mb-4 gap-2">
+                <div class="small text-muted">
+                    Trang <strong class="text-dark">@currentPage</strong> / @Math.Max(1, totalPages)
                 </div>
 
-                <!-- Sắp xếp bằng Form GET thuần -->
                 <form method="get" action="@Url.Action("Index", "Product")" class="d-flex align-items-center gap-2">
-                    @if (categoryId.HasValue) { <input type="hidden" name="categoryId" value="@categoryId.Value" /> }
-                    @if (!string.IsNullOrEmpty(keyword)) { <input type="hidden" name="keyword" value="@keyword" /> }
-                    @if (!string.IsNullOrEmpty(gender)) { <input type="hidden" name="gender" value="@gender" /> }
-                    @if (minPrice.HasValue) { <input type="hidden" name="minPrice" value="@minPrice.Value" /> }
-                    @if (maxPrice.HasValue) { <input type="hidden" name="maxPrice" value="@maxPrice.Value" /> }
-                    @if (onSale) { <input type="hidden" name="onSale" value="true" /> }
-                    @if (isNew) { <input type="hidden" name="isNew" value="true" /> }
+                    @if (categoryId.HasValue)
+                    {<input type="hidden" name="categoryId" value="@categoryId.Value" />}
+                    @if (!string.IsNullOrEmpty(keyword))
+                    {<input type="hidden" name="keyword" value="@keyword" />}
+                    @if (!string.IsNullOrEmpty(gender))
+                    {<input type="hidden" name="gender" value="@gender" />}
+                    @if (minPrice.HasValue)
+                    {<input type="hidden" name="minPrice" value="@minPrice.Value" />}
+                    @if (maxPrice.HasValue)
+                    {<input type="hidden" name="maxPrice" value="@maxPrice.Value" />}
+                    @if (onSale)
+                    {<input type="hidden" name="onSale" value="true" />}
+                    @if (isNew)
+                    {<input type="hidden" name="isNew" value="true" />}
 
                     <label class="small text-muted text-nowrap mb-0">Sắp xếp:</label>
                     <select name="sort" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()">
@@ -188,7 +295,7 @@
                 <div class="row g-4">
                     @foreach (var item in Model)
                     {
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-4 catalog-card-wrap">
                             @Html.Partial("_ProductCard", item)
                         </div>
                     }
@@ -198,21 +305,29 @@
                 {
                     <nav class="mt-5">
                         <ul class="pagination justify-content-center gap-1">
+                            @if (currentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill px-3 text-dark"
+                                       href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort, page = currentPage - 1 })">
+                                        &laquo;
+                                    </a>
+                                </li>
+                            }
                             @for (int i = 1; i <= totalPages; i++)
                             {
                                 <li class="page-item @(i == currentPage ? "active" : "")">
                                     <a class="page-link rounded-pill px-3 @(i == currentPage ? "bg-dark border-dark text-white" : "text-dark")"
-                                       href="@Url.Action("Index", "Product", new {
-                                           categoryId = categoryId,
-                                           keyword = string.IsNullOrEmpty(keyword) ? null : keyword,
-                                           gender = string.IsNullOrEmpty(gender) ? null : gender,
-                                           minPrice = minPrice,
-                                           maxPrice = maxPrice,
-                                           onSale = onSale ? (bool?)true : null,
-                                           isNew = isNew ? (bool?)true : null,
-                                           sort = sort,
-                                           page = i
-                                       })">@i</a>
+                                       href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort, page = i })">@i</a>
+                                </li>
+                            }
+                            @if (currentPage < totalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill px-3 text-dark"
+                                       href="@Url.Action("Index", "Product", new { categoryId, keyword = string.IsNullOrEmpty(keyword) ? null : keyword, gender = string.IsNullOrEmpty(gender) ? null : gender, minPrice, maxPrice, onSale = onSale ? (bool?)true : null, isNew = isNew ? (bool?)true : null, sort, page = currentPage + 1 })">
+                                        &raquo;
+                                    </a>
                                 </li>
                             }
                         </ul>

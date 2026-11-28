@@ -19,17 +19,164 @@
     var firstAvailable = variants.FirstOrDefault(v => v.Stock > 0) ?? variants.FirstOrDefault();
     var related = ViewBag.RelatedProducts as List<Product> ?? new List<Product>();
     var favIds = Session["FavIds"] as List<int>;
+    var parentCategory = ViewBag.ParentCategory as Category;
     bool isFav = favIds != null && favIds.Contains(Model.ProductId);
 }
 
+@functions {
+    public string GetColorDot(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "#adb5bd";
+        var k = name.Trim().ToLowerInvariant();
+        if (k.Contains("đen") || k.Contains("black")) return "#1a1a1a";
+        if (k.Contains("trắng") || k.Contains("white") || k.Contains("kem")) return "#f8f9fa";
+        if (k.Contains("navy") || k.Contains("than")) return "#1b2a4a";
+        if (k.Contains("xanh dương") || k.Contains("blue")) return "#2563eb";
+        if (k.Contains("rêu") || k.Contains("olive") || k.Contains("xanh lá") || k.Contains("green")) return "#3f6212";
+        if (k.Contains("be") || k.Contains("beige") || k.Contains("nâu") || k.Contains("brown")) return "#a18072";
+        if (k.Contains("xám") || k.Contains("ghi") || k.Contains("gray") || k.Contains("grey")) return "#6c757d";
+        if (k.Contains("đỏ") || k.Contains("red") || k.Contains("burgundy")) return "#b91c1c";
+        if (k.Contains("hồng") || k.Contains("pink")) return "#ec4899";
+        if (k.Contains("vàng") || k.Contains("yellow")) return "#eab308";
+        return "#9ca3af";
+    }
+}
+
+<style>
+    .pdp-img-box {
+        cursor: zoom-in;
+    }
+
+        .pdp-img-box img {
+            transition: transform .25s ease-out;
+            will-change: transform, transform-origin;
+        }
+
+        .pdp-img-box.is-zooming img {
+            transition: transform .08s linear;
+        }
+
+    .pdp-zoom-lens {
+        position: absolute;
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, .9);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
+        background: rgba(255, 255, 255, .12);
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        transition: opacity .2s ease;
+        z-index: 2;
+    }
+
+    .pdp-img-box.is-zooming .pdp-zoom-lens {
+        opacity: 1;
+    }
+
+    .pdp-zoom-hint {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        background: rgba(26, 26, 26, .72);
+        color: #fff;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 50rem;
+        pointer-events: none;
+        transition: opacity .2s ease;
+        z-index: 2;
+    }
+
+    .pdp-img-box.is-zooming .pdp-zoom-hint {
+        opacity: 0;
+    }
+
+    .catalog-card-wrap {
+        transition: transform .3s ease;
+    }
+
+        .catalog-card-wrap:hover {
+            transform: translateY(-4px);
+        }
+
+        .catalog-card-wrap .card,
+        .catalog-card-wrap .position-relative,
+        .catalog-card-wrap a:has(img) {
+            overflow: hidden;
+        }
+
+        .catalog-card-wrap img {
+            transition: transform .45s cubic-bezier(.25, .8, .25, 1);
+            will-change: transform;
+        }
+
+        .catalog-card-wrap:hover img {
+            transform: scale(1.05);
+        }
+
+    .variant-pill-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 50rem;
+        padding: 7px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all .2s ease;
+        background: #fff;
+        color: #212529;
+    }
+
+        .variant-pill-label:hover {
+            border-color: #212529;
+            transform: translateY(-1px);
+        }
+
+    .btn-check:checked + .variant-pill-label {
+        background: #212529;
+        border-color: #212529;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+    }
+
+    .btn-check:disabled + .variant-pill-label {
+        opacity: .45;
+        cursor: not-allowed;
+        text-decoration: line-through;
+    }
+
+    .color-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, .25);
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .btn-check:checked + .variant-pill-label .color-dot {
+        border-color: rgba(255, 255, 255, .75);
+    }
+</style>
+
 <div class="container py-4">
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" class="text-decoration-none text-muted">Trang chủ</a></li>
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Product")" class="text-decoration-none text-muted">Cửa hàng</a></li>
             @if (Model.Category != null)
             {
+                if (parentCategory != null)
+                {
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index", "Product", new { categoryId = parentCategory.CategoryId })" class="text-decoration-none text-muted">
+                            @parentCategory.Name
+                        </a>
+                    </li>
+                }
                 <li class="breadcrumb-item">
                     <a href="@Url.Action("Index", "Product", new { categoryId = Model.CategoryId })" class="text-decoration-none text-muted">
                         @Model.Category.Name
@@ -40,14 +187,14 @@
         </ol>
     </nav>
 
-    <!-- Chi tiết sản phẩm Editorial Split -->
     <div class="bg-white rounded-4 shadow-sm p-3 p-md-4 mb-5">
         <div class="row g-4 g-lg-5 align-items-start">
-            <!-- Ảnh sản phẩm tỉ lệ 3:4 -->
             <div class="col-md-5">
-                <div class="position-relative rounded-4 overflow-hidden shadow-sm">
-                    <img src="@img" alt="@Model.Name" class="img-fluid w-100" />
-                    <div class="position-absolute top-0 start-0 p-3 d-flex gap-2">
+                <div class="position-relative rounded-4 overflow-hidden shadow-sm pdp-img-box" id="pdpZoomBox">
+                    <img src="@img" alt="@Model.Name" class="img-fluid w-100" id="pdpMainImg" />
+                    <span class="pdp-zoom-lens" id="pdpZoomLens"></span>
+                    <span class="pdp-zoom-hint"><i class="bi bi-search me-1"></i>Rê chuột để soi chi tiết</span>
+                    <div class="position-absolute top-0 start-0 p-3 d-flex gap-2" style="z-index:3;">
                         @if (hasSale && salePct > 0)
                         {
                             <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold">-@salePct%</span>
@@ -60,7 +207,6 @@
                 </div>
             </div>
 
-            <!-- Thông tin & Form Mua Hàng (POST thuần, không dùng AJAX) -->
             <div class="col-md-7">
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     @if (Model.Category != null)
@@ -82,7 +228,6 @@
 
                 <h2 class="fw-bold mb-3">@Model.Name</h2>
 
-                <!-- Giá & Tiết kiệm -->
                 <div class="bg-light rounded-4 p-3 mb-4 d-flex flex-wrap align-items-center gap-3">
                     @if (hasSale)
                     {
@@ -100,7 +245,6 @@
 
                 <p class="text-secondary lh-lg mb-4">@Model.Description</p>
 
-                <!-- Trạng thái kho -->
                 <div class="mb-4">
                     @if (Model.Stock > 0)
                     {
@@ -120,38 +264,41 @@
                 {
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="productId" value="@Model.ProductId" />
-                    <input type="hidden" name="returnUrl" value="@Request.RawUrl"/>
+                    <input type="hidden" name="returnUrl" value="@Request.RawUrl" />
 
                     if (variants.Any())
                     {
                         <div class="mb-4">
-                            <label class="form-label fw-bold small text-uppercase text-muted">Chọn phân loại (Size &bull; Màu sắc)</label>
-                            <div class="list-group rounded-4 overflow-hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold small text-uppercase text-muted mb-0">
+                                    Chọn phân loại (Size &bull; Màu sắc)
+                                </label>
+                                <span class="small text-muted">@variants.Count tùy chọn</span>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-4 border d-flex flex-wrap gap-2">
                                 @foreach (var v in variants)
                                 {
                                     string sizeName = v.ProductSize != null ? v.ProductSize.Name : "Freesize";
                                     string colorName = v.ProductColor != null ? v.ProductColor.Name : "Mặc định";
+                                    string hex = GetColorDot(colorName);
                                     bool isChecked = firstAvailable != null && v.VariantId == firstAvailable.VariantId;
                                     bool outOfStock = v.Stock <= 0;
+                                    string radioId = "var_" + v.VariantId;
 
-                                    <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 @(outOfStock ? "bg-light text-muted" : "")">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <input class="form-check-input mt-0" type="radio" name="variantId" value="@v.VariantId"
-                                                   @(isChecked ? "checked" : "") @(outOfStock ? "disabled" : "") required />
-                                            <i class="bi bi-palette-fill text-secondary"></i>
+                                    <div>
+                                        <input class="btn-check" type="radio" name="variantId" id="@radioId" value="@v.VariantId"
+                                               autocomplete="off" @(isChecked ? "checked" : "") @(outOfStock ? "disabled" : "") required />
+                                        <label class="variant-pill-label" for="@radioId" title="SKU: @v.SKU">
+                                            <span class="color-dot" style="background-color:@hex;"></span>
                                             <span class="fw-semibold">@sizeName &mdash; @colorName</span>
-                                            <small class="text-muted">(@v.SKU)</small>
-                                        </div>
-                                        <div>
                                             @if (v.Price.HasValue)
                                             {
-                                                <span class="badge bg-warning text-dark rounded-pill me-1">@PriceFormatter.Vnd(v.Price)</span>
+                                                <span class="badge bg-warning text-dark rounded-pill">@PriceFormatter.Vnd(v.Price)</span>
                                             }
-                                            <span class="badge @(outOfStock ? "bg-secondary" : "bg-light text-dark border") rounded-pill">
-                                                @(outOfStock ? "Hết hàng" : "Còn " + v.Stock)
-                                            </span>
-                                        </div>
-                                    </label>
+                                            <span class="small opacity-75">(@(outOfStock ? "Hết" : "Còn " + v.Stock))</span>
+                                        </label>
+                                    </div>
                                 }
                             </div>
                         </div>
@@ -171,7 +318,6 @@
                     </div>
                 }
 
-                <!-- Nút Yêu thích sản phẩm (Form POST thuần, KHÔNG AJAX) -->
                 <div class="mt-3">
                     @using (Html.BeginForm("Toggle", "Favorite", FormMethod.Post))
                     {
@@ -185,7 +331,6 @@
                     }
                 </div>
 
-                <!-- Cam kết nhỏ -->
                 <div class="row g-2 mt-4 pt-3 border-top small text-muted">
                     <div class="col-6"><i class="bi bi-truck text-dark me-1"></i>Freeship đơn từ 500K</div>
                     <div class="col-6"><i class="bi bi-arrow-repeat text-dark me-1"></i>Đổi size miễn phí 7 ngày</div>
@@ -196,7 +341,6 @@
         </div>
     </div>
 
-    <!-- Sản phẩm liên quan -->
     @if (related.Any())
     {
         <section class="mb-4">
@@ -209,7 +353,7 @@
             <div class="row g-4">
                 @foreach (var item in related)
                 {
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-3 catalog-card-wrap">
                         @Html.Partial("_ProductCard", item)
                     </div>
                 }
@@ -217,3 +361,34 @@
         </section>
     }
 </div>
+
+<script>
+    (function () {
+        var box = document.getElementById('pdpZoomBox');
+        var img = document.getElementById('pdpMainImg');
+        var lens = document.getElementById('pdpZoomLens');
+        if (!box || !img) return;
+
+        box.addEventListener('mousemove', function (e) {
+            var rect = box.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var px = Math.max(0, Math.min(100, (x / rect.width) * 100));
+            var py = Math.max(0, Math.min(100, (y / rect.height) * 100));
+
+            box.classList.add('is-zooming');
+            img.style.transformOrigin = px + '% ' + py + '%';
+            img.style.transform = 'scale(1.85)';
+            if (lens) {
+                lens.style.left = x + 'px';
+                lens.style.top = y + 'px';
+            }
+        });
+
+        box.addEventListener('mouseleave', function () {
+            box.classList.remove('is-zooming');
+            img.style.transform = 'scale(1)';
+            img.style.transformOrigin = 'center center';
+        });
+    })();
+</script>
