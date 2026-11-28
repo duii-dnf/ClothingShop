@@ -7,6 +7,7 @@
     bool isPaid = string.Equals(Model.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase);
     bool isRefunded = string.Equals(Model.PaymentStatus, "Refunded", StringComparison.OrdinalIgnoreCase);
     bool isCancelRequested = isPending && !string.IsNullOrEmpty(Model.Note) && Model.Note.Contains("[YÊU CẦU HỦY");
+    bool isFinalized = Model.Status == OrderStatus.Cancelled || Model.Status == OrderStatus.Completed;
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -123,33 +124,46 @@
         <div class="card border-0 rounded-4 shadow-sm mb-4 overflow-hidden">
             <div class="card-header bg-dark text-white fw-semibold py-3">Cập nhật trạng thái đơn</div>
             <div class="card-body">
-                @using (Html.BeginForm("UpdateStatus", "Order", FormMethod.Post))
+                @if (isFinalized)
                 {
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.OrderId" />
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Trạng thái đơn hàng</label>
-                        <select name="status" class="form-select">
-                            @foreach (var st in OrderStatus.All)
-                            {
-                                <option value="@st" @(Model.Status == st ? "selected" : "")>@st</option>
-                            }
-                        </select>
+                    <div class="alert @(Model.Status == OrderStatus.Completed ? "alert-success" : "alert-secondary") border-0 rounded-3 small mb-0">
+                        <i class="bi @(Model.Status == OrderStatus.Completed ? "bi-check-circle-fill" : "bi-lock-fill") me-1"></i>
+                        Đơn hàng đã ở trạng thái kết thúc (<strong>@Model.Status</strong> - <strong>@Model.PaymentStatus</strong>), không thể chỉnh sửa thêm.
                     </div>
+                }
+                else
+                {
+                    using (Html.BeginForm("UpdateStatus", "Order", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.OrderId" />
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Trạng thái thanh toán</label>
-                        <select name="paymentStatus" class="form-select">
-                            <option value="Unpaid" @(Model.PaymentStatus == "Unpaid" ? "selected" : "")>Chưa thanh toán (Unpaid)</option>
-                            <option value="Paid" @(Model.PaymentStatus == "Paid" ? "selected" : "")>Đã thanh toán (Paid)</option>
-                            <option value="Refunded" @(Model.PaymentStatus == "Refunded" ? "selected" : "")>Đã hoàn tiền (Refunded)</option>
-                        </select>
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Trạng thái đơn hàng</label>
+                            <select name="status" class="form-select">
+                                @foreach (var st in OrderStatus.All)
+                                {
+                                    <option value="@st" @(Model.Status == st ? "selected" : "")>@st</option>
+                                }
+                            </select>
+                        </div>
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-dark rounded-pill fw-semibold">Cập nhật đơn hàng</button>
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Trạng thái thanh toán</label>
+                            <select name="paymentStatus" class="form-select">
+                                <option value="Unpaid" @(Model.PaymentStatus == "Unpaid" ? "selected" : "")>Chưa thanh toán (Unpaid)</option>
+                                <option value="Paid" @(Model.PaymentStatus == "Paid" ? "selected" : "")>Đã thanh toán (Paid)</option>
+                                @if (isPaid || isRefunded)
+                                {
+                                    <option value="Refunded" @(Model.PaymentStatus == "Refunded" ? "selected" : "")>Đã hoàn tiền (Refunded)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-dark rounded-pill fw-semibold">Cập nhật đơn hàng</button>
+                        </div>
+                    }
                 }
             </div>
         </div>

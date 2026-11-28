@@ -61,6 +61,7 @@ namespace ClothingShop.Areas.Admin.Controllers
         }
 
         // POST: Admin/Order/UpdateStatus
+        // POST: Admin/Order/UpdateStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult UpdateStatus(int id, string status, string paymentStatus = null)
@@ -70,32 +71,43 @@ namespace ClothingShop.Areas.Admin.Controllers
 
             string oldStatus = order.Status;
             string oldPaymentStatus = order.PaymentStatus;
+
+            // 1. Khóa đơn đã kết thúc (tránh sửa ngược làm lệch tồn kho & doanh thu)
+            if (oldStatus == OrderStatus.Cancelled)
+            {
+                TempData["Error"] = "Đơn hàng đã bị hủy, không thể thay đổi trạng thái nữa.";
+                return RedirectToAction("Details", new { id });
+            }
+            if (oldStatus == OrderStatus.Completed)
+            {
+                TempData["Error"] = "Đơn hàng đã hoàn thành, không thể chuyển về trạng thái khác.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            // 2. Chặn các tổ hợp hoàn tiền vô lý
+            if (paymentStatus == "Refunded")
+            {
+                if (status != OrderStatus.Cancelled)
+                {
+                    TempData["Error"] = "Chỉ được chọn 'Đã hoàn tiền' khi trạng thái đơn hàng là Đã hủy (Cancelled).";
+                    return RedirectToAction("Details", new { id });
+                }
+                if (oldPaymentStatus == "Unpaid")
+                {
+                    TempData["Error"] = "Đơn hàng chưa thanh toán nên không thể chuyển sang Đã hoàn tiền.";
+                    return RedirectToAction("Details", new { id });
+                }
+            }
+
             order.Status = status;
 
-            // Cập nhật trạng thái thanh toán theo lựa chọn của Admin
-            if (!string.IsNullOrEmpty(paymentStatus))
+            // 3. Xử lý nhánh Hủy đơn
+            if (status == OrderStatus.Cancelled)
             {
-                order.PaymentStatus = paymentStatus;
-                if (paymentStatus == "Paid" && !order.PaymentDate.HasValue)
-                    order.PaymentDate = DateTime.Now;
-            }
+                // Đơn đã trả tiền bắt buộc sang Refunded; đơn chưa trả tiền giữ nguyên Unpaid
+                order.PaymentStatus = (oldPaymentStatus == "Paid") ? "Refunded" : "Unpaid";
 
-            // Đơn COD chuyển sang Hoàn thành -> tự động ghi nhận Đã thanh toán
-            if (status == OrderStatus.Completed && order.PaymentStatus == "Unpaid")
-            {
-                order.PaymentStatus = "Paid";
-                order.PaymentDate = DateTime.Now;
-            }
-
-            // Duyệt hủy đơn: hoàn tồn kho + hoàn lượt mã giảm giá + chuyển Refunded nếu đã thanh toán
-            if (status == OrderStatus.Cancelled && oldStatus != OrderStatus.Cancelled)
-            {
-                if (oldPaymentStatus == "Paid" && (string.IsNullOrEmpty(paymentStatus) || paymentStatus == "Paid"))
-                {
-                    order.PaymentStatus = "Refunded";
-                }
-
-                // Hoàn lại lượt sử dụng mã khuyến mãi (nếu đơn có áp mã)
+                // Hoàn lượt sử dụng mã giảm giá (nếu có)
                 if (order.CouponId.HasValue)
                 {
                     var coupon = db.Coupons.Find(order.CouponId.Value);
@@ -103,6 +115,7 @@ namespace ClothingShop.Areas.Admin.Controllers
                         coupon.UsedCount -= 1;
                 }
 
+                // Hoàn tồn kho & ghi log
                 var staff = SessionHelper.GetCurrentUser(Session);
                 foreach (var detail in order.OrderDetails)
                 {
@@ -131,6 +144,23 @@ namespace ClothingShop.Areas.Admin.Controllers
                     var prod = db.Products.Find(detail.ProductId);
                     if (prod != null)
                         prod.Stock += detail.Quantity;
+                }
+            }
+            else
+            {
+                // 4. Các trạng thái đang xử lý / hoàn thành
+                if (!string.IsNullOrEmpty(paymentStatus))
+                {
+                    order.PaymentStatus = paymentStatus;
+                    if (paymentStatus == "Paid" && !order.PaymentDate.HasValue)
+                        order.PaymentDate = DateTime.Now;
+                }
+
+                // Đơn COD chuyển sang Hoàn thành -> tự động ghi nhận Đã thanh toán
+                if (status == OrderStatus.Completed && order.PaymentStatus == "Unpaid")
+                {
+                    order.PaymentStatus = "Paid";
+                    order.PaymentDate = DateTime.Now;
                 }
             }
 

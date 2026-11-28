@@ -6,6 +6,9 @@
     DateTime? fromDate = ViewBag.FromDate as DateTime?;
     DateTime? toDate = ViewBag.ToDate as DateTime?;
     decimal revenue = ViewBag.TongDoanhThu != null ? (decimal)ViewBag.TongDoanhThu : 0m;
+    decimal refundedAmount = ViewBag.TongTienDaHoan != null ? (decimal)ViewBag.TongTienDaHoan : 0m;
+    int refundedCount = ViewBag.DonDaHoanTien != null ? (int)ViewBag.DonDaHoanTien : 0;
+    int cancelReqCount = ViewBag.DonYeuCauHuy != null ? (int)ViewBag.DonYeuCauHuy : 0;
 }
 
 <!-- Bộ lọc ngày -->
@@ -30,8 +33,11 @@
         <div class="card border-0 rounded-4 shadow-sm bg-dark text-white h-100">
             <div class="card-body p-4 d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="small text-white-50">Tổng doanh thu (Hoàn thành)</div>
+                    <div class="small text-white-50">Doanh thu thực thu (Hoàn thành)</div>
                     <div class="fs-4 fw-bold text-warning mt-2">@PriceFormatter.Vnd(revenue)</div>
+                    <div class="small text-info mt-1">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Đã hoàn tiền: @PriceFormatter.Vnd(refundedAmount) (@refundedCount đơn)
+                    </div>
                 </div>
                 <span class="badge bg-warning text-dark rounded-3 p-2 fs-5"><i class="bi bi-cash-stack"></i></span>
             </div>
@@ -72,18 +78,56 @@
     </div>
 </div>
 
-<!-- Trạng thái đơn hàng -->
+<!-- Trạng thái đơn hàng (bấm vào từng ô để lọc trực tiếp sang Quản lý đơn) -->
 <div class="row g-2 mb-4 text-center">
-    <div class="col"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Chờ xác nhận</small><strong class="fs-4 text-warning">@ViewBag.DonChoXacNhan</strong></div></div>
-    <div class="col">
-        <a href="@Url.Action("Index", "Order", new { status = "CancelRequested" })" class="text-decoration-none">
-            <div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Yêu cầu hủy</small><strong class="fs-4 text-danger">@(ViewBag.DonYeuCauHuy ?? 0)</strong></div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="@Url.Action("Index", "Order", new { status = OrderStatus.Pending })" class="text-decoration-none">
+            <div class="card border-0 rounded-4 shadow-sm p-3 h-100">
+                <small class="text-muted">Chờ xác nhận</small>
+                <strong class="fs-4 text-warning">@ViewBag.DonChoXacNhan</strong>
+            </div>
         </a>
     </div>
-    <div class="col"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Đã xác nhận</small><strong class="fs-4 text-primary">@ViewBag.DonDaXacNhan</strong></div></div>
-    <div class="col"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Đang giao</small><strong class="fs-4 text-info">@ViewBag.DonDangGiao</strong></div></div>
-    <div class="col"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Hoàn thành</small><strong class="fs-4 text-success">@ViewBag.DonHoanThanh</strong></div></div>
-    <div class="col"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Đã hủy</small><strong class="fs-4 text-danger">@ViewBag.DonDaHuy</strong></div></div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="@Url.Action("Index", "Order", new { status = "CancelRequested" })" class="text-decoration-none">
+            <div class="card rounded-4 shadow-sm p-3 h-100 @(cancelReqCount > 0 ? "border border-danger bg-danger bg-opacity-10" : "border-0")">
+                <small class="@(cancelReqCount > 0 ? "text-danger fw-semibold" : "text-muted")">Yêu cầu hủy</small>
+                <strong class="fs-4 text-danger">@cancelReqCount</strong>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="@Url.Action("Index", "Order", new { status = OrderStatus.Confirmed })" class="text-decoration-none">
+            <div class="card border-0 rounded-4 shadow-sm p-3 h-100">
+                <small class="text-muted">Đã xác nhận</small>
+                <strong class="fs-4 text-primary">@ViewBag.DonDaXacNhan</strong>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="@Url.Action("Index", "Order", new { status = OrderStatus.Shipping })" class="text-decoration-none">
+            <div class="card border-0 rounded-4 shadow-sm p-3 h-100">
+                <small class="text-muted">Đang giao</small>
+                <strong class="fs-4 text-info">@ViewBag.DonDangGiao</strong>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="@Url.Action("Index", "Order", new { status = OrderStatus.Completed })" class="text-decoration-none">
+            <div class="card border-0 rounded-4 shadow-sm p-3 h-100">
+                <small class="text-muted">Hoàn thành</small>
+                <strong class="fs-4 text-success">@ViewBag.DonHoanThanh</strong>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a href="@Url.Action("Index", "Order", new { status = OrderStatus.Cancelled })" class="text-decoration-none">
+            <div class="card border-0 rounded-4 shadow-sm p-3 h-100">
+                <small class="text-muted">Đã hủy</small>
+                <strong class="fs-4 text-danger">@ViewBag.DonDaHuy</strong>
+            </div>
+        </a>
+    </div>
 </div>
 
 <!-- Đơn hàng gần đây -->
@@ -108,20 +152,48 @@
             <tbody>
                 @foreach (var item in Model)
                 {
+                    bool isCancelRequested = item.Status == OrderStatus.Pending
+                        && !string.IsNullOrEmpty(item.Note)
+                        && item.Note.Contains("[YÊU CẦU HỦY");
+                    bool isPaid = string.Equals(item.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase);
+                    bool isRefunded = string.Equals(item.PaymentStatus, "Refunded", StringComparison.OrdinalIgnoreCase);
+
                     string badge = item.Status == OrderStatus.Completed ? "bg-success"
                         : item.Status == OrderStatus.Cancelled ? "bg-danger"
                         : item.Status == OrderStatus.Shipping ? "bg-info text-dark"
                         : item.Status == OrderStatus.Confirmed ? "bg-primary"
                         : "bg-warning text-dark";
-                    <tr>
+
+                    string payBadgeClass = isPaid ? "bg-success bg-opacity-10 text-success border border-success"
+                        : isRefunded ? "bg-info bg-opacity-10 text-dark border border-info"
+                        : "bg-light text-muted border";
+
+                    string payBadgeText = isPaid ? "Đã TT"
+                        : isRefunded ? "Đã hoàn tiền"
+                        : "Chưa TT";
+
+                    <tr class="@(isCancelRequested ? "table-warning" : "")">
                         <td class="ps-4 fw-bold">#@item.OrderId</td>
                         <td>
                             <div class="fw-semibold">@item.ReceiverName</div>
                             <small class="text-muted">@item.Phone</small>
                         </td>
                         <td class="small text-muted">@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="small">@item.PaymentMethod</td>
-                        <td><span class="badge @badge rounded-pill px-3">@item.Status</span></td>
+                        <td class="small">
+                            <div>@item.PaymentMethod</div>
+                            <span class="badge @payBadgeClass rounded-pill mt-1">@payBadgeText</span>
+                        </td>
+                        <td>
+                            <span class="badge @badge rounded-pill px-3">@item.Status</span>
+                            @if (isCancelRequested)
+                            {
+                                <div class="mt-1">
+                                    <span class="badge bg-danger rounded-pill">
+                                        <i class="bi bi-exclamation-circle me-1"></i>@(isPaid ? "Yêu cầu hủy & hoàn tiền" : "Yêu cầu hủy")
+                                    </span>
+                                </div>
+                            }
+                        </td>
                         <td class="text-end fw-bold text-danger">@PriceFormatter.Vnd(item.TotalAmount)</td>
                         <td class="text-center pe-4">
                             <a href="@Url.Action("Details", "Order", new { id = item.OrderId })" class="btn btn-outline-dark btn-sm rounded-pill px-3">Chi tiết</a>
