@@ -71,15 +71,25 @@
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <span class="badge rounded-pill @badgeClass">@statusLabel</span>
                         <span class="badge rounded-pill bg-light text-dark border">@order.PaymentMethod</span>
+                        @{
+                            bool isRefunded = string.Equals(order.PaymentStatus, "Refunded", StringComparison.OrdinalIgnoreCase);
+                        }
+
                         @if (isPaid)
                         {
-                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">
                                 <i class="bi bi-check-circle me-1"></i>Đã thanh toán
                             </span>
                         }
-                        else
+                        else if (isRefunded)
                         {
-                            <span class="badge rounded-pill bg-light text-secondary border">Chưa thanh toán</span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Đã hoàn tiền
+                            </span>
+                        }
+                        else if (order.Status != OrderStatus.Cancelled)
+                        {
+                            <span class="badge bg-light text-secondary border">Chưa thanh toán</span>
                         }
                     </div>
                 </div>
