@@ -7,17 +7,17 @@
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Lịch sử đơn hàng</h3>
-        <a href="@Url.Action("Index", "Product")" class="btn btn-outline-dark btn-sm">Tiếp tục mua sắm</a>
+        <h3 class="font-display fw-bold mb-0"><i class="bi bi-receipt me-2"></i>Lịch sử đơn hàng</h3>
+        <a href="@Url.Action("Index", "Product")" class="btn btn-outline-dark btn-sm rounded-pill px-3">Tiếp tục mua sắm</a>
     </div>
 
     @if (Model == null || !Model.Any())
     {
-        <div class="card border-0 shadow-sm text-center py-5">
+        <div class="card border-0 rounded-4 shadow-sm text-center py-5">
             <div class="card-body">
                 <i class="bi bi-bag-x display-4 text-muted"></i>
-                <h5 class="mt-3">Bạn chưa có đơn hàng nào</h5>
-                <a href="@Url.Action("Index", "Product")" class="btn btn-dark btn-sm mt-2">Mua sắm ngay</a>
+                <h5 class="fw-bold mt-3">Bạn chưa có đơn hàng nào</h5>
+                <a href="@Url.Action("Index", "Product")" class="btn btn-dark btn-sm rounded-pill px-4 mt-2">Mua sắm ngay</a>
             </div>
         </div>
     }
@@ -25,27 +25,77 @@
     {
         foreach (var order in Model)
         {
-            string badgeClass = order.Status == OrderStatus.Completed ? "bg-success"
-                : order.Status == OrderStatus.Cancelled ? "bg-danger"
-                : order.Status == OrderStatus.Shipping ? "bg-info text-dark"
-                : order.Status == OrderStatus.Confirmed ? "bg-primary"
-                : "bg-warning text-dark";
+            bool isPending = string.Equals(order.Status, OrderStatus.Pending, StringComparison.OrdinalIgnoreCase);
+            bool isPaid = string.Equals(order.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase);
+            bool isCancelRequested = !string.IsNullOrEmpty(order.Note) && order.Note.Contains("[YÊU CẦU HỦY");
 
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+            string statusLabel;
+            string badgeClass;
+            if (isPending && isCancelRequested)
+            {
+                statusLabel = isPaid ? "Chờ xác nhận hủy & hoàn tiền" : "Chờ xác nhận hủy";
+                badgeClass = "bg-secondary";
+            }
+            else if (order.Status == OrderStatus.Completed)
+            {
+                statusLabel = "Hoàn thành";
+                badgeClass = "bg-success";
+            }
+            else if (order.Status == OrderStatus.Cancelled)
+            {
+                statusLabel = "Đã hủy";
+                badgeClass = "bg-danger";
+            }
+            else if (order.Status == OrderStatus.Shipping)
+            {
+                statusLabel = "Đang giao hàng";
+                badgeClass = "bg-info text-dark";
+            }
+            else if (order.Status == OrderStatus.Confirmed)
+            {
+                statusLabel = "Đã xác nhận";
+                badgeClass = "bg-primary";
+            }
+            else
+            {
+                statusLabel = "Chờ xác nhận";
+                badgeClass = "bg-warning text-dark";
+            }
+
+            <div class="card border-0 rounded-4 shadow-sm mb-3 overflow-hidden">
+                <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
                     <div>
                         <strong class="me-2">Đơn hàng #@order.OrderId</strong>
                         <small class="text-muted">Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</small>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge @badgeClass">@order.Status</span>
-                        <span class="badge bg-light text-dark border">@order.PaymentMethod</span>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="badge rounded-pill @badgeClass">@statusLabel</span>
+                        <span class="badge rounded-pill bg-light text-dark border">@order.PaymentMethod</span>
+                        @if (isPaid)
+                        {
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle">
+                                <i class="bi bi-check-circle me-1"></i>Đã thanh toán
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge rounded-pill bg-light text-secondary border">Chưa thanh toán</span>
+                        }
                     </div>
                 </div>
+
                 <div class="card-body">
                     <div class="small text-muted mb-2">
                         <i class="bi bi-geo-alt me-1"></i>@order.ReceiverName - @order.Phone | @order.Address
                     </div>
+
+                    @if (isPending && isCancelRequested)
+                    {
+                        <div class="alert alert-warning border-0 rounded-3 py-2 px-3 small mb-3">
+                            <i class="bi bi-hourglass-split me-1"></i>
+                            <strong>Trạng thái yêu cầu:</strong> @order.Note
+                        </div>
+                    }
 
                     @if (order.OrderDetails != null && order.OrderDetails.Any())
                     {
@@ -76,7 +126,7 @@
                         </div>
                     }
 
-                    <div class="d-flex flex-wrap justify-content-between align-items-center pt-2 border-top">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-2 border-top">
                         <div>
                             @if (order.DiscountAmount > 0)
                             {
@@ -85,21 +135,211 @@
                             <span class="fw-bold">Tổng cộng: <span class="text-danger fs-5">@PriceFormatter.Vnd(order.TotalAmount)</span></span>
                         </div>
 
-                        @if (order.Status == OrderStatus.Pending)
-                        {
-                            using (Html.BeginForm("Cancel", "Order", FormMethod.Post, new { @class = "d-inline" }))
+                        <div>
+                            @if (isPending && !isCancelRequested)
                             {
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="orderId" value="@order.OrderId" />
-                                <button type="submit" class="btn btn-outline-danger btn-sm"
-                                        onclick="return confirm('Bạn có chắc muốn hủy đơn hàng #@order.OrderId?');">
-                                    <i class="bi bi-x-circle me-1"></i>Hủy đơn hàng
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm rounded-pill px-3 btn-open-cancel-modal"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#cancelOrderModal"
+                                        data-order-id="@order.OrderId"
+                                        data-is-paid="@(isPaid ? "true" : "false")"
+                                        data-total="@PriceFormatter.Vnd(order.TotalAmount)">
+                                    <i class="bi bi-x-circle me-1"></i>@(isPaid ? "Yêu cầu hủy & hoàn tiền" : "Hủy đơn hàng")
                                 </button>
                             }
-                        }
+                            else if (isPending && isCancelRequested)
+                            {
+                                <span class="small text-muted fst-italic">
+                                    <i class="bi bi-clock-history me-1"></i>@(isPaid ? "Đang chờ cửa hàng xác nhận hủy & hoàn tiền" : "Đang chờ cửa hàng xác nhận hủy")
+                                </span>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
         }
     }
 </div>
+
+<!-- Modal xác nhận hủy đơn (Form POST thuần, tách biệt COD vs Chuyển khoản) -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            @using (Html.BeginForm("Cancel", "Order", FormMethod.Post, new { id = "cancelOrderForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" id="cancelOrderIdInput" value="" />
+
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold text-danger" id="cancelOrderModalLabel">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <span id="cancelModalTitleText">Xác nhận hủy đơn hàng</span> #<span id="cancelOrderNumber"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Thông báo ngữ cảnh theo hình thức thanh toán -->
+                    <div id="cancelCodNotice" class="alert alert-light border small mb-3">
+                        Bạn có chắc chắn muốn gửi yêu cầu hủy đơn hàng này? Yêu cầu sẽ được chuyển đến cửa hàng để xác nhận trước khi đơn được hủy.
+                    </div>
+
+                    <div id="cancelPaidNotice" class="alert alert-info border-0 small mb-3 d-none">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Đơn hàng này đã thanh toán chuyển khoản <strong id="cancelPaidTotalText" class="text-danger"></strong>. Sau khi cửa hàng xác nhận hủy, số tiền sẽ được hoàn lại về tài khoản bạn cung cấp trong <strong>1–3 ngày làm việc</strong>.
+                    </div>
+
+                    <!-- Lý do hủy đơn -->
+                    <label class="form-label fw-semibold small text-uppercase text-muted">
+                        Chọn lý do hủy đơn <span class="text-danger">*</span>
+                    </label>
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="cancelReason" id="reason1" value="Muốn thay đổi địa chỉ giao hàng" checked />
+                            <label class="form-check-label small" for="reason1">Muốn thay đổi địa chỉ giao hàng</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="cancelReason" id="reason2" value="Muốn thay đổi sản phẩm (size, màu sắc, số lượng)" />
+                            <label class="form-check-label small" for="reason2">Muốn thay đổi sản phẩm (size, màu sắc, số lượng)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="cancelReason" id="reason3" value="Muốn thay đổi mã giảm giá / phương thức thanh toán" />
+                            <label class="form-check-label small" for="reason3">Muốn thay đổi mã giảm giá / phương thức thanh toán</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="cancelReason" id="reason4" value="Không còn nhu cầu mua nữa" />
+                            <label class="form-check-label small" for="reason4">Không còn nhu cầu mua nữa</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input cancel-reason-radio" type="radio" name="cancelReason" id="reasonOther" value="Khác" />
+                            <label class="form-check-label small" for="reasonOther">Lý do khác</label>
+                        </div>
+                    </div>
+
+                    <div id="otherReasonWrap" class="mb-3 d-none">
+                        <textarea name="otherReason" id="otherReasonInput" class="form-control form-control-sm rounded-3" rows="2" maxlength="120" placeholder="Nhập lý do hủy đơn của bạn..."></textarea>
+                        <div id="otherReasonError" class="text-danger small mt-1 d-none">Vui lòng nhập lý do hủy đơn.</div>
+                    </div>
+
+                    <!-- Thông tin nhận hoàn tiền: chỉ hiện với đơn Đã chuyển khoản -->
+                    <div id="refundInfoWrap" class="border-top pt-3 d-none">
+                        <label class="form-label fw-semibold small text-uppercase text-muted" for="refundInfoInput">
+                            Thông tin tài khoản nhận hoàn tiền <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="refundInfo" id="refundInfoInput" class="form-control form-control-sm rounded-3" maxlength="120"
+                               placeholder="VD: Vietcombank - 0123456789 - Nguyễn Văn An" />
+                        <div id="refundInfoError" class="text-danger small mt-1 d-none">Vui lòng nhập ngân hàng, số tài khoản và tên chủ tài khoản để cửa hàng hoàn tiền.</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Quay lại</button>
+                    <button type="submit" id="btnSubmitCancelOrder" class="btn btn-danger btn-sm rounded-pill px-4 fw-semibold">Gửi yêu cầu hủy</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var orderIdInput = document.getElementById('cancelOrderIdInput');
+                    var orderNumberEl = document.getElementById('cancelOrderNumber');
+                    var modalTitleText = document.getElementById('cancelModalTitleText');
+                    var codNotice = document.getElementById('cancelCodNotice');
+                    var paidNotice = document.getElementById('cancelPaidNotice');
+                    var paidTotalText = document.getElementById('cancelPaidTotalText');
+
+                    var reason1 = document.getElementById('reason1');
+                    var reasonOther = document.getElementById('reasonOther');
+                    var otherReasonWrap = document.getElementById('otherReasonWrap');
+                    var otherReasonInput = document.getElementById('otherReasonInput');
+                    var otherReasonError = document.getElementById('otherReasonError');
+
+                    var refundInfoWrap = document.getElementById('refundInfoWrap');
+                    var refundInfoInput = document.getElementById('refundInfoInput');
+                    var refundInfoError = document.getElementById('refundInfoError');
+                    var submitBtn = document.getElementById('btnSubmitCancelOrder');
+                    var cancelForm = document.getElementById('cancelOrderForm');
+
+                    var isCurrentOrderPaid = false;
+
+                    var openButtons = document.querySelectorAll('.btn-open-cancel-modal');
+                    for (var i = 0; i < openButtons.length; i++) {
+                        openButtons[i].addEventListener('click', function () {
+                            var orderId = this.getAttribute('data-order-id') || '';
+                            var isPaid = this.getAttribute('data-is-paid') === 'true';
+                            var totalText = this.getAttribute('data-total') || '';
+                            isCurrentOrderPaid = isPaid;
+
+                            if (orderIdInput instanceof HTMLInputElement) orderIdInput.value = orderId;
+                            if (orderNumberEl) orderNumberEl.textContent = orderId;
+
+                            // Reset lý do & lỗi cũ
+                            if (reason1 instanceof HTMLInputElement) reason1.checked = true;
+                            if (otherReasonWrap) otherReasonWrap.classList.add('d-none');
+                            if (otherReasonInput instanceof HTMLTextAreaElement) otherReasonInput.value = '';
+                            if (otherReasonError) otherReasonError.classList.add('d-none');
+
+                            if (refundInfoInput instanceof HTMLInputElement) refundInfoInput.value = '';
+                            if (refundInfoError) refundInfoError.classList.add('d-none');
+
+                            // Tùy biến giao diện Modal theo COD hay Đã chuyển khoản
+                            if (isPaid) {
+                                if (modalTitleText) modalTitleText.textContent = 'Yêu cầu hủy & hoàn tiền đơn';
+                                if (codNotice) codNotice.classList.add('d-none');
+                                if (paidNotice) paidNotice.classList.remove('d-none');
+                                if (paidTotalText) paidTotalText.textContent = totalText;
+                                if (refundInfoWrap) refundInfoWrap.classList.remove('d-none');
+                                if (submitBtn) submitBtn.textContent = 'Gửi yêu cầu hủy & hoàn tiền';
+                            } else {
+                                if (modalTitleText) modalTitleText.textContent = 'Xác nhận hủy đơn hàng';
+                                if (codNotice) codNotice.classList.remove('d-none');
+                                if (paidNotice) paidNotice.classList.add('d-none');
+                                if (refundInfoWrap) refundInfoWrap.classList.add('d-none');
+                                if (submitBtn) submitBtn.textContent = 'Gửi yêu cầu hủy';
+                            }
+                        });
+                    }
+
+                    var reasonRadios = document.querySelectorAll('.cancel-reason-radio');
+                    for (var j = 0; j < reasonRadios.length; j++) {
+                        reasonRadios[j].addEventListener('change', function () {
+                            var isOther = (reasonOther instanceof HTMLInputElement) && reasonOther.checked;
+                            if (otherReasonWrap) otherReasonWrap.classList.toggle('d-none', !isOther);
+                            if (!isOther && otherReasonError) otherReasonError.classList.add('d-none');
+                            if (isOther && otherReasonInput instanceof HTMLTextAreaElement) otherReasonInput.focus();
+                        });
+                    }
+
+                    if (cancelForm) {
+                        cancelForm.addEventListener('submit', function (e) {
+                            var hasError = false;
+
+                            var isOther = (reasonOther instanceof HTMLInputElement) && reasonOther.checked;
+                            if (isOther && otherReasonInput instanceof HTMLTextAreaElement && !otherReasonInput.value.trim()) {
+                                if (otherReasonError) otherReasonError.classList.remove('d-none');
+                                otherReasonInput.focus();
+                                hasError = true;
+                            } else if (otherReasonError) {
+                                otherReasonError.classList.add('d-none');
+                            }
+
+                            if (isCurrentOrderPaid && refundInfoInput instanceof HTMLInputElement && !refundInfoInput.value.trim()) {
+                                if (refundInfoError) refundInfoError.classList.remove('d-none');
+                                if (!hasError) refundInfoInput.focus();
+                                hasError = true;
+                            } else if (refundInfoError) {
+                                refundInfoError.classList.add('d-none');
+                            }
+
+                            if (hasError) {
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                });
+    </script>
+}
