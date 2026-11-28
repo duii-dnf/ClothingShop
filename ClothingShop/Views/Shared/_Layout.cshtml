@@ -11,47 +11,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewBag.Title - CLOTHINGSHOP.</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link href="~/Content/Site.css" rel="stylesheet" />
-    <style>
-        @@media (min-width: 992px) {
-            #mainNavbar .navbar-nav .nav-item.dropdown {
-                position: relative;
-            }
-
-                #mainNavbar .navbar-nav .nav-item.dropdown > .dropdown-menu {
-                    position: absolute;
-                    top: 100%;
-                    left: 0;
-                    margin-top: 0;
-                    border: 0;
-                    border-radius: 12px;
-                    padding: 8px;
-                    min-width: 200px;
-                }
-
-                    #mainNavbar .navbar-nav .nav-item.dropdown:hover > .dropdown-menu,
-                    #mainNavbar .navbar-nav .nav-item.dropdown > .dropdown-menu.show {
-                        display: block !important;
-                    }
-
-                #mainNavbar .navbar-nav .nav-item.dropdown .dropdown-item {
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                }
-        }
-    </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <!-- Top Promo Strip -->
-    <div class="bg-obsidian text-white py-2 small">
+    <div class="bg-dark text-white py-2 small">
         <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge badge-lime rounded-pill fw-bold px-2">NEW DROP</span>
+                <span class="badge bg-warning text-dark rounded-pill fw-bold px-2">NEW DROP</span>
                 <span>Freeship đơn từ <strong>500K</strong> &bull; Nhập mã <strong class="text-warning">SALE10</strong> giảm ngay 10%</span>
             </div>
             <div class="d-none d-md-flex align-items-center gap-3 text-white-50">
@@ -61,11 +30,11 @@
         </div>
     </div>
 
-    <!-- Main Glass Navbar (Bootstrap 5 + Menu 2 cấp động) -->
-    <nav class="navbar navbar-expand-lg navbar-light navbar-glass border-bottom sticky-top py-3">
+    <!-- Main Navbar (Bootstrap 5 + Menu 2 cấp động) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top py-3">
         <div class="container">
-            <a class="navbar-brand font-display fw-bold fs-4 text-uppercase d-flex align-items-center gap-1" href="@Url.Action("Index", "Home")">
-                <span class="bg-obsidian text-white px-2 py-1 rounded-3 fs-6 lh-1">CS</span>
+            <a class="navbar-brand fw-bold fs-4 text-uppercase d-flex align-items-center gap-1" href="@Url.Action("Index", "Home")">
+                <span class="bg-dark text-white px-2 py-1 rounded-3 fs-6 lh-1">CS</span>
                 <span>CLOTHINGSHOP<span class="text-danger">.</span></span>
             </a>
 
@@ -137,7 +106,7 @@
                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-4 p-2 mt-2">
                                 <li class="px-3 py-2">
                                     <div class="fw-bold small">@currentUser.FullName</div>
-                                    <span class="badge bg-dark-subtle text-dark rounded-pill">@currentUser.Role</span>
+                                    <span class="badge bg-secondary bg-opacity-25 text-dark rounded-pill">@currentUser.Role</span>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 @if (currentUser.CanAccessAdmin)
@@ -204,11 +173,11 @@
     </main>
 
     <!-- Editorial Footer -->
-    <footer class="bg-obsidian text-light pt-5 pb-4 mt-5">
+    <footer class="bg-dark text-light pt-5 pb-4 mt-5">
         <div class="container">
             <div class="row g-4 pb-4 border-bottom border-secondary border-opacity-25">
                 <div class="col-lg-4">
-                    <h4 class="font-display fw-bold mb-3">CLOTHINGSHOP<span class="text-danger">.</span></h4>
+                    <h4 class="fw-bold mb-3">CLOTHINGSHOP<span class="text-danger">.</span></h4>
                     <p class="text-white-50 small mb-3">
                         Thương hiệu thời trang Gen-Z dành cho cả Nam và Nữ. Phom dáng hiện đại, chất liệu chọn lọc, cập nhật xu hướng streetwear &amp; minimal mỗi tuần.
                     </p>

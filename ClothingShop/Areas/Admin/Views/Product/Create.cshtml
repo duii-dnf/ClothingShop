@@ -10,7 +10,7 @@
         @using (Html.BeginForm("Create", "Product", FormMethod.Post, new { enctype = "multipart/form-data" }))
         {
             @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 small" })
+            @Html.ValidationSummary(false, "", new { @class = "alert alert-danger py-2 small" })
 
             <div class="row g-3">
                 <div class="col-md-8">

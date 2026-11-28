@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Http;
@@ -77,12 +78,21 @@ namespace ClothingShop.Controllers.Api
         // DELETE: api/products/5
         public IHttpActionResult Delete(int id)
         {
-            var product = db.Products.Find(id);
+            var product = db.Products
+                .Include(p => p.ProductStyles)
+                .Include(p => p.ProductVariants)
+                .Include(p => p.InventoryLogs)
+                .Include(p => p.Favorites)
+                .FirstOrDefault(p => p.ProductId == id);
             if (product == null) return NotFound();
 
             if (db.OrderDetails.Any(d => d.ProductId == id))
                 return Content(HttpStatusCode.Conflict, "Sản phẩm đã có trong đơn hàng, không thể xóa.");
 
+            product.ProductStyles.Clear();
+            db.Favorites.RemoveRange(product.Favorites.ToList());
+            db.InventoryLogs.RemoveRange(product.InventoryLogs.ToList());
+            db.ProductVariants.RemoveRange(product.ProductVariants.ToList());
             db.Products.Remove(product);
             db.SaveChanges();
             return Ok(new { message = "Đã xóa sản phẩm", id });

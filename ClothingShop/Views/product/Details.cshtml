@@ -45,8 +45,8 @@
         <div class="row g-4 g-lg-5 align-items-start">
             <!-- Ảnh sản phẩm tỉ lệ 3:4 -->
             <div class="col-md-5">
-                <div class="position-relative rounded-4 overflow-hidden product-img-wrap shadow-sm">
-                    <img src="@img" alt="@Model.Name" />
+                <div class="position-relative rounded-4 overflow-hidden shadow-sm">
+                    <img src="@img" alt="@Model.Name" class="img-fluid w-100" />
                     <div class="position-absolute top-0 start-0 p-3 d-flex gap-2">
                         @if (hasSale && salePct > 0)
                         {
@@ -54,7 +54,7 @@
                         }
                         @if (Model.IsNew)
                         {
-                            <span class="badge bg-obsidian rounded-pill px-3 py-2">NEW DROP</span>
+                            <span class="badge bg-dark rounded-pill px-3 py-2">NEW DROP</span>
                         }
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     @if (Model.Category != null)
                     {
-                        <span class="badge bg-obsidian rounded-pill px-3 py-2">@Model.Category.Name</span>
+                        <span class="badge bg-dark rounded-pill px-3 py-2">@Model.Category.Name</span>
                     }
                     @if (!string.IsNullOrEmpty(Model.Gender))
                     {
@@ -75,26 +75,26 @@
                     {
                         foreach (var st in Model.ProductStyles)
                         {
-                            <span class="badge badge-lime rounded-pill px-3 py-2 fw-semibold">#@st.Name</span>
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-semibold">#@st.Name</span>
                         }
                     }
                 </div>
 
-                <h2 class="font-display fw-bold mb-3">@Model.Name</h2>
+                <h2 class="fw-bold mb-3">@Model.Name</h2>
 
                 <!-- Giá & Tiết kiệm -->
                 <div class="bg-light rounded-4 p-3 mb-4 d-flex flex-wrap align-items-center gap-3">
                     @if (hasSale)
                     {
-                        <span class="fs-2 font-display fw-bold text-danger">@PriceFormatter.Vnd(Model.DiscountPrice)</span>
+                        <span class="fs-2 fw-bold text-danger">@PriceFormatter.Vnd(Model.DiscountPrice)</span>
                         <span class="fs-5 text-muted text-decoration-line-through">@PriceFormatter.Vnd(Model.Price)</span>
-                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-semibold">
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2 fw-semibold">
                             Tiết kiệm @PriceFormatter.Vnd(saving)
                         </span>
                     }
                     else
                     {
-                        <span class="fs-2 font-display fw-bold text-dark">@PriceFormatter.Vnd(Model.Price)</span>
+                        <span class="fs-2 fw-bold text-dark">@PriceFormatter.Vnd(Model.Price)</span>
                     }
                 </div>
 
@@ -104,13 +104,13 @@
                 <div class="mb-4">
                     @if (Model.Stock > 0)
                     {
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">
                             <i class="bi bi-check-circle-fill me-1"></i>Còn hàng &bull; Tổng kho: @Model.Stock sản phẩm
                         </span>
                     }
                     else
                     {
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2">
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2">
                             <i class="bi bi-x-circle-fill me-1"></i>Tạm hết hàng
                         </span>
                     }
@@ -131,7 +131,6 @@
                                 {
                                     string sizeName = v.ProductSize != null ? v.ProductSize.Name : "Freesize";
                                     string colorName = v.ProductColor != null ? v.ProductColor.Name : "Mặc định";
-                                    string colorHex = v.ProductColor != null && !string.IsNullOrEmpty(v.ProductColor.HexCode) ? v.ProductColor.HexCode : "#18181b";
                                     bool isChecked = firstAvailable != null && v.VariantId == firstAvailable.VariantId;
                                     bool outOfStock = v.Stock <= 0;
 
@@ -139,7 +138,7 @@
                                         <div class="d-flex align-items-center gap-2">
                                             <input class="form-check-input mt-0" type="radio" name="variantId" value="@v.VariantId"
                                                    @(isChecked ? "checked" : "") @(outOfStock ? "disabled" : "") required />
-                                            <span class="d-inline-block rounded-circle border shadow-sm" style="width:18px;height:18px;background-color:@colorHex;"></span>
+                                            <i class="bi bi-palette-fill text-secondary"></i>
                                             <span class="fw-semibold">@sizeName &mdash; @colorName</span>
                                             <small class="text-muted">(@v.SKU)</small>
                                         </div>
@@ -204,7 +203,7 @@
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
                     <span class="text-uppercase small fw-bold text-muted">You May Also Like</span>
-                    <h3 class="font-display fw-bold mb-0">Sản phẩm liên quan</h3>
+                    <h3 class="fw-bold mb-0">Sản phẩm liên quan</h3>
                 </div>
             </div>
             <div class="row g-4">

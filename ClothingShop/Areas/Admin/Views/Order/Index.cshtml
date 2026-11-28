@@ -70,8 +70,8 @@
                         : item.Status == OrderStatus.Confirmed ? "bg-primary"
                         : "bg-warning text-dark";
 
-                    string payBadgeClass = isPaid ? "bg-success-subtle text-success border border-success-subtle"
-                        : isRefunded ? "bg-info-subtle text-info border border-info-subtle"
+                    string payBadgeClass = isPaid ? "bg-success bg-opacity-10 text-success border border-success"
+                        : isRefunded ? "bg-info bg-opacity-10 text-dark border border-info"
                         : "bg-light text-muted border";
 
                     string payBadgeText = isPaid ? "Đã TT"

@@ -5,20 +5,24 @@
     decimal subTotal = ViewBag.Total != null ? (decimal)ViewBag.Total : 0m;
     decimal shippingFee = subTotal >= 500000m || subTotal == 0m ? 0m : 30000m;
     decimal grandTotal = subTotal + shippingFee;
-    int freeShipPct = subTotal >= 500000m ? 100 : (int)Math.Round(subTotal / 5000m);
+    string widthClass = subTotal >= 500000m ? "w-100"
+        : subTotal >= 375000m ? "w-75"
+        : subTotal >= 250000m ? "w-50"
+        : subTotal > 0m ? "w-25"
+        : "w-0";
 }
 
 <div class="container py-4">
     <!-- Bước mua hàng -->
     <div class="d-flex justify-content-center gap-3 small fw-semibold mb-4">
-        <span class="badge bg-obsidian rounded-pill px-3 py-2">1. Giỏ hàng</span>
+        <span class="badge bg-dark rounded-pill px-3 py-2">1. Giỏ hàng</span>
         <span class="text-muted align-self-center">&rarr;</span>
         <span class="badge bg-light text-muted border rounded-pill px-3 py-2">2. Đặt hàng</span>
         <span class="text-muted align-self-center">&rarr;</span>
         <span class="badge bg-light text-muted border rounded-pill px-3 py-2">3. Hoàn tất</span>
     </div>
 
-    <h3 class="font-display fw-bold mb-4"><i class="bi bi-bag me-2"></i>Giỏ hàng của bạn</h3>
+    <h3 class="fw-bold mb-4"><i class="bi bi-bag me-2"></i>Giỏ hàng của bạn</h3>
 
     @if (Model == null || !Model.Any())
     {
@@ -47,8 +51,8 @@
                             <i class="bi bi-truck me-1"></i><span>Mua thêm <strong class="text-danger">@PriceFormatter.Vnd(500000m - subTotal)</strong> để nhận Freeship!</span>
                         }
                     </div>
-                    <div class="progress rounded-pill" style="height: 8px;">
-                        <div id="freeShipBar" class="progress-bar @(shippingFee == 0 ? "bg-success" : "bg-dark")" style="width:@freeShipPct%;"></div>
+                    <div class="progress rounded-pill">
+                        <div id="freeShipBar" class="progress-bar @(shippingFee == 0 ? "bg-success" : "bg-dark") @widthClass"></div>
                     </div>
                 </div>
 
@@ -59,7 +63,7 @@
                                 <tr>
                                     <th class="ps-3">Sản phẩm</th>
                                     <th class="text-end">Đơn giá</th>
-                                    <th class="text-center" style="width: 170px;">Số lượng</th>
+                                    <th class="text-center">Số lượng</th>
                                     <th class="text-end">Thành tiền</th>
                                     <th class="text-center pe-3">Xóa</th>
                                 </tr>
@@ -77,7 +81,7 @@
                                         data-max-stock="@Math.Max(1, item.MaxStock)">
                                         <td class="ps-3 py-3">
                                             <div class="d-flex align-items-center gap-3">
-                                                <img src="@img" alt="@item.ProductName" class="rounded-3 border" style="width:68px;height:86px;object-fit:cover;" />
+                                                <img src="@img" alt="@item.ProductName" width="68" height="86" class="rounded-3 border" />
                                                 <div>
                                                     <a href="@Url.Action("Details", "Product", new { id = item.ProductId })" class="fw-bold text-dark text-decoration-none">
                                                         @item.ProductName
@@ -97,7 +101,7 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="itemKey" value="@item.ItemKey" />
                                                 <input type="number" name="quantity" value="@item.Quantity" min="1" max="@Math.Max(1, item.MaxStock)"
-                                                       class="form-control form-control-sm rounded-pill text-center fw-bold cart-qty-input" style="width: 68px;" />
+                                                       size="3" class="form-control form-control-sm rounded-pill text-center fw-bold w-auto cart-qty-input" />
                                                 <button type="submit" class="btn btn-dark btn-sm rounded-pill px-2" title="Cập nhật số lượng">
                                                     <i class="bi bi-check2"></i>
                                                 </button>
@@ -127,7 +131,7 @@
 
             <div class="col-lg-4">
                 <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
-                    <div class="card-header bg-obsidian text-white fw-bold py-3">Tóm tắt đơn hàng</div>
+                    <div class="card-header bg-dark text-white fw-bold py-3">Tóm tắt đơn hàng</div>
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Tạm tính:</span>
@@ -142,7 +146,7 @@
                         <hr />
                         <div class="d-flex justify-content-between fs-5 fw-bold mb-4">
                             <span>Tổng cộng:</span>
-                            <span id="summaryGrandTotal" class="text-danger font-display">@PriceFormatter.Vnd(grandTotal)</span>
+                            <span id="summaryGrandTotal" class="text-danger">@PriceFormatter.Vnd(grandTotal)</span>
                         </div>
                         <div class="d-grid">
                             <a href="@Url.Action("Checkout", "Order")" class="btn btn-dark btn-lg rounded-pill fw-bold">
@@ -158,96 +162,99 @@
 
 @section scripts {
     <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    function formatVnd(amount = 0) {
-                        return Math.round(Number(amount) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '₫';
+        document.addEventListener('DOMContentLoaded', function () {
+            function formatVnd(amount = 0) {
+                return Math.round(Number(amount) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '₫';
+            }
+
+            // Cập nhật hiển thị tiền trên giao diện ngay trong lúc đang gõ (thuần DOM, KHÔNG AJAX)
+            function previewCartTotals() {
+                var subTotal = 0;
+                var rows = document.querySelectorAll('.cart-item-row');
+
+                rows.forEach(function (row) {
+                    var unitPrice = Number(row.getAttribute('data-unit-price')) || 0;
+                    var maxStock = Number(row.getAttribute('data-max-stock')) || 1;
+                    var input = row.querySelector('input.cart-qty-input');
+                    var totalCell = row.querySelector('.item-total-cell');
+
+                    var rawVal = (input instanceof HTMLInputElement) ? parseInt(input.value, 10) : 1;
+                    var qty = isNaN(rawVal) || rawVal < 1 ? 1 : Math.min(rawVal, maxStock);
+                    var lineTotal = unitPrice * qty;
+
+                    if (totalCell) {
+                        totalCell.textContent = formatVnd(lineTotal);
                     }
-
-                    // Cập nhật hiển thị tiền trên giao diện ngay trong lúc đang gõ
-                    function previewCartTotals() {
-                        var subTotal = 0;
-                        var rows = document.querySelectorAll('.cart-item-row');
-
-                        rows.forEach(function (row) {
-                            var unitPrice = Number(row.getAttribute('data-unit-price')) || 0;
-                            var maxStock = Number(row.getAttribute('data-max-stock')) || 1;
-                            var input = row.querySelector('input.cart-qty-input');
-                            var totalCell = row.querySelector('.item-total-cell');
-
-                            var rawVal = (input instanceof HTMLInputElement) ? parseInt(input.value, 10) : 1;
-                            var qty = isNaN(rawVal) || rawVal < 1 ? 1 : Math.min(rawVal, maxStock);
-                            var lineTotal = unitPrice * qty;
-
-                            if (totalCell) {
-                                totalCell.textContent = formatVnd(lineTotal);
-                            }
-                            subTotal += lineTotal;
-                        });
-
-                        var shippingFee = (subTotal >= 500000 || subTotal === 0) ? 0 : 30000;
-                        var grandTotal = subTotal + shippingFee;
-                        var freeShipPct = subTotal >= 500000 ? 100 : Math.min(100, Math.round(subTotal / 5000));
-
-                        var subTotalEl = document.getElementById('summarySubTotal');
-                        var grandTotalEl = document.getElementById('summaryGrandTotal');
-                        var shipEl = document.getElementById('summaryShipping');
-                        var freeShipText = document.getElementById('freeShipText');
-                        var freeShipBar = document.getElementById('freeShipBar');
-
-                        if (subTotalEl) subTotalEl.textContent = formatVnd(subTotal);
-                        if (grandTotalEl) grandTotalEl.textContent = formatVnd(grandTotal);
-
-                        if (shipEl && freeShipText && freeShipBar) {
-                            if (shippingFee === 0) {
-                                shipEl.classList.add('text-success');
-                                shipEl.textContent = 'Miễn phí';
-
-                                freeShipText.classList.add('text-success');
-                                freeShipText.innerHTML = '<i class="bi bi-truck me-1"></i><span>Chúc mừng! Đơn hàng của bạn đã được <strong>MIỄN PHÍ VẬN CHUYỂN</strong>.</span>';
-                                freeShipBar.classList.remove('bg-dark');
-                                freeShipBar.classList.add('bg-success');
-                                freeShipBar.style.width = '100%';
-                            } else {
-                                shipEl.classList.remove('text-success');
-                                shipEl.textContent = formatVnd(shippingFee);
-
-                                var remain = 500000 - subTotal;
-                                freeShipText.classList.remove('text-success');
-                                freeShipText.innerHTML = '<i class="bi bi-truck me-1"></i><span>Mua thêm <strong class="text-danger">' + formatVnd(remain) + '</strong> để nhận Freeship!</span>';
-                                freeShipBar.classList.remove('bg-success');
-                                freeShipBar.classList.add('bg-dark');
-                                freeShipBar.style.width = freeShipPct + '%';
-                            }
-                        }
-                    }
-
-                    var qtyInputs = document.querySelectorAll('input.cart-qty-input');
-                    qtyInputs.forEach(function (input) {
-                        if (!(input instanceof HTMLInputElement)) return;
-
-                        // Đang gõ số -> nhảy tiền xem trước ngay
-                        input.addEventListener('input', function () {
-                            if (input.value !== '') {
-                                previewCartTotals();
-                            }
-                        });
-
-                        // Bấm nút tăng/giảm hoặc gõ xong click ra ngoài -> Submit Form POST thuần về CartController/Update
-                        input.addEventListener('change', function () {
-                            var row = input.closest('.cart-item-row');
-                            var maxStock = row ? (Number(row.getAttribute('data-max-stock')) || 1) : 1;
-                            var qty = parseInt(input.value, 10);
-
-                            if (isNaN(qty) || qty < 1) qty = 1;
-                            if (qty > maxStock) qty = maxStock;
-                            input.value = String(qty);
-
-                            var form = input.closest('form');
-                            if (form) {
-                                form.submit();
-                            }
-                        });
-                    });
+                    subTotal += lineTotal;
                 });
+
+                var shippingFee = (subTotal >= 500000 || subTotal === 0) ? 0 : 30000;
+                var grandTotal = subTotal + shippingFee;
+                var widthCls = subTotal >= 500000 ? 'w-100'
+                    : subTotal >= 375000 ? 'w-75'
+                    : subTotal >= 250000 ? 'w-50'
+                    : subTotal > 0 ? 'w-25'
+                    : 'w-0';
+
+                var subTotalEl = document.getElementById('summarySubTotal');
+                var grandTotalEl = document.getElementById('summaryGrandTotal');
+                var shipEl = document.getElementById('summaryShipping');
+                var freeShipText = document.getElementById('freeShipText');
+                var freeShipBar = document.getElementById('freeShipBar');
+
+                if (subTotalEl) subTotalEl.textContent = formatVnd(subTotal);
+                if (grandTotalEl) grandTotalEl.textContent = formatVnd(grandTotal);
+
+                if (shipEl && freeShipText && freeShipBar) {
+                    freeShipBar.classList.remove('w-0', 'w-25', 'w-50', 'w-75', 'w-100');
+                    freeShipBar.classList.add(widthCls);
+
+                    if (shippingFee === 0) {
+                        shipEl.classList.add('text-success');
+                        shipEl.textContent = 'Miễn phí';
+
+                        freeShipText.classList.add('text-success');
+                        freeShipText.innerHTML = '<i class="bi bi-truck me-1"></i><span>Chúc mừng! Đơn hàng của bạn đã được <strong>MIỄN PHÍ VẬN CHUYỂN</strong>.</span>';
+                        freeShipBar.classList.remove('bg-dark');
+                        freeShipBar.classList.add('bg-success');
+                    } else {
+                        shipEl.classList.remove('text-success');
+                        shipEl.textContent = formatVnd(shippingFee);
+
+                        var remain = 500000 - subTotal;
+                        freeShipText.classList.remove('text-success');
+                        freeShipText.innerHTML = '<i class="bi bi-truck me-1"></i><span>Mua thêm <strong class="text-danger">' + formatVnd(remain) + '</strong> để nhận Freeship!</span>';
+                        freeShipBar.classList.remove('bg-success');
+                        freeShipBar.classList.add('bg-dark');
+                    }
+                }
+            }
+
+            var qtyInputs = document.querySelectorAll('input.cart-qty-input');
+            qtyInputs.forEach(function (input) {
+                if (!(input instanceof HTMLInputElement)) return;
+
+                input.addEventListener('input', function () {
+                    if (input.value !== '') {
+                        previewCartTotals();
+                    }
+                });
+
+                input.addEventListener('change', function () {
+                    var row = input.closest('.cart-item-row');
+                    var maxStock = row ? (Number(row.getAttribute('data-max-stock')) || 1) : 1;
+                    var qty = parseInt(input.value, 10);
+
+                    if (isNaN(qty) || qty < 1) qty = 1;
+                    if (qty > maxStock) qty = maxStock;
+                    input.value = String(qty);
+
+                    var form = input.closest('form');
+                    if (form) {
+                        form.submit();
+                    }
+                });
+            });
+        });
     </script>
 }

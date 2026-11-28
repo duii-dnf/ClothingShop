@@ -9,18 +9,18 @@
             <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
                 <div class="row g-0">
                     <!-- Cột trái: Ảnh Lookbook Gen-Z -->
-                    <div class="col-md-5 d-none d-md-block position-relative">
-                        <img src="~/Content/images/hero/banner-men.jpg" class="w-100 h-100" style="object-fit:cover;" alt="ClothingShop Login" />
-                        <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex flex-column justify-content-end p-4 text-white">
-                            <span class="badge badge-lime rounded-pill align-self-start mb-2 fw-bold">MEMBER CLUB</span>
-                            <h4 class="font-display fw-bold mb-1">CHÀO MỪNG TRỞ LẠI</h4>
+                    <div class="col-md-5 d-none d-md-block position-relative bg-dark">
+                        <img src="~/Content/images/hero/banner-men.jpg" class="w-100 h-100 opacity-75" alt="ClothingShop Login" />
+                        <div class="card-img-overlay d-flex flex-column justify-content-end p-4 text-white">
+                            <span class="badge bg-warning text-dark rounded-pill align-self-start mb-2 fw-bold">MEMBER CLUB</span>
+                            <h4 class="fw-bold mb-1">CHÀO MỪNG TRỞ LẠI</h4>
                             <p class="small text-white-50 mb-0">Đăng nhập để theo dõi đơn hàng, lưu địa chỉ và nhận mã giảm giá độc quyền.</p>
                         </div>
                     </div>
 
                     <!-- Cột phải: Form Đăng nhập -->
                     <div class="col-md-7 p-4 p-lg-5 bg-white">
-                        <h3 class="font-display fw-bold mb-1">Đăng nhập</h3>
+                        <h3 class="fw-bold mb-1">Đăng nhập</h3>
                         <p class="text-muted small mb-4">Nhập email và mật khẩu tài khoản của bạn</p>
 
                         @using (Html.BeginForm("Login", "Account", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post))

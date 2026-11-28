@@ -30,7 +30,7 @@
                 {
                     bool expired = DateTime.Today > item.EndDate.Date;
                     <tr>
-                        <td class="ps-4"><span class="badge bg-obsidian font-display fs-6 px-3 py-2 rounded-3">@item.Code</span></td>
+                        <td class="ps-4"><span class="badge bg-dark fs-6 px-3 py-2 rounded-3">@item.Code</span></td>
                         <td class="text-center fw-bold text-danger fs-5">-@item.DiscountPercent%</td>
                         <td class="text-end">@PriceFormatter.Vnd(item.MinOrder)</td>
                         <td class="small text-muted">@item.StartDate.ToString("dd/MM/yyyy") &rarr; @item.EndDate.ToString("dd/MM/yyyy")</td>

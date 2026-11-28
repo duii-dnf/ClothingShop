@@ -92,6 +92,30 @@ namespace ClothingShop.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
+        // POST: Admin/User/ToggleActive
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ToggleActive(int id)
+        {
+            var user = db.Users.Find(id);
+            if (user == null) return HttpNotFound();
+
+            var current = SessionHelper.GetCurrentUser(Session);
+            if (current != null && current.UserId == user.UserId)
+            {
+                TempData["Error"] = "Không thể tự khóa tài khoản đang đăng nhập.";
+                return RedirectToAction("Index");
+            }
+
+            user.IsActive = !user.IsActive;
+            db.SaveChanges();
+            TempData["Success"] = user.IsActive
+                ? $"Đã mở khóa tài khoản {user.Email}."
+                : $"Đã khóa tài khoản {user.Email}.";
+
+            return RedirectToAction("Index");
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing) db.Dispose();

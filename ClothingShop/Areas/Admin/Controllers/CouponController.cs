@@ -37,12 +37,23 @@ namespace ClothingShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(Coupon coupon)
         {
-            if (!string.IsNullOrWhiteSpace(coupon.Code))
+            if (string.IsNullOrWhiteSpace(coupon.Code))
+                ModelState.AddModelError("Code", "Vui lòng nhập mã khuyến mãi.");
+            else
             {
                 coupon.Code = coupon.Code.Trim().ToUpper();
                 if (db.Coupons.Any(c => c.Code == coupon.Code))
                     ModelState.AddModelError("Code", "Mã khuyến mãi này đã tồn tại.");
             }
+
+            if (coupon.DiscountPercent < 1 || coupon.DiscountPercent > 100)
+                ModelState.AddModelError("DiscountPercent", "Phần trăm giảm giá phải từ 1% đến 100%.");
+
+            if (coupon.MinOrder < 0)
+                ModelState.AddModelError("MinOrder", "Đơn tối thiểu không được âm.");
+
+            if (coupon.UsageLimit < 1)
+                ModelState.AddModelError("UsageLimit", "Giới hạn lượt dùng phải lớn hơn 0.");
 
             if (coupon.EndDate < coupon.StartDate)
                 ModelState.AddModelError("EndDate", "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");
@@ -71,12 +82,23 @@ namespace ClothingShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Coupon coupon)
         {
-            if (!string.IsNullOrWhiteSpace(coupon.Code))
+            if (string.IsNullOrWhiteSpace(coupon.Code))
+                ModelState.AddModelError("Code", "Vui lòng nhập mã khuyến mãi.");
+            else
             {
                 coupon.Code = coupon.Code.Trim().ToUpper();
                 if (db.Coupons.Any(c => c.Code == coupon.Code && c.CouponId != coupon.CouponId))
                     ModelState.AddModelError("Code", "Mã khuyến mãi này đã tồn tại.");
             }
+
+            if (coupon.DiscountPercent < 1 || coupon.DiscountPercent > 100)
+                ModelState.AddModelError("DiscountPercent", "Phần trăm giảm giá phải từ 1% đến 100%.");
+
+            if (coupon.MinOrder < 0)
+                ModelState.AddModelError("MinOrder", "Đơn tối thiểu không được âm.");
+
+            if (coupon.UsageLimit < 1)
+                ModelState.AddModelError("UsageLimit", "Giới hạn lượt dùng phải lớn hơn 0.");
 
             if (coupon.EndDate < coupon.StartDate)
                 ModelState.AddModelError("EndDate", "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");

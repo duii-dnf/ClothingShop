@@ -30,6 +30,7 @@ namespace ClothingShop.Areas.Admin.Controllers
             ViewBag.TongDoanhThu = orders.Where(o => o.Status == OrderStatus.Completed).Sum(o => (decimal?)o.TotalAmount) ?? 0m;
             ViewBag.TongDonHang = orders.Count();
             ViewBag.DonChoXacNhan = orders.Count(o => o.Status == OrderStatus.Pending);
+            ViewBag.DonYeuCauHuy = orders.Count(o => o.Status == OrderStatus.Pending && o.Note != null && o.Note.Contains("[YÊU CẦU HỦY"));
             ViewBag.DonDaXacNhan = orders.Count(o => o.Status == OrderStatus.Confirmed);
             ViewBag.DonDangGiao = orders.Count(o => o.Status == OrderStatus.Shipping);
             ViewBag.DonHoanThanh = orders.Count(o => o.Status == OrderStatus.Completed);

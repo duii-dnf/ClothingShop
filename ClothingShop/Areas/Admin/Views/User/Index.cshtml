@@ -21,7 +21,8 @@
                     <th>Email</th>
                     <th>Điện thoại</th>
                     <th>Vai trò</th>
-                    <th class="pe-4">Cập nhật vai trò</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="pe-4">Cập nhật vai trò &amp; Khóa</th>
                 </tr>
             </thead>
             <tbody>
@@ -36,18 +37,33 @@
                         <td>@u.Email</td>
                         <td class="small text-muted">@u.Phone</td>
                         <td><span class="badge @badge rounded-pill px-3">@u.Role</span></td>
+                        <td class="text-center">
+                            <span class="badge @(u.IsActive ? "bg-success" : "bg-danger") rounded-pill px-3">
+                                @(u.IsActive ? "Hoạt động" : "Đã khóa")
+                            </span>
+                        </td>
                         <td class="pe-4">
-                            @using (Html.BeginForm("ChangeRole", "User", FormMethod.Post, new { @class = "d-flex gap-2 align-items-center" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@u.UserId" />
-                                <select name="role" class="form-select form-select-sm rounded-pill" style="width:140px;">
-                                    <option value="@AppRoles.Admin" @(u.Role == AppRoles.Admin ? "selected" : "")>Admin</option>
-                                    <option value="@AppRoles.Staff" @(u.Role == AppRoles.Staff ? "selected" : "")>Staff</option>
-                                    <option value="@AppRoles.Customer" @(u.Role == AppRoles.Customer ? "selected" : "")>Customer</option>
-                                </select>
-                                <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Lưu</button>
-                            }
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                @using (Html.BeginForm("ChangeRole", "User", FormMethod.Post, new { @class = "d-flex gap-2 align-items-center" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.UserId" />
+                                    <select name="role" class="form-select form-select-sm rounded-pill w-auto">
+                                        <option value="@AppRoles.Admin" @(u.Role == AppRoles.Admin ? "selected" : "")>Admin</option>
+                                        <option value="@AppRoles.Staff" @(u.Role == AppRoles.Staff ? "selected" : "")>Staff</option>
+                                        <option value="@AppRoles.Customer" @(u.Role == AppRoles.Customer ? "selected" : "")>Customer</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Lưu</button>
+                                }
+                                @using (Html.BeginForm("ToggleActive", "User", FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.UserId" />
+                                    <button type="submit" class="btn @(u.IsActive ? "btn-outline-danger" : "btn-outline-success") btn-sm rounded-pill px-3">
+                                        @(u.IsActive ? "Khóa" : "Mở khóa")
+                                    </button>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }

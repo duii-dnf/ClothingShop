@@ -21,7 +21,7 @@
 }
 
 <!-- Editorial Page Header -->
-<div class="bg-obsidian text-white py-4 mb-4">
+<div class="bg-dark text-white py-4 mb-4">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb small mb-2">
@@ -36,7 +36,7 @@
 
         <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
             <div>
-                <h2 class="font-display fw-bold mb-1">
+                <h2 class="fw-bold mb-1">
                     @(currentCategory != null ? currentCategory.Name : (string.IsNullOrEmpty(gender) ? "TẤT CẢ SẢN PHẨM" : "THỜI TRANG " + gender.ToUpper()))
                 </h2>
                 <p class="text-white-50 small mb-0">Hiển thị <strong class="text-white">@totalItems</strong> sản phẩm chuẩn phong cách Gen-Z</p>
@@ -48,7 +48,7 @@
                 <a href="@Url.Action("Index", "Product", new { gender = "Nam" })" class="btn btn-sm rounded-pill px-3 @(gender == "Nam" ? "btn-light fw-bold" : "btn-outline-light")">Nam</a>
                 <a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="btn btn-sm rounded-pill px-3 @(gender == "Nữ" ? "btn-light fw-bold" : "btn-outline-light")">Nữ</a>
                 <a href="@Url.Action("Index", "Product", new { gender = "Unisex" })" class="btn btn-sm rounded-pill px-3 @(gender == "Unisex" ? "btn-light fw-bold" : "btn-outline-light")">Unisex</a>
-                <a href="@Url.Action("Index", "Product", new { isNew = true })" class="btn btn-sm rounded-pill px-3 @(isNew ? "badge-lime fw-bold" : "btn-outline-light")">New Drop</a>
+                <a href="@Url.Action("Index", "Product", new { isNew = true })" class="btn btn-sm rounded-pill px-3 @(isNew ? "btn-warning text-dark fw-bold" : "btn-outline-light")">New Drop</a>
                 <a href="@Url.Action("Index", "Product", new { onSale = true })" class="btn btn-sm rounded-pill px-3 @(onSale ? "btn-danger fw-bold" : "btn-outline-danger text-white")">Flash Sale</a>
             </div>
         </div>
@@ -64,14 +64,14 @@
                     <i class="bi bi-grid me-2"></i>Danh mục sản phẩm
                 </div>
                 <div class="list-group list-group-flush">
-                    <a href="@Url.Action("Index", "Product")" class="list-group-item list-group-item-action border-0 @(categoryId == null ? "bg-obsidian text-white fw-semibold" : "")">
+                    <a href="@Url.Action("Index", "Product")" class="list-group-item list-group-item-action border-0 @(categoryId == null ? "bg-dark text-white fw-semibold" : "")">
                         Tất cả sản phẩm
                     </a>
                     @foreach (var root in rootCategories)
                     {
                         var children = allCategories.Where(c => c.ParentId == root.CategoryId).ToList();
                         <a href="@Url.Action("Index", "Product", new { categoryId = root.CategoryId })"
-                           class="list-group-item list-group-item-action border-0 fw-semibold @(categoryId == root.CategoryId ? "bg-obsidian text-white" : "")">
+                           class="list-group-item list-group-item-action border-0 fw-semibold @(categoryId == root.CategoryId ? "bg-dark text-white" : "")">
                             @root.Name
                         </a>
                         foreach (var child in children)
@@ -201,7 +201,7 @@
                             @for (int i = 1; i <= totalPages; i++)
                             {
                                 <li class="page-item @(i == currentPage ? "active" : "")">
-                                    <a class="page-link rounded-pill px-3 @(i == currentPage ? "bg-obsidian border-dark" : "text-dark")"
+                                    <a class="page-link rounded-pill px-3 @(i == currentPage ? "bg-dark border-dark text-white" : "text-dark")"
                                        href="@Url.Action("Index", "Product", new {
                                            categoryId = categoryId,
                                            keyword = string.IsNullOrEmpty(keyword) ? null : keyword,

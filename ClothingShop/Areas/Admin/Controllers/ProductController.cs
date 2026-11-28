@@ -66,6 +66,21 @@ namespace ClothingShop.Areas.Admin.Controllers
             if (product.Price <= 0)
                 ModelState.AddModelError("Price", "Giá sản phẩm phải lớn hơn 0.");
 
+            if (product.DiscountPrice.HasValue && (product.DiscountPrice.Value <= 0 || product.DiscountPrice.Value >= product.Price))
+                ModelState.AddModelError("DiscountPrice", "Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc.");
+
+            if (product.Stock < 0)
+                ModelState.AddModelError("Stock", "Số lượng tồn kho không được âm.");
+
+            if (product.Price <= 0)
+                ModelState.AddModelError("Price", "Giá sản phẩm phải lớn hơn 0.");
+
+            if (product.DiscountPrice.HasValue && (product.DiscountPrice.Value <= 0 || product.DiscountPrice.Value >= product.Price))
+                ModelState.AddModelError("DiscountPrice", "Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc.");
+
+            if (product.Stock < 0)
+                ModelState.AddModelError("Stock", "Số lượng tồn kho không được âm.");
+
             if (ModelState.IsValid)
             {
                 if (fileUpload != null && fileUpload.ContentLength > 0)
@@ -147,6 +162,15 @@ namespace ClothingShop.Areas.Admin.Controllers
             if (string.IsNullOrWhiteSpace(product.Name))
                 ModelState.AddModelError("Name", "Vui lòng nhập tên sản phẩm.");
 
+            if (product.Price <= 0)
+                ModelState.AddModelError("Price", "Giá sản phẩm phải lớn hơn 0.");
+
+            if (product.DiscountPrice.HasValue && (product.DiscountPrice.Value <= 0 || product.DiscountPrice.Value >= product.Price))
+                ModelState.AddModelError("DiscountPrice", "Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc.");
+
+            if (product.Stock < 0)
+                ModelState.AddModelError("Stock", "Số lượng tồn kho không được âm.");
+
             if (ModelState.IsValid)
             {
                 var existing = db.Products.Find(product.ProductId);
@@ -205,6 +229,7 @@ namespace ClothingShop.Areas.Admin.Controllers
                 .Include(p => p.ProductStyles)
                 .Include(p => p.ProductVariants)
                 .Include(p => p.InventoryLogs)
+                .Include(p => p.Favorites)
                 .FirstOrDefault(p => p.ProductId == id);
 
             if (product == null) return HttpNotFound();
@@ -216,6 +241,7 @@ namespace ClothingShop.Areas.Admin.Controllers
             }
 
             product.ProductStyles.Clear();
+            db.Favorites.RemoveRange(product.Favorites.ToList());
             db.InventoryLogs.RemoveRange(product.InventoryLogs.ToList());
             db.ProductVariants.RemoveRange(product.ProductVariants.ToList());
             db.Products.Remove(product);

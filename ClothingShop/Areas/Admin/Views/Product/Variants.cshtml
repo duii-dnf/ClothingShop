@@ -42,10 +42,10 @@
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="variantId" value="@v.VariantId" />
                                 <div class="col-auto">
-                                    <input type="number" name="stock" value="@v.Stock" min="0" class="form-control form-control-sm" style="width:90px;" title="Tồn kho" />
+                                    <input type="number" name="stock" value="@v.Stock" min="0" class="form-control form-control-sm" size="6" title="Tồn kho" />
                                 </div>
                                 <div class="col-auto">
-                                    <input type="number" name="price" value="@v.Price" min="0" step="1000" class="form-control form-control-sm" style="width:130px;" placeholder="Giá riêng (tùy chọn)" />
+                                    <input type="number" name="price" value="@v.Price" min="0" step="1000" class="form-control form-control-sm" size="10" placeholder="Giá riêng (tùy chọn)" />
                                 </div>
                                 <div class="col-auto">
                                     <select name="isActive" class="form-select form-select-sm">

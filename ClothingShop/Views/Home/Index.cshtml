@@ -3,7 +3,7 @@
     ViewBag.Title = "Thời trang Gen-Z Nam & Nữ";
 }
 
-<!-- 1. Editorial Hero Carousel -->
+<!-- 1. Editorial Hero Carousel (Thuần Bootstrap 5) -->
 <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
     <div class="carousel-indicators">
         <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
@@ -13,23 +13,25 @@
 
     <div class="carousel-inner">
         <!-- Slide 1 -->
-        <div class="carousel-item active position-relative">
-            <img src="~/Content/images/hero/hero-1.jpg" class="d-block w-100 hero-slide" alt="New Season Drop" />
-            <div class="position-absolute top-0 start-0 w-100 h-100 hero-overlay d-flex align-items-center">
-                <div class="container text-white">
-                    <div class="col-lg-6">
-                        <span class="badge badge-lime rounded-pill px-3 py-2 fw-bold mb-3">NEW SEASON DROP 2026</span>
-                        <h1 class="display-4 font-display fw-bold lh-1 mb-3">STREETWEAR &amp; ESSENTIAL</h1>
-                        <p class="lead text-white-50 mb-4 d-none d-md-block">
-                            Phom dáng boxy chuẩn gu giới trẻ. Tự tin mix &amp; match từ giảng đường đến phố cuối tuần.
-                        </p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="@Url.Action("Index", "Product", new { isNew = true })" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
-                                Khám phá bộ sưu tập <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
-                            <a href="@Url.Action("Index", "Product", new { onSale = true })" class="btn btn-outline-light btn-lg rounded-pill px-4 fw-semibold">
-                                Săn Deal Sale
-                            </a>
+        <div class="carousel-item active bg-dark">
+            <div class="card border-0 rounded-0 bg-dark text-white overflow-hidden">
+                <img src="~/Content/images/hero/hero-1.jpg" class="card-img opacity-50" alt="New Season Drop" />
+                <div class="card-img-overlay d-flex align-items-center">
+                    <div class="container text-white">
+                        <div class="col-lg-6">
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold mb-3">NEW SEASON DROP 2026</span>
+                            <h1 class="display-5 fw-bold lh-1 mb-3">STREETWEAR &amp; ESSENTIAL</h1>
+                            <p class="lead text-white-50 mb-4 d-none d-md-block">
+                                Phom dáng boxy chuẩn gu giới trẻ. Tự tin mix &amp; match từ giảng đường đến phố cuối tuần.
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="@Url.Action("Index", "Product", new { isNew = true })" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
+                                    Khám phá bộ sưu tập <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                                <a href="@Url.Action("Index", "Product", new { onSale = true })" class="btn btn-outline-light btn-lg rounded-pill px-4 fw-semibold">
+                                    Săn Deal Sale
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -37,38 +39,42 @@
         </div>
 
         <!-- Slide 2 -->
-        <div class="carousel-item position-relative">
-            <img src="~/Content/images/hero/hero-2.jpg" class="d-block w-100 hero-slide" alt="Minimal Chic" />
-            <div class="position-absolute top-0 start-0 w-100 h-100 hero-overlay d-flex align-items-center">
-                <div class="container text-white">
-                    <div class="col-lg-6">
-                        <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold mb-3">MINIMAL CHIC</span>
-                        <h1 class="display-4 font-display fw-bold lh-1 mb-3">TỐI GIẢN NHƯNG CỰC CUỐN</h1>
-                        <p class="lead text-white-50 mb-4 d-none d-md-block">
-                            Sơ mi chambray, chân váy xếp ly, đầm satin &amp; áo khoác bomber tôn dáng cho mọi phong cách.
-                        </p>
-                        <a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
-                            Mua đồ Nữ ngay <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
+        <div class="carousel-item bg-dark">
+            <div class="card border-0 rounded-0 bg-dark text-white overflow-hidden">
+                <img src="~/Content/images/hero/hero-2.jpg" class="card-img opacity-50" alt="Minimal Chic" />
+                <div class="card-img-overlay d-flex align-items-center">
+                    <div class="container text-white">
+                        <div class="col-lg-6">
+                            <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold mb-3">MINIMAL CHIC</span>
+                            <h1 class="display-5 fw-bold lh-1 mb-3">TỐI GIẢN NHƯNG CỰC CUỐN</h1>
+                            <p class="lead text-white-50 mb-4 d-none d-md-block">
+                                Sơ mi chambray, chân váy xếp ly, đầm satin &amp; áo khoác bomber tôn dáng cho mọi phong cách.
+                            </p>
+                            <a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
+                                Mua đồ Nữ ngay <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Slide 3 -->
-        <div class="carousel-item position-relative">
-            <img src="~/Content/images/hero/hero-3.jpg" class="d-block w-100 hero-slide" alt="Urban Store" />
-            <div class="position-absolute top-0 start-0 w-100 h-100 hero-overlay d-flex align-items-center">
-                <div class="container text-white">
-                    <div class="col-lg-6">
-                        <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold mb-3">FLASH DEAL LÊN ĐẾN 25%</span>
-                        <h1 class="display-4 font-display fw-bold lh-1 mb-3">NHẬP MÃ SALE10 &bull; NEWUSER</h1>
-                        <p class="lead text-white-50 mb-4 d-none d-md-block">
-                            Ưu đãi chồng ưu đãi cho thành viên mới. Giao hàng hỏa tốc toàn quốc, kiểm tra trước khi thanh toán.
-                        </p>
-                        <a href="@Url.Action("Index", "Product")" class="btn btn-danger btn-lg rounded-pill px-4 fw-bold">
-                            Xem tất cả sản phẩm
-                        </a>
+        <div class="carousel-item bg-dark">
+            <div class="card border-0 rounded-0 bg-dark text-white overflow-hidden">
+                <img src="~/Content/images/hero/hero-3.jpg" class="card-img opacity-50" alt="Urban Store" />
+                <div class="card-img-overlay d-flex align-items-center">
+                    <div class="container text-white">
+                        <div class="col-lg-6">
+                            <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold mb-3">FLASH DEAL LÊN ĐẾN 25%</span>
+                            <h1 class="display-5 fw-bold lh-1 mb-3">NHẬP MÃ SALE10 &bull; NEWUSER</h1>
+                            <p class="lead text-white-50 mb-4 d-none d-md-block">
+                                Ưu đãi chồng ưu đãi cho thành viên mới. Giao hàng hỏa tốc toàn quốc, kiểm tra trước khi thanh toán.
+                            </p>
+                            <a href="@Url.Action("Index", "Product")" class="btn btn-danger btn-lg rounded-pill px-4 fw-bold">
+                                Xem tất cả sản phẩm
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,21 +89,14 @@
     </button>
 </div>
 
-<!-- 2. Gen-Z Scrolling Marquee Ticker -->
-<div class="bg-obsidian text-white py-2 marquee-bar border-bottom border-secondary border-opacity-25">
-    <div class="marquee-track font-display fw-bold small text-uppercase">
-        <span class="mx-4"><span class="text-warning">★</span> NEW DROP 2026</span>
-        <span class="mx-4"><span class="text-warning">★</span> FREESHIP ĐƠN TỪ 500K</span>
-        <span class="mx-4"><span class="text-warning">★</span> MÃ SALE10 GIẢM 10%</span>
-        <span class="mx-4"><span class="text-warning">★</span> MÃ NEWUSER GIẢM 15%</span>
-        <span class="mx-4"><span class="text-warning">★</span> ĐỔI SIZE MIỄN PHÍ 7 NGÀY</span>
-        <span class="mx-4"><span class="text-warning">★</span> STREETWEAR &amp; ESSENTIAL CHO NAM &amp; NỮ</span>
-        <span class="mx-4"><span class="text-warning">★</span> NEW DROP 2026</span>
-        <span class="mx-4"><span class="text-warning">★</span> FREESHIP ĐƠN TỪ 500K</span>
-        <span class="mx-4"><span class="text-warning">★</span> MÃ SALE10 GIẢM 10%</span>
-        <span class="mx-4"><span class="text-warning">★</span> MÃ NEWUSER GIẢM 15%</span>
-        <span class="mx-4"><span class="text-warning">★</span> ĐỔI SIZE MIỄN PHÍ 7 NGÀY</span>
-        <span class="mx-4"><span class="text-warning">★</span> STREETWEAR &amp; ESSENTIAL CHO NAM &amp; NỮ</span>
+<!-- 2. Strip thông báo ưu đãi Gen-Z -->
+<div class="bg-dark text-white py-2 border-bottom border-secondary border-opacity-25">
+    <div class="container d-flex flex-wrap justify-content-center gap-4 small fw-bold text-uppercase">
+        <span><span class="text-warning">&#9733;</span> NEW DROP 2026</span>
+        <span><span class="text-warning">&#9733;</span> FREESHIP ĐƠN TỪ 500K</span>
+        <span><span class="text-warning">&#9733;</span> MÃ SALE10 GIẢM 10%</span>
+        <span><span class="text-warning">&#9733;</span> MÃ NEWUSER GIẢM 15%</span>
+        <span><span class="text-warning">&#9733;</span> ĐỔI SIZE MIỄN PHÍ 7 NGÀY</span>
     </div>
 </div>
 
@@ -106,22 +105,22 @@
     <section class="mb-5">
         <div class="row g-4">
             <div class="col-md-6">
-                <a href="@Url.Action("Index", "Product", new { gender = "Nam" })" class="d-block lookbook-card shadow-sm text-decoration-none" style="height: 360px;">
-                    <img src="~/Content/images/hero/banner-men.jpg" class="w-100 h-100" alt="Thời trang Nam" />
-                    <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex flex-column justify-content-end p-4 text-white">
-                        <span class="badge badge-lime rounded-pill align-self-start mb-2 fw-bold">MEN'S EDIT</span>
-                        <h2 class="font-display fw-bold mb-1">THỜI TRANG NAM</h2>
+                <a href="@Url.Action("Index", "Product", new { gender = "Nam" })" class="card border-0 rounded-4 overflow-hidden bg-dark text-white shadow-sm text-decoration-none">
+                    <img src="~/Content/images/hero/banner-men.jpg" class="card-img opacity-75" alt="Thời trang Nam" />
+                    <div class="card-img-overlay d-flex flex-column justify-content-end p-4 text-white">
+                        <span class="badge bg-warning text-dark rounded-pill align-self-start mb-2 fw-bold">MEN'S EDIT</span>
+                        <h2 class="fw-bold mb-1">THỜI TRANG NAM</h2>
                         <p class="small text-white-50 mb-3">Áo thun heavyweight, hoodie, jeans classic &amp; quần cargo túi hộp</p>
                         <span class="btn btn-light btn-sm rounded-pill align-self-start px-4 fw-bold">Mua ngay <i class="bi bi-arrow-right ms-1"></i></span>
                     </div>
                 </a>
             </div>
             <div class="col-md-6">
-                <a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="d-block lookbook-card shadow-sm text-decoration-none" style="height: 360px;">
-                    <img src="~/Content/images/hero/banner-women.jpg" class="w-100 h-100" alt="Thời trang Nữ" />
-                    <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex flex-column justify-content-end p-4 text-white">
+                <a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="card border-0 rounded-4 overflow-hidden bg-dark text-white shadow-sm text-decoration-none">
+                    <img src="~/Content/images/hero/banner-women.jpg" class="card-img opacity-75" alt="Thời trang Nữ" />
+                    <div class="card-img-overlay d-flex flex-column justify-content-end p-4 text-white">
                         <span class="badge bg-white text-dark rounded-pill align-self-start mb-2 fw-bold">WOMEN'S EDIT</span>
-                        <h2 class="font-display fw-bold mb-1">THỜI TRANG NỮ</h2>
+                        <h2 class="fw-bold mb-1">THỜI TRANG NỮ</h2>
                         <p class="small text-white-50 mb-3">Set croptop cá tính, chân váy xếp ly, đầm satin &amp; túi đeo chéo</p>
                         <span class="btn btn-light btn-sm rounded-pill align-self-start px-4 fw-bold">Mua ngay <i class="bi bi-arrow-right ms-1"></i></span>
                     </div>
@@ -137,7 +136,7 @@
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
                     <span class="text-uppercase small fw-bold text-muted">Browse Categories</span>
-                    <h3 class="font-display fw-bold mb-0">Danh mục nổi bật</h3>
+                    <h3 class="fw-bold mb-0">Danh mục nổi bật</h3>
                 </div>
                 <a href="@Url.Action("Index", "Product")" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold">
                     Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
@@ -151,11 +150,11 @@
                         : Url.Content("~/Content/images/products/" + cat.ImageUrl);
                     <div class="col-6 col-md-3">
                         <a href="@Url.Action("Index", "Product", new { categoryId = cat.Id })"
-                           class="d-block lookbook-card shadow-sm text-decoration-none" style="height: 220px;">
-                            <img src="@catImg" class="w-100 h-100" alt="@cat.Name" />
-                            <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex align-items-end p-3">
-                                <div class="text-white d-flex justify-content-between align-items-center w-100">
-                                    <h5 class="fw-bold mb-0">@cat.Name</h5>
+                           class="card border-0 rounded-4 overflow-hidden bg-dark text-white shadow-sm text-decoration-none">
+                            <img src="@catImg" class="card-img opacity-75" alt="@cat.Name" />
+                            <div class="card-img-overlay d-flex align-items-end p-3">
+                                <div class="bg-dark bg-opacity-75 rounded-3 px-3 py-2 text-white d-flex justify-content-between align-items-center w-100">
+                                    <h6 class="fw-bold mb-0">@cat.Name</h6>
                                     <i class="bi bi-arrow-up-right-circle-fill fs-5"></i>
                                 </div>
                             </div>
@@ -172,8 +171,8 @@
         <section class="mb-5">
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
-                    <span class="badge bg-obsidian rounded-pill mb-1">NEW ARRIVALS</span>
-                    <h3 class="font-display fw-bold mb-0">Hàng mới lên kệ</h3>
+                    <span class="badge bg-dark rounded-pill mb-1">NEW ARRIVALS</span>
+                    <h3 class="fw-bold mb-0">Hàng mới lên kệ</h3>
                 </div>
                 <a href="@Url.Action("Index", "Product", new { isNew = true })" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold">
                     Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
@@ -192,11 +191,11 @@
 
     <!-- 6. Banner Voucher & Ưu đãi Gen-Z -->
     <section class="mb-5">
-        <div class="bg-obsidian text-white rounded-4 p-4 p-md-5 shadow-sm">
+        <div class="bg-dark text-white rounded-4 p-4 p-md-5 shadow-sm">
             <div class="row align-items-center g-4">
                 <div class="col-lg-7">
-                    <span class="badge badge-lime rounded-pill px-3 py-2 fw-bold mb-2">VOUCHER ĐỘC QUYỀN</span>
-                    <h2 class="font-display fw-bold mb-2">MUA CÀNG NHIỀU &mdash; GIẢM CÀNG ĐÃ</h2>
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold mb-2">VOUCHER ĐỘC QUYỀN</span>
+                    <h2 class="fw-bold mb-2">MUA CÀNG NHIỀU &mdash; GIẢM CÀNG ĐÃ</h2>
                     <p class="text-white-50 mb-0">
                         Áp dụng mã khuyến mãi trực tiếp ngay tại bước Thanh toán. Miễn phí vận chuyển toàn quốc cho mọi đơn hàng từ 500.000₫.
                     </p>
@@ -204,17 +203,17 @@
                 <div class="col-lg-5">
                     <div class="row g-2">
                         <div class="col-6">
-                            <div class="border border-secondary border-opacity-50 rounded-4 p-3 text-center bg-white bg-opacity-10">
+                            <div class="border border-secondary border-opacity-50 rounded-4 p-3 text-center bg-secondary bg-opacity-25">
                                 <small class="text-white-50 d-block">Đơn từ 200K</small>
-                                <div class="font-display fw-bold fs-4 text-warning">SALE10</div>
+                                <div class="fw-bold fs-4 text-warning">SALE10</div>
                                 <small class="badge bg-danger rounded-pill">Giảm 10%</small>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="border border-secondary border-opacity-50 rounded-4 p-3 text-center bg-white bg-opacity-10">
+                            <div class="border border-secondary border-opacity-50 rounded-4 p-3 text-center bg-secondary bg-opacity-25">
                                 <small class="text-white-50 d-block">Đơn từ 300K</small>
-                                <div class="font-display fw-bold fs-4 text-info">NEWUSER</div>
-                                <small class="badge badge-lime rounded-pill">Giảm 15%</small>
+                                <div class="fw-bold fs-4 text-info">NEWUSER</div>
+                                <small class="badge bg-warning text-dark rounded-pill">Giảm 15%</small>
                             </div>
                         </div>
                     </div>
@@ -230,7 +229,7 @@
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
                     <span class="badge bg-danger rounded-pill mb-1"><i class="bi bi-lightning-fill"></i> FLASH SALE</span>
-                    <h3 class="font-display fw-bold mb-0">Đang giảm giá cực hời</h3>
+                    <h3 class="fw-bold mb-0">Đang giảm giá cực hời</h3>
                 </div>
                 <a href="@Url.Action("Index", "Product", new { onSale = true })" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
                     Săn toàn bộ Sale <i class="bi bi-arrow-right ms-1"></i>
@@ -254,7 +253,7 @@
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
                     <span class="badge bg-warning text-dark rounded-pill mb-1"><i class="bi bi-trophy-fill me-1"></i>BEST SELLERS</span>
-                    <h3 class="font-display fw-bold mb-0">Được giới trẻ săn đón</h3>
+                    <h3 class="fw-bold mb-0">Được giới trẻ săn đón</h3>
                 </div>
                 <a href="@Url.Action("Index", "Product", new { filter = "bestseller" })" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold">
                     Xem thêm <i class="bi bi-arrow-right ms-1"></i>
@@ -275,30 +274,30 @@
     <section class="bg-white rounded-4 shadow-sm p-4">
         <div class="row g-4 text-center">
             <div class="col-6 col-md-3">
-                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;">
+                <span class="d-inline-block bg-light rounded-circle p-3 mb-2">
                     <i class="bi bi-truck fs-4 text-dark"></i>
-                </div>
+                </span>
                 <div class="fw-bold small">Miễn phí vận chuyển</div>
                 <small class="text-muted">Đơn hàng từ 500.000₫</small>
             </div>
             <div class="col-6 col-md-3">
-                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;">
+                <span class="d-inline-block bg-light rounded-circle p-3 mb-2">
                     <i class="bi bi-arrow-repeat fs-4 text-dark"></i>
-                </div>
+                </span>
                 <div class="fw-bold small">Đổi trả dễ dàng 7 ngày</div>
                 <small class="text-muted">Hỗ trợ đổi size miễn phí</small>
             </div>
             <div class="col-6 col-md-3">
-                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;">
+                <span class="d-inline-block bg-light rounded-circle p-3 mb-2">
                     <i class="bi bi-shield-check fs-4 text-dark"></i>
-                </div>
+                </span>
                 <div class="fw-bold small">Thanh toán linh hoạt</div>
                 <small class="text-muted">COD hoặc Chuyển khoản</small>
             </div>
             <div class="col-6 col-md-3">
-                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:52px;height:52px;">
+                <span class="d-inline-block bg-light rounded-circle p-3 mb-2">
                     <i class="bi bi-patch-check fs-4 text-dark"></i>
-                </div>
+                </span>
                 <div class="fw-bold small">Hình thật 100%</div>
                 <small class="text-muted">Chất vải tuyển chọn kỹ</small>
             </div>

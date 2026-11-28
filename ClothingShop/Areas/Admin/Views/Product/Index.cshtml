@@ -50,13 +50,13 @@
                     <tr>
                         <td class="ps-4 py-3">
                             <div class="d-flex align-items-center gap-3">
-                                <img src="@img" alt="@item.Name" class="rounded-3 border" style="width:52px;height:68px;object-fit:cover;" />
+                                <img src="@img" alt="@item.Name" width="52" height="68" class="rounded-3 border" />
                                 <div>
                                     <div class="fw-bold">@item.Name</div>
                                     <div class="small text-muted mt-1">
                                         <span class="badge bg-light text-dark border rounded-pill">@item.Gender</span>
-                                        @if (item.IsNew) { <span class="badge bg-obsidian rounded-pill">NEW</span> }
-                                        @if (item.IsFeatured) { <span class="badge badge-lime rounded-pill">HOT</span> }
+                                        @if (item.IsNew) { <span class="badge bg-dark rounded-pill">NEW</span> }
+                                        @if (item.IsFeatured) { <span class="badge bg-warning text-dark rounded-pill">HOT</span> }
                                     </div>
                                 </div>
                             </div>
@@ -80,6 +80,7 @@
                             <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary") rounded-pill px-3">@(item.IsActive ? "Đang bán" : "Đã ẩn")</span>
                         </td>
                         <td class="text-end pe-4 text-nowrap">
+                            <a href="@Url.Action("Details", new { id = item.ProductId })" class="btn btn-outline-secondary btn-sm rounded-pill">Xem</a>
                             <a href="@Url.Action("Variants", new { id = item.ProductId })" class="btn btn-outline-dark btn-sm rounded-pill">Kho / Size</a>
                             <a href="@Url.Action("Edit", new { id = item.ProductId })" class="btn btn-outline-primary btn-sm rounded-pill">Sửa</a>
                             <a href="@Url.Action("Delete", new { id = item.ProductId })" class="btn btn-outline-danger btn-sm rounded-pill">Xóa</a>

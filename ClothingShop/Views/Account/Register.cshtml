@@ -9,18 +9,18 @@
             <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
                 <div class="row g-0">
                     <!-- Cột trái: Ảnh Lookbook -->
-                    <div class="col-md-5 d-none d-md-block position-relative">
-                        <img src="~/Content/images/hero/banner-women.jpg" class="w-100 h-100" style="object-fit:cover;" alt="ClothingShop Register" />
-                        <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex flex-column justify-content-end p-4 text-white">
-                            <span class="badge badge-lime rounded-pill align-self-start mb-2 fw-bold">NEW MEMBER -15%</span>
-                            <h4 class="font-display fw-bold mb-1">GIA NHẬP CLOTHINGSHOP</h4>
+                    <div class="col-md-5 d-none d-md-block position-relative bg-dark">
+                        <img src="~/Content/images/hero/banner-women.jpg" class="w-100 h-100 opacity-75" alt="ClothingShop Register" />
+                        <div class="card-img-overlay d-flex flex-column justify-content-end p-4 text-white">
+                            <span class="badge bg-warning text-dark rounded-pill align-self-start mb-2 fw-bold">NEW MEMBER -15%</span>
+                            <h4 class="fw-bold mb-1">GIA NHẬP CLOTHINGSHOP</h4>
                             <p class="small text-white-50 mb-0">Tạo tài khoản trong 30 giây và dùng ngay mã NEWUSER giảm 15% cho đơn đầu tiên.</p>
                         </div>
                     </div>
 
                     <!-- Cột phải: Form Đăng ký -->
                     <div class="col-md-7 p-4 p-lg-5 bg-white">
-                        <h3 class="font-display fw-bold mb-1">Tạo tài khoản mới</h3>
+                        <h3 class="fw-bold mb-1">Tạo tài khoản mới</h3>
                         <p class="text-muted small mb-4">Điền thông tin để bắt đầu mua sắm cực chất</p>
 
                         @using (Html.BeginForm("Register", "Account", FormMethod.Post))
