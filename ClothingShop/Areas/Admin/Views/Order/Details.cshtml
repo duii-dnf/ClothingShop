@@ -3,17 +3,71 @@
 @using ClothingShop.Services
 @{
     ViewBag.Title = "Chi tiết đơn hàng #" + Model.OrderId;
+    bool isPending = Model.Status == OrderStatus.Pending;
+    bool isPaid = string.Equals(Model.PaymentStatus, "Paid", StringComparison.OrdinalIgnoreCase);
+    bool isRefunded = string.Equals(Model.PaymentStatus, "Refunded", StringComparison.OrdinalIgnoreCase);
+    bool isCancelRequested = isPending && !string.IsNullOrEmpty(Model.Note) && Model.Note.Contains("[YÊU CẦU HỦY");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold mb-0">Chi tiết đơn hàng #@Model.OrderId</h3>
-    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">Quay lại danh sách</a>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Quay lại danh sách</a>
 </div>
+
+@if (isCancelRequested)
+{
+    <div class="alert alert-danger border-0 rounded-4 shadow-sm p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <h5 class="fw-bold mb-2">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                    @(isPaid ? "Khách hàng yêu cầu HỦY ĐƠN & HOÀN TIỀN" : "Khách hàng yêu cầu HỦY ĐƠN HÀNG")
+                </h5>
+                <p class="mb-2 small text-dark">
+                    <strong>Nội dung ghi chú / Lý do &amp; Tài khoản hoàn tiền:</strong><br />
+                    <span class="d-inline-block bg-white border rounded-3 px-3 py-2 mt-1">@Model.Note</span>
+                </p>
+                @if (isPaid)
+                {
+                    <div class="small fw-semibold text-danger">
+                        <i class="bi bi-cash-coin me-1"></i>Đơn đã thanh toán chuyển khoản <strong>@PriceFormatter.Vnd(Model.TotalAmount)</strong>. Hãy kiểm tra hoàn tiền cho khách trước khi bấm duyệt hủy.
+                    </div>
+                }
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                @using (Html.BeginForm("UpdateStatus", "Order", FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.OrderId" />
+                    <input type="hidden" name="status" value="@OrderStatus.Cancelled" />
+                    <input type="hidden" name="paymentStatus" value="@(isPaid ? "Refunded" : "Unpaid")" />
+                    <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold"
+                            onclick="return confirm('@(isPaid ? "Xác nhận đã hoàn tiền, hủy đơn và hoàn tồn kho?" : "Xác nhận duyệt hủy đơn và hoàn tồn kho?")');">
+                        <i class="bi bi-check2-circle me-1"></i>@(isPaid ? "Duyệt hủy & Đã hoàn tiền" : "Duyệt hủy đơn")
+                    </button>
+                }
+
+                @using (Html.BeginForm("UpdateStatus", "Order", FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.OrderId" />
+                    <input type="hidden" name="status" value="@OrderStatus.Confirmed" />
+                    <input type="hidden" name="paymentStatus" value="@Model.PaymentStatus" />
+                    <button type="submit" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold"
+                            onclick="return confirm('Từ chối yêu cầu hủy và chuyển đơn sang Đã xác nhận?');">
+                        Từ chối hủy &amp; Xác nhận đơn
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
 
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white fw-semibold">Sản phẩm trong đơn</div>
+        <div class="card border-0 rounded-4 shadow-sm mb-4 overflow-hidden">
+            <div class="card-header bg-white fw-semibold py-3">Sản phẩm trong đơn</div>
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
@@ -66,8 +120,8 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-dark text-white fw-semibold">Cập nhật trạng thái đơn</div>
+        <div class="card border-0 rounded-4 shadow-sm mb-4 overflow-hidden">
+            <div class="card-header bg-dark text-white fw-semibold py-3">Cập nhật trạng thái đơn</div>
             <div class="card-body">
                 @using (Html.BeginForm("UpdateStatus", "Order", FormMethod.Post))
                 {
@@ -75,7 +129,7 @@
                     <input type="hidden" name="id" value="@Model.OrderId" />
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Trạng thái đơn hàng</label>
+                        <label class="form-label fw-semibold small">Trạng thái đơn hàng</label>
                         <select name="status" class="form-select">
                             @foreach (var st in OrderStatus.All)
                             {
@@ -85,31 +139,53 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Trạng thái thanh toán</label>
+                        <label class="form-label fw-semibold small">Trạng thái thanh toán</label>
                         <select name="paymentStatus" class="form-select">
                             <option value="Unpaid" @(Model.PaymentStatus == "Unpaid" ? "selected" : "")>Chưa thanh toán (Unpaid)</option>
                             <option value="Paid" @(Model.PaymentStatus == "Paid" ? "selected" : "")>Đã thanh toán (Paid)</option>
+                            <option value="Refunded" @(Model.PaymentStatus == "Refunded" ? "selected" : "")>Đã hoàn tiền (Refunded)</option>
                         </select>
                     </div>
 
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-dark">Cập nhật đơn hàng</button>
+                        <button type="submit" class="btn btn-dark rounded-pill fw-semibold">Cập nhật đơn hàng</button>
                     </div>
                 }
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">Thông tin giao hàng</div>
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+            <div class="card-header bg-white fw-semibold py-3">Thông tin giao hàng &amp; Thanh toán</div>
             <div class="card-body small">
                 <p class="mb-1"><strong>Người nhận:</strong> @Model.ReceiverName</p>
                 <p class="mb-1"><strong>Điện thoại:</strong> @Model.Phone</p>
                 <p class="mb-1"><strong>Địa chỉ:</strong> @Model.Address</p>
-                <p class="mb-1"><strong>Thanh toán:</strong> @Model.PaymentMethod</p>
+                <p class="mb-1"><strong>Phương thức:</strong> @Model.PaymentMethod</p>
+                <p class="mb-1">
+                    <strong>Thanh toán:</strong>
+                    @if (isPaid)
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Đã thanh toán</span>
+                    }
+                    else if (isRefunded)
+                    {
+                        <span class="badge bg-info-subtle text-info border border-info-subtle">Đã hoàn tiền</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-light text-secondary border">Chưa thanh toán</span>
+                    }
+                </p>
+                @if (Model.PaymentDate.HasValue)
+                {
+                    <p class="mb-1"><strong>Ngày thanh toán:</strong> @Model.PaymentDate.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                }
                 <p class="mb-1"><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
                 @if (!string.IsNullOrEmpty(Model.Note))
                 {
-                    <p class="mb-0"><strong>Ghi chú:</strong> @Model.Note</p>
+                    <div class="mt-2 p-2 bg-light rounded-3 border">
+                        <strong>Ghi chú:</strong> @Model.Note
+                    </div>
                 }
             </div>
         </div>

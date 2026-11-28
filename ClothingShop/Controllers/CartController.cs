@@ -96,6 +96,9 @@ namespace ClothingShop.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
+            if (Request.UrlReferrer != null && Url.IsLocalUrl(Request.UrlReferrer.PathAndQuery))
+                return Redirect(Request.UrlReferrer.PathAndQuery);
+
             return RedirectToAction("Index");
         }
 
