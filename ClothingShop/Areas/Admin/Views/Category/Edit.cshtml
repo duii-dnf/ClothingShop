@@ -1,39 +1,96 @@
 @model ClothingShop.Models.Category
 @{
     ViewBag.Title = "Chỉnh sửa loại sản phẩm";
+    bool hasChildren = ViewBag.HasChildren == true;
 }
 
-<h3 class="fw-bold mb-4">Chỉnh sửa loại sản phẩm</h3>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small mb-1">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index")" class="text-decoration-none text-muted">Loại sản phẩm</a></li>
+                <li class="breadcrumb-item active text-dark fw-semibold">Chỉnh sửa #@Model.CategoryId</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0">Chỉnh sửa loại sản phẩm</h3>
+    </div>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+</div>
 
-<div class="card border-0 shadow-sm col-lg-7">
-    <div class="card-body">
-        @using (Html.BeginForm())
-        {
-            @Html.AntiForgeryToken()
-            @Html.HiddenFor(m => m.CategoryId)
-            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 small" })
-
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Tên loại sản phẩm <span class="text-danger">*</span></label>
-                @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
-                @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 rounded-4 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-pencil-square me-2"></i>Cập nhật thông tin</span>
+                <span class="badge bg-light text-dark border rounded-pill px-3">Mã: #@Model.CategoryId</span>
             </div>
+            <div class="card-body p-4">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.CategoryId)
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger rounded-3 py-2 small" })
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Danh mục cha</label>
-                @Html.DropDownList("ParentId", null, "-- Danh mục gốc (Cấp 1) --", new { @class = "form-select" })
-                @Html.ValidationMessageFor(m => m.ParentId, "", new { @class = "text-danger small" })
-            </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tên loại sản phẩm <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control rounded-3", required = "required" })
+                            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Danh mục cha</label>
+                            @if (hasChildren)
+                            {
+                                @Html.HiddenFor(m => m.ParentId)
+                                <input type="text" class="form-control rounded-3 bg-light" value="Danh mục gốc (Cấp 1)" disabled />
+                            }
+                            else
+                            {
+                                @Html.DropDownList("ParentId", null, "-- Danh mục gốc (Cấp 1) --", new { @class = "form-select rounded-3" })
+                            }
+                            @Html.ValidationMessageFor(m => m.ParentId, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
 
-            <div class="form-check mb-4">
-                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", id = "chkActive" })
-                <label class="form-check-label" for="chkActive">Hiển thị trên cửa hàng</label>
-            </div>
+                    if (hasChildren)
+                    {
+                        <div class="alert alert-warning rounded-3 small py-2 mb-3">
+                            <i class="bi bi-lock-fill me-1"></i>Danh mục này đang chứa danh mục con nên được cố định ở cấp gốc (Cấp 1).
+                        </div>
+                    }
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-dark">Cập nhật</button>
-                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại</a>
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <div class="form-check form-switch mb-0">
+                            @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", id = "chkActive" })
+                            <label class="form-check-label fw-semibold" for="chkActive">Hiển thị trên cửa hàng</label>
+                            <div class="small text-muted">Tắt tùy chọn này sẽ tạm ẩn danh mục khỏi menu điều hướng của khách hàng.</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-dark rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-save me-1"></i>Lưu thay đổi
+                        </button>
+                        <a href="@Url.Action("Details", new { id = Model.CategoryId })" class="btn btn-outline-primary rounded-pill px-4">Xem chi tiết</a>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                    </div>
+                }
             </div>
-        }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 rounded-4 shadow-sm bg-light h-100">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-success"></i>Lưu ý chỉnh sửa</h6>
+                <ul class="small text-muted ps-3 mb-0 lh-lg">
+                    <li>Tên mới không được trùng với danh mục khác trong cùng cấp cha.</li>
+                    <li>Danh mục đang có nhánh con không thể chuyển thành danh mục cấp 2.</li>
+                    <li>Việc ẩn danh mục không làm mất dữ liệu sản phẩm bên trong.</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>

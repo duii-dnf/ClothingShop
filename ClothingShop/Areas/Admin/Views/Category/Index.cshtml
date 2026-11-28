@@ -3,71 +3,176 @@
     ViewBag.Title = "Quản lý loại sản phẩm";
 }
 
-<div class="row g-3 mb-4 text-center">
-    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Tổng danh mục</small><strong class="fs-4 fw-bold">@ViewBag.TotalCount</strong></div></div>
-    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Danh mục cha</small><strong class="fs-4 fw-bold text-primary">@ViewBag.RootCount</strong></div></div>
-    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Danh mục con</small><strong class="fs-4 fw-bold text-info">@ViewBag.ChildCount</strong></div></div>
-    <div class="col-6 col-md-3"><div class="card border-0 rounded-4 shadow-sm p-3"><small class="text-muted">Đang hiển thị</small><strong class="fs-4 fw-bold text-success">@ViewBag.ActiveCount</strong></div></div>
-</div>
+<style>
+    .stat-card {
+        transition: transform .25s ease, box-shadow .25s ease;
+    }
 
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <form method="get" class="d-flex flex-wrap gap-2">
-        <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm rounded-pill px-3 w-auto" placeholder="Tìm tên loại..." />
-        <select name="level" class="form-select form-select-sm rounded-pill w-auto">
-            <option value="">Tất cả cấp</option>
-            <option value="root" @(ViewBag.Level == "root" ? "selected" : "")>Cấp 1 (Cha)</option>
-            <option value="child" @(ViewBag.Level == "child" ? "selected" : "")>Cấp 2 (Con)</option>
-        </select>
-        <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Lọc</button>
-    </form>
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
+        }
+
+    .cat-table th, .cat-table td {
+        vertical-align: middle;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h3 class="fw-bold mb-1">Quản lý loại sản phẩm</h3>
+        <p class="text-muted small mb-0">Tổ chức danh mục 2 cấp và kiểm soát hiển thị trên cửa hàng</p>
+    </div>
     <a href="@Url.Action("Create")" class="btn btn-dark rounded-pill px-4 fw-semibold">
         <i class="bi bi-plus-lg me-1"></i>Thêm loại mới
     </a>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 rounded-4 shadow-sm p-3 stat-card h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted d-block">Tổng danh mục</small>
+                    <strong class="fs-4 fw-bold">@ViewBag.TotalCount</strong>
+                </div>
+                <span class="badge bg-dark bg-opacity-10 text-dark rounded-3 p-2"><i class="bi bi-folder2-open fs-5"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 rounded-4 shadow-sm p-3 stat-card h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted d-block">Danh mục cha</small>
+                    <strong class="fs-4 fw-bold text-primary">@ViewBag.RootCount</strong>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-3 p-2"><i class="bi bi-diagram-2 fs-5"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 rounded-4 shadow-sm p-3 stat-card h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted d-block">Danh mục con</small>
+                    <strong class="fs-4 fw-bold text-info">@ViewBag.ChildCount</strong>
+                </div>
+                <span class="badge bg-info bg-opacity-10 text-info rounded-3 p-2"><i class="bi bi-diagram-3 fs-5"></i></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 rounded-4 shadow-sm p-3 stat-card h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted d-block">Đang hiển thị</small>
+                    <strong class="fs-4 fw-bold text-success">@ViewBag.ActiveCount</strong>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-3 p-2"><i class="bi bi-eye fs-5"></i></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 rounded-4 shadow-sm mb-3">
+    <div class="card-body py-2 px-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm rounded-pill px-3" placeholder="Tìm theo tên loại sản phẩm..." />
+            </div>
+            <div class="col-6 col-md-3">
+                <select name="level" class="form-select form-select-sm rounded-pill">
+                    <option value="">-- Tất cả cấp độ --</option>
+                    <option value="root" @(ViewBag.Level == "root" ? "selected" : "")>Cấp 1 (Danh mục cha)</option>
+                    <option value="child" @(ViewBag.Level == "child" ? "selected" : "")>Cấp 2 (Danh mục con)</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <select name="status" class="form-select form-select-sm rounded-pill">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="active" @(ViewBag.Status == "active" ? "selected" : "")>Đang hiển thị</option>
+                    <option value="hidden" @(ViewBag.Status == "hidden" ? "selected" : "")>Đang ẩn</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-1 justify-content-md-end">
+                <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3 flex-grow-1">Lọc</button>
+                @if (!string.IsNullOrEmpty(ViewBag.Keyword as string) || !string.IsNullOrEmpty(ViewBag.Level as string) || !string.IsNullOrEmpty(ViewBag.Status as string))
+                {
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Đặt lại"><i class="bi bi-arrow-counterclockwise"></i></a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light small text-uppercase">
+        <table class="table table-hover cat-table mb-0">
+            <thead class="table-light small text-uppercase text-muted">
                 <tr>
-                    <th class="ps-4">ID</th>
-                    <th>Tên loại</th>
-                    <th>Danh mục cha</th>
-                    <th class="text-center">Số SP</th>
-                    <th class="text-center">Trạng thái</th>
-                    <th class="text-end pe-4">Thao tác</th>
+                    <th class="ps-4" style="width: 75px;">Mã</th>
+                    <th style="width: 30%;">Tên loại sản phẩm</th>
+                    <th style="width: 22%;">Danh mục cha</th>
+                    <th class="text-center" style="width: 110px;">Số SP</th>
+                    <th class="text-center" style="width: 130px;">Trạng thái</th>
+                    <th class="text-end pe-4" style="width: 230px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">Không tìm thấy loại sản phẩm nào phù hợp.</td>
+                    </tr>
+                }
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td class="ps-4 text-muted">@item.CategoryId</td>
+                        <td class="ps-4 text-muted fw-semibold">#@item.CategoryId</td>
                         <td>
-                            @if (item.ParentId.HasValue)
+                            <a href="@Url.Action("Details", new { id = item.CategoryId })" class="text-decoration-none">
+                                @if (item.ParentId.HasValue)
+                                {
+                                    <span class="text-secondary d-inline-flex align-items-center">
+                                        <i class="bi bi-arrow-return-right text-muted me-2"></i>@item.Name
+                                    </span>
+                                }
+                                else
+                                {
+                                    <strong class="text-dark">@item.Name</strong>
+                                }
+                            </a>
+                        </td>
+                        <td>
+                            @if (item.Category1 != null)
                             {
-                                <span class="text-muted ms-3">&mdash; @item.Name</span>
+                                <span class="badge bg-light text-dark border rounded-pill px-3 fw-normal">@item.Category1.Name</span>
                             }
                             else
                             {
-                                <strong class="text-dark">@item.Name</strong>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 fw-normal">Danh mục gốc</span>
                             }
                         </td>
-                        <td class="small">@(item.Category1 != null ? item.Category1.Name : "Danh mục gốc")</td>
                         <td class="text-center">
                             <span class="badge bg-light text-dark border rounded-pill px-3">@(item.Products != null ? item.Products.Count : 0)</span>
                         </td>
                         <td class="text-center">
-                            <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary") rounded-pill px-3">@(item.IsActive ? "Hiển thị" : "Đang ẩn")</span>
+                            <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary") rounded-pill px-3">
+                                @(item.IsActive ? "Hiển thị" : "Đang ẩn")
+                            </span>
                         </td>
                         <td class="text-end pe-4 text-nowrap">
-                            <a href="@Url.Action("Edit", new { id = item.CategoryId })" class="btn btn-outline-primary btn-sm rounded-pill">Sửa</a>
+                            <a href="@Url.Action("Details", new { id = item.CategoryId })" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="@Url.Action("Edit", new { id = item.CategoryId })" class="btn btn-outline-primary btn-sm rounded-pill px-3">Sửa</a>
                             @using (Html.BeginForm("ToggleStatus", "Category", new { id = item.CategoryId }, FormMethod.Post, new { @class = "d-inline" }))
                             {
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill">@(item.IsActive ? "Ẩn" : "Hiện")</button>
+                                <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill px-3">@(item.IsActive ? "Ẩn" : "Hiện")</button>
                             }
-                            <a href="@Url.Action("Delete", new { id = item.CategoryId })" class="btn btn-outline-danger btn-sm rounded-pill">Xóa</a>
+                            <a href="@Url.Action("Delete", new { id = item.CategoryId })" class="btn btn-outline-danger btn-sm rounded-pill px-3">Xóa</a>
                         </td>
                     </tr>
                 }

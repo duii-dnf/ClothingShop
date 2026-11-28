@@ -48,6 +48,7 @@ namespace ClothingShop.Controllers
             if (categoryId.HasValue)
             {
                 activeCategory = db.Categories.FirstOrDefault(c => c.CategoryId == categoryId.Value && c.IsActive);
+
                 var catIds = db.Categories
                     .Where(c => c.IsActive && (c.CategoryId == categoryId.Value || c.ParentId == categoryId.Value))
                     .Select(c => c.CategoryId)
@@ -114,6 +115,12 @@ namespace ClothingShop.Controllers
 
             if (product == null) return HttpNotFound();
 
+            Category parentCategory = null;
+            if (product.Category != null && product.Category.ParentId.HasValue)
+            {
+                parentCategory = db.Categories.FirstOrDefault(c => c.CategoryId == product.Category.ParentId.Value);
+            }
+
             var relatedProducts = db.Products
                 .Include(p => p.Category)
                 .Where(p => p.IsActive && p.CategoryId == product.CategoryId && p.ProductId != product.ProductId)
@@ -139,6 +146,7 @@ namespace ClothingShop.Controllers
                     .ToList());
             }
 
+            ViewBag.ParentCategory = parentCategory;
             ViewBag.RelatedProducts = relatedProducts;
             return View(product);
         }

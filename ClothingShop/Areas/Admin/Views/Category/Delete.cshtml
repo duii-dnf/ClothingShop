@@ -1,26 +1,80 @@
 ﻿@model ClothingShop.Models.Category
 @{
     ViewBag.Title = "Xóa loại sản phẩm";
+    int childCount = Model.Categories1 != null ? Model.Categories1.Count : 0;
+    int productCount = Model.Products != null ? Model.Products.Count : 0;
+    bool canDelete = childCount == 0 && productCount == 0;
 }
 
-<h3 class="fw-bold text-danger mb-4">Xác nhận xóa loại sản phẩm</h3>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small mb-1">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index")" class="text-decoration-none text-muted">Loại sản phẩm</a></li>
+                <li class="breadcrumb-item active text-danger fw-semibold">Xác nhận xóa</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold text-danger mb-0">Xóa loại sản phẩm</h3>
+    </div>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+    </a>
+</div>
 
-<div class="card border-0 shadow-sm col-lg-7">
-    <div class="card-body">
-        <p>Bạn có chắc chắn muốn xóa loại sản phẩm <strong>@Model.Name</strong> không?</p>
-        <ul class="small text-muted">
-            <li>Danh mục cha: @(Model.Category1 != null ? Model.Category1.Name : "Danh mục gốc")</li>
-            <li>Số danh mục con: @(Model.Categories1 != null ? Model.Categories1.Count : 0)</li>
-            <li>Số sản phẩm thuộc loại này: @(Model.Products != null ? Model.Products.Count : 0)</li>
-        </ul>
-
-        @using (Html.BeginForm())
-        {
-            @Html.AntiForgeryToken()
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
-                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Hủy</a>
+<div class="card border-0 rounded-4 shadow-sm col-lg-8">
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Đối tượng cần xóa: <span class="text-danger">@Model.Name</span></span>
+        <span class="badge bg-light text-dark border rounded-pill px-3">Mã: #@Model.CategoryId</span>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-3 text-center mb-4">
+            <div class="col-4">
+                <div class="p-3 bg-light rounded-3 border">
+                    <small class="text-muted d-block">Danh mục cha</small>
+                    <strong class="small">@(Model.Category1 != null ? Model.Category1.Name : "Danh mục gốc")</strong>
+                </div>
             </div>
+            <div class="col-4">
+                <div class="p-3 bg-light rounded-3 border">
+                    <small class="text-muted d-block">Danh mục con</small>
+                    <strong class="fs-5 @(childCount > 0 ? "text-danger" : "text-success")">@childCount</strong>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="p-3 bg-light rounded-3 border">
+                    <small class="text-muted d-block">Sản phẩm trực thuộc</small>
+                    <strong class="fs-5 @(productCount > 0 ? "text-danger" : "text-success")">@productCount</strong>
+                </div>
+            </div>
+        </div>
+
+        @if (!canDelete)
+        {
+            <div class="alert alert-warning rounded-3 small mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                <strong>Không thể xóa loại sản phẩm này</strong> vì vẫn còn danh mục con hoặc sản phẩm đang liên kết. Vui lòng chuyển hoặc xóa hết dữ liệu liên quan trước khi thực hiện.
+            </div>
+            <div class="d-flex gap-2">
+                <a href="@Url.Action("Details", new { id = Model.CategoryId })" class="btn btn-dark rounded-pill px-4">Xem chi tiết dữ liệu</a>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary rounded-pill px-4">Quay lại</a>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger rounded-3 small mb-4">
+                <i class="bi bi-shield-exclamation me-1"></i>
+                Danh mục này không chứa dữ liệu ràng buộc. Hành động xóa sẽ gỡ vĩnh viễn khỏi hệ thống và không thể hoàn tác.
+            </div>
+            using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold">
+                        <i class="bi bi-trash3 me-1"></i>Xác nhận xóa vĩnh viễn
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary rounded-pill px-4">Hủy bỏ</a>
+                </div>
+            }
         }
     </div>
 </div>
