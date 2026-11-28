@@ -1,1 +1,309 @@
-/* Chỉ sử dụng Bootstrap 5 - Không dùng style riêng */
+/* ==========================================================================
+   ClothingShop - Gen-Z Editorial Style (Tối giản, bổ trợ thuần Bootstrap 5)
+   ========================================================================== */
+
+body {
+    font-family: 'Nunito', 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    background-color: #f6f5f2;
+    color: #141416;
+}
+
+.font-display {
+    font-family: 'Urbanist', 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.bg-obsidian {
+    background-color: #0f0f12 !important;
+}
+
+.badge-lime {
+    background-color: #d4ff00 !important;
+    color: #0f0f12 !important;
+}
+
+/* Hiệu ứng ảnh & thẻ sản phẩm (hover mượt chuẩn web thời trang) */
+.product-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1) !important;
+}
+
+.product-img-wrap {
+    aspect-ratio: 3 / 4;
+    background-color: #f2f1ed;
+    overflow: hidden;
+}
+
+.product-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease;
+}
+
+.product-card:hover .product-img-wrap img,
+.lookbook-card:hover img {
+    transform: scale(1.06);
+}
+
+/* Banner Editorial Hero */
+.hero-slide {
+    height: 520px;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .hero-slide {
+        height: 380px;
+    }
+}
+
+.hero-overlay {
+    background: linear-gradient(90deg, rgba(12, 12, 16, 0.78) 0%, rgba(12, 12, 16, 0.35) 55%, rgba(12, 12, 16, 0.08) 100%);
+}
+
+/* Lookbook Nam / Nữ & Danh mục ảnh */
+.lookbook-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+}
+
+.lookbook-card img {
+    transition: transform 0.5s ease;
+    object-fit: cover;
+}
+
+.lookbook-overlay {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 35%, rgba(12, 12, 16, 0.82) 100%);
+}
+
+/* Dải chữ chạy Gen-Z Marquee (Thuần CSS, không dùng JS) */
+.marquee-bar {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.marquee-track {
+    display: inline-block;
+    animation: marqueeScroll 24s linear infinite;
+}
+
+@keyframes marqueeScroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Thanh navbar & link hover */
+.navbar-glass {
+    background-color: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(10px);
+}
+
+.nav-link:hover {
+    color: #000 !important;
+}
+
+/* Admin sidebar hover */
+.admin-nav-link {
+    border-radius: 0.65rem;
+    transition: background-color 0.2s ease;
+}
+
+.admin-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Promo & Voucher Editorial Banner (Home) */
+.promo-editorial-banner {
+    background: linear-gradient(135deg, #141414 0%, #222222 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.badge-champagne {
+    background-color: rgba(212, 175, 55, 0.14);
+    color: #D4AF37;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+}
+
+.voucher-ticket {
+    position: relative;
+    background-color: #FAF8F4;
+    color: #111111;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.voucher-ticket:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.voucher-ticket__top {
+    position: relative;
+    padding: 16px 16px 14px;
+    border-bottom: 1.5px dashed #d6cfc2;
+}
+
+/* Khuyết tròn hai cạnh đặc trưng của vé voucher */
+.voucher-ticket__top::before,
+.voucher-ticket__top::after {
+    content: "";
+    position: absolute;
+    bottom: -9px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #1b1b1b;
+    z-index: 2;
+}
+
+.voucher-ticket__top::before {
+    left: -9px;
+}
+
+.voucher-ticket__top::after {
+    right: -9px;
+}
+
+.voucher-ticket__code {
+    font-family: 'Urbanist', 'Space Grotesk', sans-serif;
+    letter-spacing: 0.08em;
+    color: #111111;
+}
+
+.voucher-ticket__bottom {
+    padding: 10px 14px;
+    background-color: #F3EFE6;
+}
+
+.btn-copy-voucher {
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 5px 14px;
+    border: 1px solid #111111;
+    background-color: #111111;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-copy-voucher:hover {
+    background-color: #2c2c2c;
+    color: #ffffff;
+}
+
+.btn-copy-voucher.is-copied {
+    background-color: #198754;
+    border-color: #198754;
+    color: #ffffff;
+}
+
+/* Trust / Feature Strip (Home) */
+.trust-strip {
+    background-color: #FAF8F4;
+    border: 1px solid #EAE5DC;
+}
+
+.trust-item {
+    transition: transform 0.2s ease;
+}
+
+.trust-item:hover {
+    transform: translateY(-2px);
+}
+
+.trust-icon-box {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background-color: #ffffff;
+    border: 1px solid #E6E0D4;
+    color: #111111;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.trust-item:hover .trust-icon-box {
+    background-color: #111111;
+    border-color: #111111;
+    color: #FAF8F4;
+}
+
+@media (min-width: 992px) {
+    .trust-col + .trust-col {
+        border-left: 1px solid #E6E0D4;
+    }
+}
+
+/* Editable Cascading Combobox (Checkout) */
+.vn-combo-wrap {
+    position: relative;
+}
+
+.vn-combo-toggle {
+    position: absolute;
+    right: 6px;
+    top: 19px;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: #6c757d;
+    padding: 4px 8px;
+    line-height: 1;
+    z-index: 3;
+}
+
+.vn-combo-toggle:hover {
+    color: #111111;
+}
+
+.vn-combo-menu {
+    position: absolute;
+    top: 39px;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 1055;
+    display: none;
+    padding: 4px;
+}
+
+.vn-combo-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    padding: 7px 12px;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    color: #111111;
+    cursor: pointer;
+}
+
+.vn-combo-item:hover,
+.vn-combo-item.is-active {
+    background-color: #f3f1ec;
+    font-weight: 600;
+}

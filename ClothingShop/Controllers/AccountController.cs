@@ -142,6 +142,52 @@ namespace ClothingShop.Controllers
             return View();
         }
 
+        // ---------- QUÊN MẬT KHẨU ----------
+        [HttpGet]
+        public ActionResult ForgotPassword()
+        {
+            if (SessionHelper.CurrentUser != null) return RedirectToAction("Index", "Home");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                TempData["ForgotError"] = "Vui lòng nhập địa chỉ email.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            var normalizedEmail = email.Trim().ToLower();
+            var user = db.Users.FirstOrDefault(u => u.Email == normalizedEmail && u.IsActive);
+
+            if (user == null)
+            {
+                // Không tiết lộ email có tồn tại hay không (bảo mật)
+                TempData["ForgotSuccess"] = "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi mật khẩu tạm thời. Vui lòng kiểm tra hộp thư.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            // Tạo mật khẩu tạm thời ngẫu nhiên
+            var tempPassword = GenerateTempPassword();
+            user.PasswordHash = PasswordHasher.Hash(tempPassword);
+            db.SaveChanges();
+
+            // Ghi log mật khẩu tạm thời (trong môi trường thực sẽ gửi email)
+            // Với đồ án: hiển thị qua TempData để demo
+            TempData["ForgotSuccess"] = $"Mật khẩu tạm thời của bạn là: {tempPassword} — Vui lòng đăng nhập và đổi mật khẩu ngay.";
+            return RedirectToAction("ForgotPassword");
+        }
+
+        private static string GenerateTempPassword()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+            var rng = new System.Random();
+            return new string(Enumerable.Range(0, 8).Select(_ => chars[rng.Next(chars.Length)]).ToArray());
+        }
+
         // ---------- HỒ SƠ CÁ NHÂN & SỔ ĐỊA CHỈ ----------
         [HttpGet]
         public new ActionResult Profile()
@@ -238,16 +284,51 @@ namespace ClothingShop.Controllers
             var currentUser = SessionHelper.GetCurrentUser(Session);
             if (currentUser == null) return RedirectToAction("Login");
 
-            if (string.IsNullOrWhiteSpace(address.ReceiverName) || string.IsNullOrWhiteSpace(address.ReceiverPhone) || string.IsNullOrWhiteSpace(address.DetailAddress))
+            address.ReceiverName = (address.ReceiverName ?? "").Trim();
+            address.ReceiverPhone = (address.ReceiverPhone ?? "").Trim();
+            address.Province = (address.Province ?? "").Trim();
+            address.District = (address.District ?? "").Trim();
+            address.Ward = (address.Ward ?? "").Trim();
+            address.DetailAddress = (address.DetailAddress ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(address.ReceiverName))
             {
-                TempData["Error"] = "Vui lòng nhập đầy đủ họ tên, số điện thoại và địa chỉ chi tiết.";
+                TempData["Error"] = "Vui lòng nhập họ tên.";
                 return RedirectToAction("Profile");
             }
-
-            address.ReceiverPhone = address.ReceiverPhone.Trim();
+            if (address.ReceiverName.Length < 2 || !Regex.IsMatch(address.ReceiverName, @"^[\p{L}\s'.-]{2,100}$"))
+            {
+                TempData["Error"] = "Họ tên tối thiểu 2 ký tự và không chứa ký tự đặc biệt bất thường.";
+                return RedirectToAction("Profile");
+            }
+            if (string.IsNullOrWhiteSpace(address.ReceiverPhone))
+            {
+                TempData["Error"] = "Vui lòng nhập số điện thoại.";
+                return RedirectToAction("Profile");
+            }
             if (!Regex.IsMatch(address.ReceiverPhone, @"^0\d{9}$"))
             {
-                TempData["Error"] = "Số điện thoại nhận hàng phải gồm đúng 10 chữ số và bắt đầu bằng số 0.";
+                TempData["Error"] = "Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng số 0).";
+                return RedirectToAction("Profile");
+            }
+            if (string.IsNullOrWhiteSpace(address.Province))
+            {
+                TempData["Error"] = "Vui lòng chọn hoặc nhập Tỉnh / Thành phố.";
+                return RedirectToAction("Profile");
+            }
+            if (string.IsNullOrWhiteSpace(address.District))
+            {
+                TempData["Error"] = "Vui lòng chọn hoặc nhập Quận / Huyện.";
+                return RedirectToAction("Profile");
+            }
+            if (string.IsNullOrWhiteSpace(address.Ward))
+            {
+                TempData["Error"] = "Vui lòng chọn hoặc nhập Phường / Xã.";
+                return RedirectToAction("Profile");
+            }
+            if (string.IsNullOrWhiteSpace(address.DetailAddress) || address.DetailAddress.Length < 5)
+            {
+                TempData["Error"] = "Vui lòng nhập địa chỉ cụ thể (số nhà, tên đường...), tối thiểu 5 ký tự.";
                 return RedirectToAction("Profile");
             }
 

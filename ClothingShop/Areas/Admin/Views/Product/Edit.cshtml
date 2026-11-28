@@ -16,7 +16,7 @@
         {
             @Html.AntiForgeryToken()
             @Html.HiddenFor(m => m.ProductId)
-            @Html.ValidationSummary(false, "", new { @class = "alert alert-danger py-2 small" })
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 small" })
 
             <div class="row g-3">
                 <div class="col-md-8">
@@ -76,17 +76,24 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Đổi hình ảnh mới</label>
-                    <input type="file" name="fileUpload" class="form-control" accept="image/*" />
-                    <div class="mt-2">
-                        <img src="@img" alt="@Model.Name" width="60" height="80" class="rounded border" />
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Hình ảnh sản phẩm</label>
+                    <div class="row g-3 align-items-start">
+                        <div class="col-md-7">
+                            <label class="form-label small text-muted mb-1">Nhập link ảnh online (URL)</label>
+                            @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control rounded-3", id = "imgUrlInput", placeholder = "https://example.com/image.jpg" })
+                            <div class="form-text">Nếu tải file lên, file sẽ được ưu tiên dùng thay link URL.</div>
+                            <label class="form-label small text-muted mb-1 mt-2">Hoặc tải file ảnh mới từ máy tính</label>
+                            <input type="file" name="fileUpload" class="form-control rounded-3" accept="image/*" id="fileUploadInput" />
+                        </div>
+                        <div class="col-md-5 text-center">
+                            <label class="form-label small text-muted d-block mb-1">Xem trước ảnh</label>
+                            <img id="imgPreview" src="@img" alt="Preview"
+                                 class="rounded border shadow-sm"
+                                 style="height:120px;max-width:100%;object-fit:cover;"
+                                 onerror="this.src='@Url.Content("~/Content/images/products/default.jpg")'" />
+                        </div>
                     </div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Tên file ảnh</label>
-                    @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control" })
                 </div>
 
                 <div class="col-md-6">
@@ -113,3 +120,23 @@
         }
     </div>
 </div>
+
+@section Scripts {
+<script>
+    // Live preview: URL input
+    document.getElementById('imgUrlInput').addEventListener('input', function () {
+        var url = this.value.trim();
+        if (url) document.getElementById('imgPreview').src = url;
+    });
+    // Live preview: file upload
+    document.getElementById('fileUploadInput').addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('imgPreview').src = e.target.result;
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+</script>
+}

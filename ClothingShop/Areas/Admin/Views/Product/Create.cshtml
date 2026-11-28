@@ -73,14 +73,24 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Tải ảnh sản phẩm lên</label>
-                    <input type="file" name="fileUpload" class="form-control" accept="image/*" />
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Hoặc nhập tên file ảnh có sẵn</label>
-                    @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control", placeholder = "VD: sp-01.jpg" })
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Hình ảnh sản phẩm</label>
+                    <div class="row g-3 align-items-start">
+                        <div class="col-md-7">
+                            <label class="form-label small text-muted mb-1">Nhập link ảnh online (URL) hoặc tên file ảnh</label>
+                            @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control rounded-3", id = "imgUrlInput", placeholder = "https://example.com/image.jpg hoặc sp-01.jpg" })
+                            <div class="form-text">Nếu tải file lên, file sẽ được ưu tiên dùng thay link URL.</div>
+                            <label class="form-label small text-muted mb-1 mt-2">Hoặc tải ảnh sản phẩm từ máy tính</label>
+                            <input type="file" name="fileUpload" class="form-control rounded-3" accept="image/*" id="fileUploadInput" />
+                        </div>
+                        <div class="col-md-5 text-center">
+                            <label class="form-label small text-muted d-block mb-1">Xem trước ảnh</label>
+                            <img id="imgPreview" src="@Url.Content("~/Content/images/products/default.jpg")" alt="Preview"
+                                 class="rounded border shadow-sm"
+                                 style="height:120px;max-width:100%;object-fit:cover;"
+                                 onerror="this.src='@Url.Content("~/Content/images/products/default.jpg")'" />
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-md-6">
@@ -106,3 +116,23 @@
         }
     </div>
 </div>
+
+@section scripts {
+<script>
+    document.getElementById('imgUrlInput').addEventListener('input', function () {
+        var url = this.value.trim();
+        if (url) {
+            document.getElementById('imgPreview').src = (url.indexOf('http') === 0 || url.indexOf('/') === 0) ? url : '/Content/images/products/' + url;
+        }
+    });
+    document.getElementById('fileUploadInput').addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('imgPreview').src = e.target.result;
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+</script>
+}

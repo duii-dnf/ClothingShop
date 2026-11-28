@@ -38,19 +38,47 @@
      data-subtotal="@((long)subTotal)"
      data-shipping="@((long)shippingFee)">
 
-    <div class="d-flex justify-content-center gap-3 small fw-semibold mb-4">
-        <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check me-1"></i>1. Giỏ hàng</span>
-        <span class="text-muted align-self-center">&rarr;</span>
-        <span class="badge bg-dark rounded-pill px-3 py-2">2. Đặt hàng</span>
-        <span class="text-muted align-self-center">&rarr;</span>
-        <span class="badge bg-light text-muted border rounded-pill px-3 py-2">3. Hoàn tất</span>
+    <!-- Checkout Progress Bar -->
+    <div class="mb-5">
+        <div class="d-flex align-items-center justify-content-center" style="max-width:520px;margin:0 auto;">
+            <!-- Step 1 -->
+            <div class="text-center flex-shrink-0">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-success text-white fw-bold" style="width:38px;height:38px;">
+                    <i class="bi bi-check2 fs-6"></i>
+                </div>
+                <div class="small fw-semibold text-success mt-1">Giỏ hàng</div>
+            </div>
+            <!-- Line -->
+            <div class="flex-grow-1 mx-2" style="height:3px;background:linear-gradient(to right,#198754,#0a0a0a);border-radius:2px;"></div>
+            <!-- Step 2 -->
+            <div class="text-center flex-shrink-0">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-obsidian text-white fw-bold border border-dark" style="width:38px;height:38px;">
+                    2
+                </div>
+                <div class="small fw-semibold mt-1">Đặt hàng</div>
+            </div>
+            <!-- Line -->
+            <div class="flex-grow-1 mx-2" style="height:3px;background:#dee2e6;border-radius:2px;"></div>
+            <!-- Step 3 -->
+            <div class="text-center flex-shrink-0">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted border" style="width:38px;height:38px;">
+                    3
+                </div>
+                <div class="small text-muted mt-1">Hoàn tất</div>
+            </div>
+        </div>
     </div>
 
-    <h3 class="fw-bold mb-4"><i class="bi bi-credit-card me-2"></i>Xác nhận thông tin đặt hàng</h3>
+    <h3 class="font-display fw-bold mb-4"><i class="bi bi-credit-card me-2"></i>Xác nhận thông tin đặt hàng</h3>
 
-    @using (Html.BeginForm("Checkout", "Order", FormMethod.Post))
+    @using (Html.BeginForm("Checkout", "Order", FormMethod.Post, new { novalidate = "novalidate", id = "checkoutForm" }))
     {
         @Html.AntiForgeryToken()
+
+        <div id="checkoutErrorSummary" class="alert alert-danger border-0 rounded-4 shadow-sm d-none align-items-center gap-2 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+            <span id="checkoutErrorSummaryText">Vui lòng điền đầy đủ và chính xác các thông tin giao hàng được đánh dấu đỏ trước khi đặt hàng.</span>
+        </div>
 
         if (!ViewData.ModelState.IsValid)
         {
@@ -76,7 +104,7 @@
                                         <strong>@addr.ReceiverName</strong> &bull; @addr.ReceiverPhone
                                         @if (addr.IsDefault)
                                         {
-                                            <span class="badge bg-dark rounded-pill ms-1">Mặc định</span>
+                                            <span class="badge bg-obsidian rounded-pill ms-1">Mặc định</span>
                                         }
                                         <div class="small text-muted mt-1">
                                             @string.Join(", ", new[] { addr.DetailAddress, addr.Ward, addr.District, addr.Province }.Where(s => !string.IsNullOrWhiteSpace(s)))
@@ -100,31 +128,58 @@
                     <div class="card-body p-4">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small">Họ tên người nhận <span class="text-danger">*</span></label>
-                                @Html.TextBoxFor(m => m.ReceiverName, new { @class = "form-control rounded-3", placeholder = "Nguyễn Văn A" })
+                                <label class="form-label fw-semibold small" for="inpReceiverName">Họ tên người nhận <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(m => m.ReceiverName, new { @class = "form-control rounded-3", placeholder = "Nguyễn Văn A", id = "inpReceiverName" })
                                 @Html.ValidationMessageFor(m => m.ReceiverName, "", new { @class = "text-danger small" })
+                                <div class="invalid-feedback" id="errReceiverName">Vui lòng nhập họ tên người nhận.</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small">Số điện thoại <span class="text-danger">*</span></label>
-                                @Html.TextBoxFor(m => m.Phone, new { @class = "form-control rounded-3", id = "phoneInput", pattern = "0[0-9]{9}", maxlength = "10", placeholder = "0901234567", title = "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0" })
+                                <label class="form-label fw-semibold small" for="phoneInput">Số điện thoại <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(m => m.Phone, new { @class = "form-control rounded-3", id = "phoneInput", maxlength = "10", placeholder = "0901234567" })
                                 @Html.ValidationMessageFor(m => m.Phone, "", new { @class = "text-danger small" })
+                                <div class="invalid-feedback" id="errPhone">Vui lòng nhập số điện thoại nhận hàng.</div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small">Tỉnh / Thành phố</label>
-                                @Html.TextBoxFor(m => m.Province, new { @class = "form-control rounded-3", placeholder = "TP. Hồ Chí Minh" })
+                                <label class="form-label fw-semibold small" for="inpProvince">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                                <div class="vn-combo-wrap">
+                                    @Html.TextBoxFor(m => m.Province, new { @class = "form-control rounded-3 pe-5", placeholder = "Chọn hoặc nhập Tỉnh/TP", id = "inpProvince", autocomplete = "off" })
+                                    <button type="button" class="vn-combo-toggle" data-target="menuProvince" tabindex="-1" aria-label="Mở danh sách Tỉnh / Thành phố">
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </button>
+                                    <div class="vn-combo-menu" id="menuProvince"></div>
+                                    <div class="invalid-feedback" id="errProvince">Vui lòng chọn hoặc nhập Tỉnh / Thành phố.</div>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Province, "", new { @class = "text-danger small" })
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small">Quận / Huyện</label>
-                                @Html.TextBoxFor(m => m.District, new { @class = "form-control rounded-3", placeholder = "Quận Tân Phú" })
+                                <label class="form-label fw-semibold small" for="inpDistrict">Quận / Huyện <span class="text-danger">*</span></label>
+                                <div class="vn-combo-wrap">
+                                    @Html.TextBoxFor(m => m.District, new { @class = "form-control rounded-3 pe-5", placeholder = "Chọn hoặc nhập Quận/Huyện", id = "inpDistrict", autocomplete = "off" })
+                                    <button type="button" class="vn-combo-toggle" data-target="menuDistrict" tabindex="-1" aria-label="Mở danh sách Quận / Huyện">
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </button>
+                                    <div class="vn-combo-menu" id="menuDistrict"></div>
+                                    <div class="invalid-feedback" id="errDistrict">Vui lòng chọn hoặc nhập Quận / Huyện.</div>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.District, "", new { @class = "text-danger small" })
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small">Phường / Xã</label>
-                                @Html.TextBoxFor(m => m.Ward, new { @class = "form-control rounded-3", placeholder = "Phường Tây Thạnh" })
+                                <label class="form-label fw-semibold small" for="inpWard">Phường / Xã <span class="text-danger">*</span></label>
+                                <div class="vn-combo-wrap">
+                                    @Html.TextBoxFor(m => m.Ward, new { @class = "form-control rounded-3 pe-5", placeholder = "Chọn hoặc nhập Phường/Xã", id = "inpWard", autocomplete = "off" })
+                                    <button type="button" class="vn-combo-toggle" data-target="menuWard" tabindex="-1" aria-label="Mở danh sách Phường / Xã">
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </button>
+                                    <div class="vn-combo-menu" id="menuWard"></div>
+                                    <div class="invalid-feedback" id="errWard">Vui lòng chọn hoặc nhập Phường / Xã.</div>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Ward, "", new { @class = "text-danger small" })
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-semibold small">Địa chỉ chi tiết <span class="text-danger">*</span></label>
-                                @Html.TextBoxFor(m => m.Address, new { @class = "form-control rounded-3", placeholder = "Số nhà, tên đường..." })
+                                <label class="form-label fw-semibold small" for="inpAddress">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(m => m.Address, new { @class = "form-control rounded-3", placeholder = "Số nhà, tên đường...", id = "inpAddress" })
                                 @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger small" })
+                                <div class="invalid-feedback" id="errAddress">Vui lòng nhập địa chỉ cụ thể (số nhà, tên đường...).</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label small">Ghi chú giao hàng</label>
@@ -147,7 +202,7 @@
                     </div>
                     <div class="card-body p-4 d-flex flex-column gap-3">
                         <!-- Lựa chọn 1: COD -->
-                        <label id="cardCOD" role="button" class="card rounded-3 p-3 @(!isBankSelected ? "border-dark border-2 bg-light" : "border")" for="pmCOD">
+                        <label id="cardCOD" class="payment-option-card border rounded-3 p-3 @(!isBankSelected ? "active" : "")" for="pmCOD">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="radio" name="PaymentMethod" id="pmCOD" value="@PaymentMethods.COD"
@@ -162,8 +217,8 @@
                         </label>
 
                         <!-- Lựa chọn 2: Chuyển khoản ngân hàng -->
-                        <div id="cardBank" class="card rounded-3 p-3 @(isBankSelected ? "border-dark border-2 bg-light" : "border")">
-                            <label class="d-flex justify-content-between align-items-center w-100" for="pmBank" role="button">
+                        <div id="cardBank" class="payment-option-card border rounded-3 p-3 @(isBankSelected ? "active" : "")">
+                            <label class="d-flex justify-content-between align-items-center w-100" for="pmBank" style="cursor: pointer;">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="radio" name="PaymentMethod" id="pmBank" value="@PaymentMethods.BankTransfer"
                                            @(isBankSelected ? "checked" : "") />
@@ -180,11 +235,11 @@
                                             <img id="bankQrImg"
                                                  src="https://img.vietqr.io/image/VCB-0123456789-compact2.png?amount=@((long)total)&addInfo=CLOTHINGSHOP%20@(Uri.EscapeDataString(Model.Phone ?? ""))&accountName=CLOTHINGSHOP%20VN"
                                                  alt="Mã QR chuyển khoản Vietcombank"
-                                                 width="150"
                                                  class="img-fluid rounded-2"
-                                                 onerror="this.parentElement.classList.add('d-none');" />
+                                                 style="max-width: 150px;"
+                                                 onerror="this.parentElement.style.display='none';" />
                                         </div>
-                                        <small class="d-block text-muted mt-1">Quét bằng app ngân hàng</small>
+                                        <div class="text-muted mt-1" style="font-size: 0.72rem;">Quét bằng app ngân hàng</div>
                                     </div>
                                     <div class="col-sm-8">
                                         <div class="bg-light rounded-3 p-3 small">
@@ -196,7 +251,7 @@
                                                 <span class="text-muted">Số tài khoản:</span>
                                                 <span class="d-flex align-items-center gap-2">
                                                     <strong id="bankAccountNumber" class="text-dark">0123456789</strong>
-                                                    <button type="button" id="btnCopyStk" class="btn btn-outline-dark btn-sm py-0 px-2">
+                                                    <button type="button" id="btnCopyStk" class="btn btn-outline-dark btn-sm py-0 px-2" style="font-size: 0.72rem;">
                                                         Sao chép
                                                     </button>
                                                 </span>
@@ -221,14 +276,18 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="errPaymentMethod" class="text-danger small d-none">
+                            <i class="bi bi-exclamation-circle me-1"></i>Vui lòng chọn phương thức thanh toán.
+                        </div>
+                        @Html.ValidationMessageFor(m => m.PaymentMethod, "", new { @class = "text-danger small" })
                     </div>
                 </div>
             </div>
 
-            <!-- CỘT PHẢI: Tóm tắt đơn hàng -->
+            <!-- CỘT PHẢI: Tóm tắt đơn hàng (cuộn theo nhưng luôn nằm dưới Header) -->
             <div class="col-lg-5">
-                <div class="card border-0 rounded-4 shadow-sm overflow-hidden sticky-top">
-                    <div class="card-header bg-dark text-white fw-bold py-3">
+                <div class="card border-0 rounded-4 shadow-sm overflow-hidden checkout-summary-sticky">
+                    <div class="card-header bg-obsidian text-white fw-bold py-3">
                         Đơn hàng của bạn (@cartItems.Sum(x => x.Quantity) sản phẩm)
                     </div>
                     <div class="card-body p-4">
@@ -249,7 +308,7 @@
                         <div class="mb-3">
                             @Html.HiddenFor(m => m.CouponCode, new { id = "couponInput" })
 
-                            <div class="d-flex justify-content-between align-items-center border rounded-3 p-3 bg-light"
+                            <div class="d-flex justify-content-between align-items-center border rounded-3 p-3 bg-light voucher-trigger-box"
                                  role="button"
                                  tabindex="0"
                                  data-bs-toggle="modal"
@@ -268,7 +327,7 @@
 
                             @Html.ValidationMessageFor(m => m.CouponCode, "", new { @class = "text-danger small d-block mt-1" })
 
-                            <div id="appliedVoucherNotice" class="d-none mt-2 px-2 py-1 rounded bg-success bg-opacity-10 text-success border border-success small d-flex justify-content-between align-items-center">
+                            <div id="appliedVoucherNotice" class="d-none mt-2 px-2 py-1 rounded bg-success-subtle text-success small d-flex justify-content-between align-items-center">
                                 <span id="appliedVoucherText"></span>
                                 <button type="button" id="btnRemoveVoucher" class="btn btn-link btn-sm text-danger p-0 text-decoration-none fw-semibold">Gỡ mã</button>
                             </div>
@@ -297,7 +356,7 @@
                             <div id="discountRow" class="d-flex justify-content-between align-items-center small mb-2 d-none">
                                 <span class="text-muted">
                                     Voucher giảm giá
-                                    <span id="appliedCouponBadge" class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1"></span>
+                                    <span id="appliedCouponBadge" class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1"></span>
                                 </span>
                                 <span id="discountAmountText" class="text-danger fw-semibold">-0₫</span>
                             </div>
@@ -306,7 +365,7 @@
 
                             <div class="d-flex justify-content-between fs-5 fw-bold mb-4">
                                 <span>Tổng thanh toán:</span>
-                                <span id="finalTotalText" class="text-danger">@PriceFormatter.Vnd(total)</span>
+                                <span id="finalTotalText" class="text-danger font-display">@PriceFormatter.Vnd(total)</span>
                             </div>
                         </div>
 
@@ -360,43 +419,38 @@
                             decimal discount = Math.Round(subTotal * (c.DiscountPercent / 100m), 0);
                             if (discount > subTotal) { discount = subTotal; }
                             int usedPct = c.UsageLimit > 0 ? Math.Min(100, (int)Math.Round(c.UsedCount * 100.0 / c.UsageLimit)) : 0;
-                            string usedWidthClass = usedPct >= 90 ? "w-100" : usedPct >= 70 ? "w-75" : usedPct >= 45 ? "w-50" : usedPct > 0 ? "w-25" : "w-0";
 
-                            <div class="card border rounded-3 overflow-hidden"
-                                 role="button"
-                                 data-coupon-card="true"
+                            <div class="voucher-card"
                                  data-usable="true"
                                  data-code="@c.Code.ToUpper()"
                                  data-percent="@c.DiscountPercent"
                                  data-discount="@((long)discount)"
                                  data-reason="">
-                                <div class="row g-0 align-items-stretch">
-                                    <div class="col-4 bg-danger text-white d-flex flex-column justify-content-center align-items-center p-3 text-center">
-                                        <div class="fs-4 fw-bold">-@c.DiscountPercent%</div>
-                                        <small class="text-uppercase">VOUCHER</small>
-                                    </div>
-                                    <div class="col-8 bg-white p-3 d-flex justify-content-between align-items-center">
-                                        <div class="pe-2 flex-grow-1">
-                                            @if (c.CouponId == bestCouponId)
-                                            {
-                                                <span class="badge bg-warning text-dark rounded-pill mb-1">Lựa chọn tốt nhất</span>
-                                            }
-                                            <div class="fw-bold text-dark">
-                                                Giảm @c.DiscountPercent%
-                                                <span class="badge bg-light text-dark border ms-1">@c.Code</span>
-                                            </div>
-                                            <div class="small text-secondary">
-                                                Đơn tối thiểu @PriceFormatter.Vnd(c.MinOrder) &bull; Giảm <strong class="text-danger">@PriceFormatter.Vnd(discount)</strong>
-                                            </div>
-                                            <div class="progress my-1">
-                                                <div class="progress-bar bg-danger @usedWidthClass"></div>
-                                            </div>
-                                            <small class="text-muted">
-                                                Đã dùng @usedPct% &bull; HSD: @c.EndDate.ToString("dd/MM/yyyy")
-                                            </small>
+                                @if (c.CouponId == bestCouponId)
+                                {
+                                    <span class="voucher-best-tag">Lựa chọn tốt nhất</span>
+                                }
+                                <div class="voucher-stub">
+                                    <div class="voucher-stub__percent">-@c.DiscountPercent%</div>
+                                    <div class="voucher-stub__label">VOUCHER</div>
+                                </div>
+                                <div class="voucher-body">
+                                    <div class="pe-2">
+                                        <div class="fw-bold text-dark">
+                                            Giảm @c.DiscountPercent%
+                                            <span class="badge bg-light text-dark border ms-1">@c.Code</span>
                                         </div>
-                                        <span data-coupon-radio="true" class="badge rounded-pill border text-secondary px-2 py-1 ms-2">Chọn</span>
+                                        <div class="small text-secondary">
+                                            Đơn tối thiểu @PriceFormatter.Vnd(c.MinOrder) &bull; Giảm <strong class="text-danger">@PriceFormatter.Vnd(discount)</strong>
+                                        </div>
+                                        <div class="progress my-1" style="height: 4px;">
+                                            <div class="progress-bar bg-danger" style="width: @usedPct%;"></div>
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.72rem;">
+                                            Đã dùng @usedPct% &bull; HSD: @c.EndDate.ToString("dd/MM/yyyy")
+                                        </div>
                                     </div>
+                                    <div class="voucher-radio"></div>
                                 </div>
                             </div>
                         }
@@ -435,30 +489,30 @@
                                 reason = "Đơn hàng chưa thỏa điều kiện áp dụng mã này.";
                             }
 
-                            <div class="card border rounded-3 overflow-hidden bg-white opacity-75">
-                                <div class="row g-0 align-items-stretch"
-                                     data-coupon-card="true"
+                            <div class="border rounded-3 overflow-hidden bg-white">
+                                <div class="voucher-card disabled border-0 rounded-0"
                                      data-usable="false"
                                      data-code="@c.Code.ToUpper()"
                                      data-percent="@c.DiscountPercent"
                                      data-discount="0"
                                      data-reason="@reason">
-                                    <div class="col-4 bg-secondary text-white d-flex flex-column justify-content-center align-items-center p-3 text-center">
-                                        <div class="fs-4 fw-bold">-@c.DiscountPercent%</div>
-                                        <small class="text-uppercase">KHÔNG KHẢ DỤNG</small>
+                                    <div class="voucher-stub">
+                                        <div class="voucher-stub__percent">-@c.DiscountPercent%</div>
+                                        <div class="voucher-stub__label">KHÔNG KHẢ DỤNG</div>
                                     </div>
-                                    <div class="col-8 bg-white p-3 d-flex justify-content-between align-items-center">
+                                    <div class="voucher-body">
                                         <div>
                                             <div class="fw-bold text-secondary">
                                                 Giảm @c.DiscountPercent%
                                                 <span class="badge bg-light text-secondary border ms-1">@c.Code</span>
                                             </div>
                                             <div class="small text-muted">Đơn tối thiểu @PriceFormatter.Vnd(c.MinOrder)</div>
-                                            <small class="text-muted">HSD: @c.EndDate.ToString("dd/MM/yyyy")</small>
+                                            <div class="text-muted" style="font-size: 0.72rem;">HSD: @c.EndDate.ToString("dd/MM/yyyy")</div>
                                         </div>
+                                        <div class="voucher-radio"></div>
                                     </div>
                                 </div>
-                                <div class="bg-warning bg-opacity-10 text-danger small px-3 py-2 border-top">
+                                <div class="voucher-reason">
                                     <i class="bi bi-exclamation-circle me-1"></i>@reason
                                 </div>
                             </div>
@@ -478,6 +532,163 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Cuộn theo trang nhưng luôn nằm dưới gạch Header và không đè lên Header/Dropdown */
+    @@media (min-width: 992px) {
+        .checkout-summary-sticky {
+            position: sticky;
+            top: 96px;
+            z-index: 10;
+        }
+    }
+
+    .payment-option-card {
+        transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+        background-color: #ffffff;
+    }
+
+        .payment-option-card.active {
+            border-color: #18181b !important;
+            background-color: #fafafa;
+            box-shadow: 0 0 0 1px #18181b;
+        }
+
+    .voucher-trigger-box {
+        cursor: pointer;
+        transition: border-color 0.2s, background-color 0.2s;
+    }
+
+        .voucher-trigger-box:hover {
+            border-color: #18181b !important;
+            background-color: #ffffff !important;
+        }
+
+    .voucher-pill-active {
+        border: 1px dashed #198754;
+        color: #198754;
+        background: #f0fdf4;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .voucher-card {
+        display: flex;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        cursor: pointer;
+    }
+
+        .voucher-card:hover {
+            border-color: #dc3545;
+        }
+
+        .voucher-card.selected {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 1px #dc3545;
+            background: #fffafa;
+        }
+
+    .voucher-stub {
+        width: 94px;
+        min-width: 94px;
+        background: linear-gradient(135deg, #ee4d2d, #c81e1e);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 6px;
+        text-align: center;
+        border-right: 2px dashed rgba(255, 255, 255, 0.55);
+    }
+
+    .voucher-stub__percent {
+        font-size: 1.3rem;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .voucher-stub__label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        opacity: 0.9;
+        margin-top: 3px;
+    }
+
+    .voucher-body {
+        flex: 1;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .voucher-best-tag {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #ee4d2d;
+        color: #fff;
+        font-size: 0.66rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-bottom-left-radius: 6px;
+    }
+
+    .voucher-radio {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        border-radius: 50%;
+        border: 2px solid #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.75rem;
+    }
+
+    .voucher-card.selected .voucher-radio {
+        background: #ee4d2d;
+        border-color: #ee4d2d;
+    }
+
+    .voucher-card.disabled {
+        cursor: not-allowed;
+        opacity: 0.62;
+        background: #f8f9fa;
+    }
+
+        .voucher-card.disabled:hover {
+            border-color: #e5e7eb;
+        }
+
+        .voucher-card.disabled .voucher-stub {
+            background: #adb5bd;
+        }
+
+        .voucher-card.disabled .voucher-radio {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+
+    .voucher-reason {
+        background: #fff5f5;
+        border-top: 1px solid #f1f5f9;
+        padding: 6px 12px;
+        font-size: 0.76rem;
+        color: #b91c1c;
+    }
+</style>
 
 @section scripts {
     <script>
@@ -523,7 +734,7 @@
                     var btnRemove = document.getElementById('btnRemoveVoucher');
                     var btnCloseModal = document.getElementById('btnCloseVoucherModal');
 
-                    var allCards = document.querySelectorAll('[data-coupon-card="true"]');
+                    var allCards = document.querySelectorAll('.voucher-card');
                     var tempSelectedCode = '';
 
                     function formatVnd(amount = 0) {
@@ -563,20 +774,12 @@
                         }
                     }
 
-                    // Bật/tắt giao diện COD và Chuyển khoản ngân hàng (Thuần Bootstrap 5)
+                    // Bật/tắt giao diện COD và Chuyển khoản ngân hàng
                     function updatePaymentMethodUI() {
                         var isBank = (pmBank instanceof HTMLInputElement) && pmBank.checked;
 
-                        if (cardCOD) {
-                            cardCOD.classList.toggle('border-dark', !isBank);
-                            cardCOD.classList.toggle('border-2', !isBank);
-                            cardCOD.classList.toggle('bg-light', !isBank);
-                        }
-                        if (cardBank) {
-                            cardBank.classList.toggle('border-dark', isBank);
-                            cardBank.classList.toggle('border-2', isBank);
-                            cardBank.classList.toggle('bg-light', isBank);
-                        }
+                        if (cardCOD) cardCOD.classList.toggle('active', !isBank);
+                        if (cardBank) cardBank.classList.toggle('active', isBank);
                         if (codInfoBox) codInfoBox.classList.toggle('d-none', isBank);
                         if (bankInfoBox) bankInfoBox.classList.toggle('d-none', !isBank);
 
@@ -624,19 +827,14 @@
                         for (var i = 0; i < allCards.length; i++) {
                             var card = allCards[i];
                             if (card.getAttribute('data-usable') !== 'true') continue;
-                            var radio = card.querySelector('[data-coupon-radio="true"]');
+                            var radio = card.querySelector('.voucher-radio');
                             var isMatch = (card.getAttribute('data-code') || '').toUpperCase() === target;
-                            card.classList.toggle('border-danger', isMatch);
-                            card.classList.toggle('border-2', isMatch);
-                            card.classList.toggle('shadow-sm', isMatch);
-                            if (radio) {
-                                if (isMatch) {
-                                    radio.className = 'badge bg-danger text-white rounded-pill px-2 py-1 ms-2';
-                                    radio.innerHTML = '<i class="bi bi-check-lg"></i>';
-                                } else {
-                                    radio.className = 'badge rounded-pill border text-secondary px-2 py-1 ms-2';
-                                    radio.textContent = 'Chọn';
-                                }
+                            if (isMatch) {
+                                card.classList.add('selected');
+                                if (radio) radio.innerHTML = '<i class="bi bi-check-lg"></i>';
+                            } else {
+                                card.classList.remove('selected');
+                                if (radio) radio.innerHTML = '';
                             }
                         }
                     }
@@ -648,7 +846,7 @@
                             couponInput.value = code;
                         }
                         if (triggerBadge) {
-                            triggerBadge.className = 'badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-1';
+                            triggerBadge.className = 'voucher-pill-active';
                             triggerBadge.textContent = code + ' (-' + formatVnd(discount) + ')';
                         }
                         if (appliedCouponBadge) {
@@ -814,5 +1012,332 @@
 
                     updatePaymentMethodUI();
                 });
+    </script>
+    <script src="@Url.Content("~/Content/data/vietnam-provinces.js")"></script>
+    <script>
+        (function () {
+            // 1. Editable Cascading Combobox (63 Tỉnh/Thành, Quận/Huyện, Phường/Xã) - dữ liệu tĩnh cục bộ
+            var vnData = window.VN_PROVINCES || [];
+            var inpProvince = document.getElementById('inpProvince');
+            var inpDistrict = document.getElementById('inpDistrict');
+            var inpWard = document.getElementById('inpWard');
+            var menuProvince = document.getElementById('menuProvince');
+            var menuDistrict = document.getElementById('menuDistrict');
+            var menuWard = document.getElementById('menuWard');
+
+            function normalizeVn(str) {
+                return (str || '')
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/đ/g, 'd')
+                    .trim();
+            }
+
+            function findProvince(name) {
+                var key = normalizeVn(name);
+                if (!key) return null;
+                return vnData.find(function (p) { return normalizeVn(p.n) === key; }) || null;
+            }
+
+            function findDistrict(prov, name) {
+                if (!prov || !prov.d) return null;
+                var key = normalizeVn(name);
+                if (!key) return null;
+                return prov.d.find(function (d) { return normalizeVn(d.n) === key; }) || null;
+            }
+
+            function closeAllMenus(exceptMenu) {
+                [menuProvince, menuDistrict, menuWard].forEach(function (m) {
+                    if (m && m !== exceptMenu) m.style.display = 'none';
+                });
+            }
+
+            function renderComboMenu(menu, items, query, onSelect) {
+                if (!menu) return;
+                var q = normalizeVn(query);
+                var filtered = q
+                    ? items.filter(function (item) { return normalizeVn(item).indexOf(q) !== -1; })
+                    : items;
+
+                if (filtered.length === 0) {
+                    menu.innerHTML = '<div class="px-3 py-2 small text-muted">Không có gợi ý khớp — bạn vẫn có thể tự nhập</div>';
+                    menu.style.display = 'block';
+                    return;
+                }
+
+                menu.innerHTML = '';
+                filtered.slice(0, 80).forEach(function (item) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'vn-combo-item';
+                    btn.textContent = item;
+                    btn.addEventListener('mousedown', function (ev) {
+                        ev.preventDefault();
+                        onSelect(item);
+                        menu.style.display = 'none';
+                    });
+                    menu.appendChild(btn);
+                });
+                menu.style.display = 'block';
+            }
+
+            function getProvinceNames() {
+                return vnData.map(function (p) { return p.n; });
+            }
+
+            function getDistrictNames() {
+                var p = findProvince(inpProvince ? inpProvince.value : '');
+                return p && p.d ? p.d.map(function (d) { return d.n; }) : [];
+            }
+
+            function getWardNames() {
+                var p = findProvince(inpProvince ? inpProvince.value : '');
+                var d = findDistrict(p, inpDistrict ? inpDistrict.value : '');
+                return d && d.w ? d.w : [];
+            }
+
+            function bindCombo(input, menu, getItems, onSelected) {
+                if (!input || !menu) return;
+                input.addEventListener('focus', function () {
+                    closeAllMenus(menu);
+                    renderComboMenu(menu, getItems(), input.value, onSelected);
+                });
+                input.addEventListener('input', function () {
+                    closeAllMenus(menu);
+                    renderComboMenu(menu, getItems(), input.value, onSelected);
+                });
+            }
+
+            bindCombo(inpProvince, menuProvince, getProvinceNames, function (val) {
+                inpProvince.value = val;
+                if (inpDistrict) { inpDistrict.value = ''; clearFieldError(inpDistrict); }
+                if (inpWard) { inpWard.value = ''; clearFieldError(inpWard); }
+                clearFieldError(inpProvince);
+                validateOneField('inpProvince');
+            });
+
+            bindCombo(inpDistrict, menuDistrict, getDistrictNames, function (val) {
+                inpDistrict.value = val;
+                if (inpWard) { inpWard.value = ''; clearFieldError(inpWard); }
+                clearFieldError(inpDistrict);
+                validateOneField('inpDistrict');
+            });
+
+            bindCombo(inpWard, menuWard, getWardNames, function (val) {
+                inpWard.value = val;
+                clearFieldError(inpWard);
+                validateOneField('inpWard');
+            });
+
+            document.querySelectorAll('.vn-combo-toggle').forEach(function (btn) {
+                btn.addEventListener('click', function (ev) {
+                    ev.stopPropagation();
+                    var targetId = btn.getAttribute('data-target');
+                    var menu = document.getElementById(targetId);
+                    if (!menu) return;
+                    var isOpen = menu.style.display === 'block';
+                    closeAllMenus(null);
+                    if (!isOpen) {
+                        if (targetId === 'menuProvince') {
+                            renderComboMenu(menu, getProvinceNames(), '', function (val) {
+                                inpProvince.value = val;
+                                if (inpDistrict) inpDistrict.value = '';
+                                if (inpWard) inpWard.value = '';
+                                validateOneField('inpProvince');
+                            });
+                            inpProvince.focus();
+                        } else if (targetId === 'menuDistrict') {
+                            renderComboMenu(menu, getDistrictNames(), '', function (val) {
+                                inpDistrict.value = val;
+                                if (inpWard) inpWard.value = '';
+                                validateOneField('inpDistrict');
+                            });
+                            inpDistrict.focus();
+                        } else if (targetId === 'menuWard') {
+                            renderComboMenu(menu, getWardNames(), '', function (val) {
+                                inpWard.value = val;
+                                validateOneField('inpWard');
+                            });
+                            inpWard.focus();
+                        }
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (ev) {
+                if (!ev.target.closest('.vn-combo-wrap')) {
+                    closeAllMenus(null);
+                }
+            });
+
+            // Dữ liệu vnData đã được nạp tĩnh từ vietnam-provinces.js
+
+            // 2. Form Validation (Client-side đồng bộ Server-side)
+            var form = document.getElementById('checkoutForm');
+            var summaryBox = document.getElementById('checkoutErrorSummary');
+            var summaryText = document.getElementById('checkoutErrorSummaryText');
+
+            function setFieldError(input, errEl, msg) {
+                if (!input) return;
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                if (errEl) errEl.textContent = msg;
+            }
+
+            function clearFieldError(input) {
+                if (!input) return;
+                input.classList.remove('is-invalid');
+            }
+
+            function setFieldValid(input) {
+                if (!input) return;
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            }
+
+            function isNewAddressSelected() {
+                var selAddr = document.querySelector('input[name="SelectedAddressId"]:checked');
+                return !selAddr || selAddr.value === '0';
+            }
+
+            function validateOneField(id) {
+                var el = document.getElementById(id);
+                if (!el) return true;
+                var val = (el.value || '').trim();
+
+                if (id === 'inpReceiverName') {
+                    var err = document.getElementById('errReceiverName');
+                    if (!val) { setFieldError(el, err, 'Vui lòng nhập họ tên người nhận.'); return false; }
+                    if (val.length < 2 || !/^[A-Za-zÀ-ỹ\s'.-]{2,100}$/.test(val)) {
+                        setFieldError(el, err, 'Họ tên người nhận tối thiểu 2 ký tự và không chứa ký tự đặc biệt bất thường.');
+                        return false;
+                    }
+                    setFieldValid(el);
+                    return true;
+                }
+
+                if (id === 'phoneInput') {
+                    var errPhone = document.getElementById('errPhone');
+                    if (!val) { setFieldError(el, errPhone, 'Vui lòng nhập số điện thoại nhận hàng.'); return false; }
+                    if (!/^0\d{9}$/.test(val)) {
+                        setFieldError(el, errPhone, 'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng số 0).');
+                        return false;
+                    }
+                    setFieldValid(el);
+                    return true;
+                }
+
+                if (id === 'inpProvince') {
+                    var errP = document.getElementById('errProvince');
+                    if (!val) { setFieldError(el, errP, 'Vui lòng chọn hoặc nhập Tỉnh / Thành phố.'); return false; }
+                    setFieldValid(el);
+                    return true;
+                }
+
+                if (id === 'inpDistrict') {
+                    var errD = document.getElementById('errDistrict');
+                    if (!val) { setFieldError(el, errD, 'Vui lòng chọn hoặc nhập Quận / Huyện.'); return false; }
+                    setFieldValid(el);
+                    return true;
+                }
+
+                if (id === 'inpWard') {
+                    var errW = document.getElementById('errWard');
+                    if (!val) { setFieldError(el, errW, 'Vui lòng chọn hoặc nhập Phường / Xã.'); return false; }
+                    setFieldValid(el);
+                    return true;
+                }
+
+                if (id === 'inpAddress') {
+                    var errA = document.getElementById('errAddress');
+                    if (!val || val.length < 5) {
+                        setFieldError(el, errA, 'Vui lòng nhập địa chỉ cụ thể (số nhà, tên đường...).');
+                        return false;
+                    }
+                    setFieldValid(el);
+                    return true;
+                }
+
+                return true;
+            }
+
+            var fieldIds = ['inpReceiverName', 'phoneInput', 'inpProvince', 'inpDistrict', 'inpWard', 'inpAddress'];
+            fieldIds.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', function () {
+                    if (el.classList.contains('is-invalid')) {
+                        validateOneField(id);
+                    }
+                    if (summaryBox && !document.querySelector('.is-invalid')) {
+                        summaryBox.classList.add('d-none');
+                        summaryBox.classList.remove('d-flex');
+                    }
+                });
+                el.addEventListener('blur', function () {
+                    if (isNewAddressSelected() && el.value.trim() !== '') {
+                        validateOneField(id);
+                    }
+                });
+            });
+
+            // Reset lỗi khi đổi lựa chọn địa chỉ trong sổ địa chỉ
+            document.querySelectorAll('input[name="SelectedAddressId"]').forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    fieldIds.forEach(function (id) { clearFieldError(document.getElementById(id)); });
+                    if (summaryBox) {
+                        summaryBox.classList.add('d-none');
+                        summaryBox.classList.remove('d-flex');
+                    }
+                });
+            });
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    var allValid = true;
+                    var firstInvalidEl = null;
+
+                    if (isNewAddressSelected()) {
+                        fieldIds.forEach(function (id) {
+                            var ok = validateOneField(id);
+                            if (!ok) {
+                                allValid = false;
+                                if (!firstInvalidEl) firstInvalidEl = document.getElementById(id);
+                            }
+                        });
+                    }
+
+                    // Kiểm tra phương thức thanh toán
+                    var pmChecked = document.querySelector('input[name="PaymentMethod"]:checked');
+                    var pmErr = document.getElementById('errPaymentMethod');
+                    if (!pmChecked) {
+                        allValid = false;
+                        if (pmErr) pmErr.classList.remove('d-none');
+                        if (!firstInvalidEl) firstInvalidEl = document.getElementById('cardCOD');
+                    } else if (pmErr) {
+                        pmErr.classList.add('d-none');
+                    }
+
+                    if (!allValid) {
+                        e.preventDefault();
+                        if (summaryBox && summaryText) {
+                            summaryText.textContent = 'Vui lòng điền đầy đủ và chính xác các thông tin giao hàng được đánh dấu đỏ trước khi đặt hàng.';
+                            summaryBox.classList.remove('d-none');
+                            summaryBox.classList.add('d-flex');
+                        }
+                        if (firstInvalidEl) {
+                            firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            setTimeout(function () {
+                                if (typeof firstInvalidEl.focus === 'function') firstInvalidEl.focus();
+                            }, 250);
+                        }
+                    } else if (summaryBox) {
+                        summaryBox.classList.add('d-none');
+                        summaryBox.classList.remove('d-flex');
+                    }
+                });
+            }
+        })();
     </script>
 }

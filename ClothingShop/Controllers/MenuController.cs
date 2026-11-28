@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Web.Mvc;
+using System.Web.Script.Serialization;
 using ClothingShop.Models;
 using ClothingShop.ViewModels;
 
@@ -7,6 +8,42 @@ namespace ClothingShop.Controllers
 {
     public class MenuController : Controller
     {
+        [ChildActionOnly]
+        public ActionResult SearchProductData()
+        {
+            using (var db = new ClothingShopDBEntities())
+            {
+                var items = db.Products
+                    .Where(p => p.IsActive)
+                    .OrderBy(p => p.Name)
+                    .Select(p => new
+                    {
+                        id = p.ProductId,
+                        name = p.Name,
+                        imageUrl = p.ImageUrl,
+                        price = p.Price,
+                        discountPrice = p.DiscountPrice
+                    })
+                    .ToList()
+                    .Select(p => new
+                    {
+                        p.id,
+                        p.name,
+                        imageUrl = string.IsNullOrEmpty(p.imageUrl)
+                            ? "/Content/images/products/default.jpg"
+                            : (p.imageUrl.StartsWith("http") || p.imageUrl.StartsWith("/")
+                                ? p.imageUrl
+                                : "/Content/images/products/" + p.imageUrl),
+                        p.price,
+                        p.discountPrice
+                    })
+                    .ToList();
+
+                ViewBag.ProductsJson = new JavaScriptSerializer().Serialize(items);
+                return PartialView("_SearchProductData");
+            }
+        }
+
         [ChildActionOnly]
         public ActionResult CategoryMenu(string mode = "desktop")
         {

@@ -75,8 +75,26 @@ namespace ClothingShop.Controllers
                     model.Address = addr.DetailAddress;
                     ModelState.Remove("ReceiverName");
                     ModelState.Remove("Phone");
+                    ModelState.Remove("Province");
+                    ModelState.Remove("District");
+                    ModelState.Remove("Ward");
                     ModelState.Remove("Address");
                 }
+            }
+            else
+            {
+                // Trim dữ liệu nhập mới trước khi kiểm tra
+                model.ReceiverName = (model.ReceiverName ?? "").Trim();
+                model.Phone = (model.Phone ?? "").Trim();
+                model.Province = (model.Province ?? "").Trim();
+                model.District = (model.District ?? "").Trim();
+                model.Ward = (model.Ward ?? "").Trim();
+                model.Address = (model.Address ?? "").Trim();
+            }
+
+            if (model.PaymentMethod != PaymentMethods.COD && model.PaymentMethod != PaymentMethods.BankTransfer)
+            {
+                ModelState.AddModelError("PaymentMethod", "Vui lòng chọn phương thức thanh toán.");
             }
 
             // Kiểm tra tồn kho

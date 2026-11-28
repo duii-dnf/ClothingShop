@@ -1,4 +1,4 @@
-﻿@model ClothingShop.ViewModels.RegisterViewModel
+@model ClothingShop.ViewModels.RegisterViewModel
 @{
     ViewBag.Title = "Đăng ký tài khoản";
 }
@@ -9,52 +9,63 @@
             <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
                 <div class="row g-0">
                     <!-- Cột trái: Ảnh Lookbook -->
-                    <div class="col-md-5 d-none d-md-block position-relative bg-dark">
-                        <img src="~/Content/images/hero/banner-women.jpg" class="w-100 h-100 opacity-75" alt="ClothingShop Register" />
-                        <div class="card-img-overlay d-flex flex-column justify-content-end p-4 text-white">
-                            <span class="badge bg-warning text-dark rounded-pill align-self-start mb-2 fw-bold">NEW MEMBER -15%</span>
-                            <h4 class="fw-bold mb-1">GIA NHẬP CLOTHINGSHOP</h4>
+                    <div class="col-md-5 d-none d-md-block position-relative">
+                        <img src="~/Content/images/hero/banner-women.jpg" class="w-100 h-100" style="object-fit:cover;" alt="AURELIA Register" />
+                        <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex flex-column justify-content-end p-4 text-white">
+                            <span class="badge badge-lime rounded-pill align-self-start mb-2 fw-bold">NEW MEMBER -15%</span>
+                            <h4 class="font-display fw-bold mb-1">GIA NHẬP AURELIA</h4>
                             <p class="small text-white-50 mb-0">Tạo tài khoản trong 30 giây và dùng ngay mã NEWUSER giảm 15% cho đơn đầu tiên.</p>
                         </div>
                     </div>
 
                     <!-- Cột phải: Form Đăng ký -->
                     <div class="col-md-7 p-4 p-lg-5 bg-white">
-                        <h3 class="fw-bold mb-1">Tạo tài khoản mới</h3>
+                        <h3 class="font-display fw-bold mb-1">Tạo tài khoản mới</h3>
                         <p class="text-muted small mb-4">Điền thông tin để bắt đầu mua sắm cực chất</p>
 
-                        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+                        @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { novalidate = "novalidate", id = "registerForm" }))
                         {
                             @Html.AntiForgeryToken()
                             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger border-0 rounded-3 py-2 small" })
 
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Họ và tên <span class="text-danger">*</span></label>
-                                @Html.TextBoxFor(m => m.FullName, new { @class = "form-control rounded-3", placeholder = "Nguyễn Văn A" })
+                                @Html.TextBoxFor(m => m.FullName, new { @class = "form-control rounded-3", placeholder = "Nguyễn Văn A", id = "regFullName" })
                                 @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Email <span class="text-danger">*</span></label>
-                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control rounded-3", type = "email", placeholder = "email@example.com" })
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control rounded-3", type = "email", placeholder = "email@example.com", id = "regEmail" })
                                 @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
                             </div>
 
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label small fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
-                                    @Html.PasswordFor(m => m.Password, new { @class = "form-control rounded-3", placeholder = "Tối thiểu 6 ký tự" })
+                                    <div class="input-group">
+                                        @Html.PasswordFor(m => m.Password, new { @class = "form-control rounded-start-3 border-end-0", placeholder = "Tối thiểu 6 ký tự", id = "regPassword" })
+                                        <button class="btn btn-outline-secondary border-start-0 rounded-end-3" type="button" id="toggleRegPwd" tabindex="-1">
+                                            <i class="bi bi-eye" id="eyeIconReg"></i>
+                                        </button>
+                                    </div>
                                     @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                                    <div id="pwdStrength" class="mt-1"></div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-semibold">Xác nhận mật khẩu <span class="text-danger">*</span></label>
-                                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control rounded-3", placeholder = "Nhập lại mật khẩu" })
+                                    <div class="input-group">
+                                        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control rounded-start-3 border-end-0", placeholder = "Nhập lại mật khẩu", id = "regConfirm" })
+                                        <button class="btn btn-outline-secondary border-start-0 rounded-end-3" type="button" id="toggleRegConfirm" tabindex="-1">
+                                            <i class="bi bi-eye" id="eyeIconConfirm"></i>
+                                        </button>
+                                    </div>
                                     @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger small" })
                                 </div>
                             </div>
 
                             <div class="d-grid mb-3 mt-4">
-                                <button type="submit" class="btn btn-dark btn-lg rounded-pill fw-bold">Đăng ký tài khoản</button>
+                                <button type="submit" class="btn btn-dark btn-lg rounded-pill fw-bold" id="regSubmitBtn">Đăng ký tài khoản</button>
                             </div>
 
                             <div class="text-center small">
@@ -68,3 +79,58 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    // Toggle mật khẩu
+    function togglePwd(inputId, iconId) {
+        var pwd = document.getElementById(inputId);
+        var icon = document.getElementById(iconId);
+        if (pwd.type === 'password') { pwd.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+        else { pwd.type = 'password'; icon.className = 'bi bi-eye'; }
+    }
+    document.getElementById('toggleRegPwd').onclick = function () { togglePwd('regPassword', 'eyeIconReg'); };
+    document.getElementById('toggleRegConfirm').onclick = function () { togglePwd('regConfirm', 'eyeIconConfirm'); };
+
+    // Hiển thị độ mạnh mật khẩu
+    document.getElementById('regPassword').addEventListener('input', function () {
+        var v = this.value, s = document.getElementById('pwdStrength');
+        if (!v) { s.innerHTML = ''; return; }
+        var score = 0;
+        if (v.length >= 6) score++;
+        if (v.length >= 8) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+        var labels = ['', '<span class="text-danger small">Yếu</span>', '<span class="text-warning small">Trung bình</span>', '<span class="text-warning small">Khá</span>', '<span class="text-success small">Mạnh</span>', '<span class="text-success small fw-bold">Rất mạnh</span>'];
+        var bars = '<div class="d-flex gap-1 mt-1">' + [1,2,3,4,5].map(function(i){ return '<div style="height:4px;flex:1;border-radius:2px;background:'+(i<=score?'var(--bs-' + (score<=2?'danger':score<=3?'warning':'success') + ')':'#dee2e6')+'"></div>'; }).join('') + '</div>';
+        s.innerHTML = bars + (labels[score] || '');
+    });
+
+    // Client-side validation
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+        var name = document.getElementById('regFullName').value.trim();
+        var email = document.getElementById('regEmail').value.trim();
+        var pwd = document.getElementById('regPassword').value;
+        var confirm = document.getElementById('regConfirm').value;
+        var valid = true;
+
+        function setValid(el, ok) { el.classList.toggle('is-invalid', !ok); el.classList.toggle('is-valid', ok); }
+
+        setValid(document.getElementById('regFullName'), name.length >= 2);
+        if (name.length < 2) valid = false;
+
+        var emailRe = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        setValid(document.getElementById('regEmail'), emailRe.test(email));
+        if (!emailRe.test(email)) valid = false;
+
+        setValid(document.getElementById('regPassword'), pwd.length >= 6);
+        if (pwd.length < 6) valid = false;
+
+        setValid(document.getElementById('regConfirm'), confirm === pwd && confirm.length > 0);
+        if (confirm !== pwd || confirm.length === 0) valid = false;
+
+        if (!valid) e.preventDefault();
+    });
+</script>
+}

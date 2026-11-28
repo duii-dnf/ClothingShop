@@ -128,34 +128,62 @@
                     }
 
                     <h6 class="fw-bold mb-2">Thêm địa chỉ mới</h6>
-                    @using (Html.BeginForm("AddAddress", "Account", FormMethod.Post))
+                    @using (Html.BeginForm("AddAddress", "Account", FormMethod.Post, new { novalidate = "novalidate", id = "addAddressForm" }))
                     {
                         @Html.AntiForgeryToken()
+                        <div id="addrErrorSummary" class="alert alert-danger border-0 rounded-3 py-2 small d-none align-items-center gap-2 mb-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                            <span>Vui lòng điền đầy đủ và chính xác các thông tin được đánh dấu đỏ trước khi tiếp tục.</span>
+                        </div>
                         <div class="row g-2">
                             <div class="col-md-6">
-                                <input type="text" name="ReceiverName" class="form-control form-control-sm" placeholder="Tên người nhận *" required />
+                                <input type="text" name="ReceiverName" id="addrReceiverName" class="form-control form-control-sm rounded-3" placeholder="Tên người nhận *" />
+                                <div class="invalid-feedback" id="errAddrName">Vui lòng nhập họ tên.</div>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" name="ReceiverPhone" class="form-control form-control-sm" pattern="0[0-9]{9}" maxlength="10" placeholder="SĐT 10 số (0xxxxxxxxx) *" title="Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0" required />
+                                <input type="text" name="ReceiverPhone" id="addrPhone" class="form-control form-control-sm rounded-3" maxlength="10" placeholder="SĐT 10 số (0xxxxxxxxx) *" />
+                                <div class="invalid-feedback" id="errAddrPhone">Vui lòng nhập số điện thoại.</div>
                             </div>
                             <div class="col-md-4">
-                                <input type="text" name="Province" class="form-control form-control-sm" placeholder="Tỉnh / TP" />
+                                <div class="vn-combo-wrap">
+                                    <input type="text" name="Province" id="addrProvince" class="form-control form-control-sm rounded-3 pe-4" placeholder="Tỉnh / TP *" autocomplete="off" />
+                                    <button type="button" class="vn-combo-toggle" data-target="addrMenuProvince" tabindex="-1" aria-label="Mở danh sách Tỉnh / Thành phố" style="top:15px;">
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </button>
+                                    <div class="vn-combo-menu" id="addrMenuProvince" style="top:32px;"></div>
+                                    <div class="invalid-feedback" id="errAddrProvince">Vui lòng chọn hoặc nhập Tỉnh / Thành phố.</div>
+                                </div>
                             </div>
                             <div class="col-md-4">
-                                <input type="text" name="District" class="form-control form-control-sm" placeholder="Quận / Huyện" />
+                                <div class="vn-combo-wrap">
+                                    <input type="text" name="District" id="addrDistrict" class="form-control form-control-sm rounded-3 pe-4" placeholder="Quận / Huyện *" autocomplete="off" />
+                                    <button type="button" class="vn-combo-toggle" data-target="addrMenuDistrict" tabindex="-1" aria-label="Mở danh sách Quận / Huyện" style="top:15px;">
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </button>
+                                    <div class="vn-combo-menu" id="addrMenuDistrict" style="top:32px;"></div>
+                                    <div class="invalid-feedback" id="errAddrDistrict">Vui lòng chọn hoặc nhập Quận / Huyện.</div>
+                                </div>
                             </div>
                             <div class="col-md-4">
-                                <input type="text" name="Ward" class="form-control form-control-sm" placeholder="Phường / Xã" />
+                                <div class="vn-combo-wrap">
+                                    <input type="text" name="Ward" id="addrWard" class="form-control form-control-sm rounded-3 pe-4" placeholder="Phường / Xã *" autocomplete="off" />
+                                    <button type="button" class="vn-combo-toggle" data-target="addrMenuWard" tabindex="-1" aria-label="Mở danh sách Phường / Xã" style="top:15px;">
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </button>
+                                    <div class="vn-combo-menu" id="addrMenuWard" style="top:32px;"></div>
+                                    <div class="invalid-feedback" id="errAddrWard">Vui lòng chọn hoặc nhập Phường / Xã.</div>
+                                </div>
                             </div>
                             <div class="col-12">
-                                <input type="text" name="DetailAddress" class="form-control form-control-sm" placeholder="Số nhà, tên đường *" required />
+                                <input type="text" name="DetailAddress" id="addrDetail" class="form-control form-control-sm rounded-3" placeholder="Số nhà, tên đường *" />
+                                <div class="invalid-feedback" id="errAddrDetail">Vui lòng nhập địa chỉ cụ thể (số nhà, tên đường...).</div>
                             </div>
                             <div class="col-12 d-flex justify-content-between align-items-center mt-2">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="IsDefault" value="true" id="chkNewDef" />
                                     <label class="form-check-label small" for="chkNewDef">Đặt làm mặc định</label>
                                 </div>
-                                <button type="submit" class="btn btn-dark btn-sm">
+                                <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">
                                     <i class="bi bi-plus-circle me-1"></i>Thêm địa chỉ
                                 </button>
                             </div>
@@ -195,3 +223,245 @@
         </div>
     </div>
 </div>
+
+@section scripts {
+    <script src="@Url.Content("~/Content/data/vietnam-provinces.js")"></script>
+    <script>
+        (function () {
+            // 1. Editable Cascading Combobox (dữ liệu tĩnh, không dùng AJAX)
+            var vnData = window.VN_PROVINCES || [];
+            var inpProvince = document.getElementById('addrProvince');
+            var inpDistrict = document.getElementById('addrDistrict');
+            var inpWard = document.getElementById('addrWard');
+            var menuProvince = document.getElementById('addrMenuProvince');
+            var menuDistrict = document.getElementById('addrMenuDistrict');
+            var menuWard = document.getElementById('addrMenuWard');
+
+            function normalizeVn(str) {
+                return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+            }
+            function findProvince(name) {
+                var key = normalizeVn(name);
+                return key ? (vnData.find(function (p) { return normalizeVn(p.n) === key; }) || null) : null;
+            }
+            function findDistrict(prov, name) {
+                if (!prov || !prov.d) return null;
+                var key = normalizeVn(name);
+                return key ? (prov.d.find(function (d) { return normalizeVn(d.n) === key; }) || null) : null;
+            }
+            function closeAllMenus(exceptMenu) {
+                [menuProvince, menuDistrict, menuWard].forEach(function (m) {
+                    if (m && m !== exceptMenu) m.style.display = 'none';
+                });
+            }
+            function renderComboMenu(menu, items, query, onSelect) {
+                if (!menu) return;
+                var q = normalizeVn(query);
+                var filtered = q ? items.filter(function (item) { return normalizeVn(item).indexOf(q) !== -1; }) : items;
+                if (filtered.length === 0) {
+                    menu.innerHTML = '<div class="px-3 py-2 small text-muted">Không có gợi ý khớp — bạn vẫn có thể tự nhập</div>';
+                    menu.style.display = 'block';
+                    return;
+                }
+                menu.innerHTML = '';
+                filtered.slice(0, 80).forEach(function (item) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'vn-combo-item';
+                    btn.textContent = item;
+                    btn.addEventListener('mousedown', function (ev) {
+                        ev.preventDefault();
+                        onSelect(item);
+                        menu.style.display = 'none';
+                    });
+                    menu.appendChild(btn);
+                });
+                menu.style.display = 'block';
+            }
+
+            function getProvinceNames() { return vnData.map(function (p) { return p.n; }); }
+            function getDistrictNames() {
+                var p = findProvince(inpProvince ? inpProvince.value : '');
+                return p && p.d ? p.d.map(function (d) { return d.n; }) : [];
+            }
+            function getWardNames() {
+                var p = findProvince(inpProvince ? inpProvince.value : '');
+                var d = findDistrict(p, inpDistrict ? inpDistrict.value : '');
+                return d && d.w ? d.w : [];
+            }
+
+            function bindCombo(input, menu, getItems, onSelected) {
+                if (!input || !menu) return;
+                input.addEventListener('focus', function () {
+                    closeAllMenus(menu);
+                    renderComboMenu(menu, getItems(), input.value, onSelected);
+                });
+                input.addEventListener('input', function () {
+                    closeAllMenus(menu);
+                    renderComboMenu(menu, getItems(), input.value, onSelected);
+                });
+            }
+
+            bindCombo(inpProvince, menuProvince, getProvinceNames, function (val) {
+                inpProvince.value = val;
+                if (inpDistrict) { inpDistrict.value = ''; inpDistrict.classList.remove('is-invalid'); }
+                if (inpWard) { inpWard.value = ''; inpWard.classList.remove('is-invalid'); }
+                validateField('addrProvince');
+            });
+            bindCombo(inpDistrict, menuDistrict, getDistrictNames, function (val) {
+                inpDistrict.value = val;
+                if (inpWard) { inpWard.value = ''; inpWard.classList.remove('is-invalid'); }
+                validateField('addrDistrict');
+            });
+            bindCombo(inpWard, menuWard, getWardNames, function (val) {
+                inpWard.value = val;
+                validateField('addrWard');
+            });
+
+            document.querySelectorAll('#addAddressForm .vn-combo-toggle').forEach(function (btn) {
+                btn.addEventListener('click', function (ev) {
+                    ev.stopPropagation();
+                    var targetId = btn.getAttribute('data-target');
+                    var menu = document.getElementById(targetId);
+                    if (!menu) return;
+                    var isOpen = menu.style.display === 'block';
+                    closeAllMenus(null);
+                    if (!isOpen) {
+                        if (targetId === 'addrMenuProvince') {
+                            renderComboMenu(menu, getProvinceNames(), '', function (val) {
+                                inpProvince.value = val;
+                                if (inpDistrict) inpDistrict.value = '';
+                                if (inpWard) inpWard.value = '';
+                                validateField('addrProvince');
+                            });
+                            inpProvince.focus();
+                        } else if (targetId === 'addrMenuDistrict') {
+                            renderComboMenu(menu, getDistrictNames(), '', function (val) {
+                                inpDistrict.value = val;
+                                if (inpWard) inpWard.value = '';
+                                validateField('addrDistrict');
+                            });
+                            inpDistrict.focus();
+                        } else if (targetId === 'addrMenuWard') {
+                            renderComboMenu(menu, getWardNames(), '', function (val) {
+                                inpWard.value = val;
+                                validateField('addrWard');
+                            });
+                            inpWard.focus();
+                        }
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (ev) {
+                if (!ev.target.closest('.vn-combo-wrap')) closeAllMenus(null);
+            });
+
+            // 2. Form Validation (Client-side đồng bộ Server-side)
+            var form = document.getElementById('addAddressForm');
+            var summary = document.getElementById('addrErrorSummary');
+            var fieldIds = ['addrReceiverName', 'addrPhone', 'addrProvince', 'addrDistrict', 'addrWard', 'addrDetail'];
+
+            function setErr(el, errEl, msg) {
+                el.classList.add('is-invalid');
+                el.classList.remove('is-valid');
+                if (errEl) errEl.textContent = msg;
+            }
+            function setOk(el) {
+                el.classList.remove('is-invalid');
+                el.classList.add('is-valid');
+            }
+
+            function validateField(id) {
+                var el = document.getElementById(id);
+                if (!el) return true;
+                var val = (el.value || '').trim();
+
+                if (id === 'addrReceiverName') {
+                    var errN = document.getElementById('errAddrName');
+                    if (!val) { setErr(el, errN, 'Vui lòng nhập họ tên.'); return false; }
+                    if (val.length < 2 || !/^[A-Za-zÀ-ỹ\s'.-]{2,100}$/.test(val)) {
+                        setErr(el, errN, 'Họ tên tối thiểu 2 ký tự và không chứa ký tự đặc biệt bất thường.');
+                        return false;
+                    }
+                    setOk(el); return true;
+                }
+                if (id === 'addrPhone') {
+                    var errP = document.getElementById('errAddrPhone');
+                    if (!val) { setErr(el, errP, 'Vui lòng nhập số điện thoại.'); return false; }
+                    if (!/^0\d{9}$/.test(val)) {
+                        setErr(el, errP, 'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng số 0).');
+                        return false;
+                    }
+                    setOk(el); return true;
+                }
+                if (id === 'addrProvince') {
+                    var errPr = document.getElementById('errAddrProvince');
+                    if (!val) { setErr(el, errPr, 'Vui lòng chọn hoặc nhập Tỉnh / Thành phố.'); return false; }
+                    setOk(el); return true;
+                }
+                if (id === 'addrDistrict') {
+                    var errD = document.getElementById('errAddrDistrict');
+                    if (!val) { setErr(el, errD, 'Vui lòng chọn hoặc nhập Quận / Huyện.'); return false; }
+                    setOk(el); return true;
+                }
+                if (id === 'addrWard') {
+                    var errW = document.getElementById('errAddrWard');
+                    if (!val) { setErr(el, errW, 'Vui lòng chọn hoặc nhập Phường / Xã.'); return false; }
+                    setOk(el); return true;
+                }
+                if (id === 'addrDetail') {
+                    var errDt = document.getElementById('errAddrDetail');
+                    if (!val || val.length < 5) {
+                        setErr(el, errDt, 'Vui lòng nhập địa chỉ cụ thể (số nhà, tên đường...).');
+                        return false;
+                    }
+                    setOk(el); return true;
+                }
+                return true;
+            }
+
+            fieldIds.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', function () {
+                    if (el.classList.contains('is-invalid')) validateField(id);
+                    if (summary && !form.querySelector('.is-invalid')) {
+                        summary.classList.add('d-none');
+                        summary.classList.remove('d-flex');
+                    }
+                });
+                el.addEventListener('blur', function () {
+                    if (el.value.trim() !== '') validateField(id);
+                });
+            });
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    var allOk = true;
+                    var firstErr = null;
+                    fieldIds.forEach(function (id) {
+                        if (!validateField(id)) {
+                            allOk = false;
+                            if (!firstErr) firstErr = document.getElementById(id);
+                        }
+                    });
+                    if (!allOk) {
+                        e.preventDefault();
+                        if (summary) {
+                            summary.classList.remove('d-none');
+                            summary.classList.add('d-flex');
+                        }
+                        if (firstErr) {
+                            firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            setTimeout(function () { firstErr.focus(); }, 250);
+                        }
+                    } else if (summary) {
+                        summary.classList.add('d-none');
+                        summary.classList.remove('d-flex');
+                    }
+                });
+            }
+        })();
+    </script>
+}

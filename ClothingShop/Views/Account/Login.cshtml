@@ -1,4 +1,4 @@
-﻿@model ClothingShop.ViewModels.LoginViewModel
+@model ClothingShop.ViewModels.LoginViewModel
 @{
     ViewBag.Title = "Đăng nhập";
 }
@@ -9,44 +9,53 @@
             <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
                 <div class="row g-0">
                     <!-- Cột trái: Ảnh Lookbook Gen-Z -->
-                    <div class="col-md-5 d-none d-md-block position-relative bg-dark">
-                        <img src="~/Content/images/hero/banner-men.jpg" class="w-100 h-100 opacity-75" alt="ClothingShop Login" />
-                        <div class="card-img-overlay d-flex flex-column justify-content-end p-4 text-white">
-                            <span class="badge bg-warning text-dark rounded-pill align-self-start mb-2 fw-bold">MEMBER CLUB</span>
-                            <h4 class="fw-bold mb-1">CHÀO MỪNG TRỞ LẠI</h4>
+                    <div class="col-md-5 d-none d-md-block position-relative">
+                        <img src="~/Content/images/hero/banner-men.jpg" class="w-100 h-100" style="object-fit:cover;" alt="AURELIA Login" />
+                        <div class="position-absolute top-0 start-0 w-100 h-100 lookbook-overlay d-flex flex-column justify-content-end p-4 text-white">
+                            <span class="badge badge-lime rounded-pill align-self-start mb-2 fw-bold">MEMBER CLUB</span>
+                            <h4 class="font-display fw-bold mb-1">CHÀO MỪNG TRỞ LẠI</h4>
                             <p class="small text-white-50 mb-0">Đăng nhập để theo dõi đơn hàng, lưu địa chỉ và nhận mã giảm giá độc quyền.</p>
                         </div>
                     </div>
 
                     <!-- Cột phải: Form Đăng nhập -->
                     <div class="col-md-7 p-4 p-lg-5 bg-white">
-                        <h3 class="fw-bold mb-1">Đăng nhập</h3>
+                        <h3 class="font-display fw-bold mb-1">Đăng nhập</h3>
                         <p class="text-muted small mb-4">Nhập email và mật khẩu tài khoản của bạn</p>
 
-                        @using (Html.BeginForm("Login", "Account", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
+                        @using (Html.BeginForm("Login", "Account", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { novalidate = "novalidate", id = "loginForm" }))
                         {
                             @Html.AntiForgeryToken()
                             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger border-0 rounded-3 py-2 small" })
 
                             <div class="mb-3">
                                 <label class="form-label small fw-semibold">Email</label>
-                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control rounded-3", type = "email", placeholder = "email@example.com", required = "required" })
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control rounded-3", type = "email", placeholder = "email@example.com", id = "loginEmail" })
                                 @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                                <div class="invalid-feedback">Vui lòng nhập email hợp lệ.</div>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-2">
                                 <label class="form-label small fw-semibold">Mật khẩu</label>
-                                @Html.PasswordFor(m => m.Password, new { @class = "form-control rounded-3", placeholder = "Nhập mật khẩu", required = "required" })
+                                <div class="input-group">
+                                    @Html.PasswordFor(m => m.Password, new { @class = "form-control rounded-start-3 border-end-0", placeholder = "Nhập mật khẩu", id = "loginPassword" })
+                                    <button class="btn btn-outline-secondary border-start-0 rounded-end-3" type="button" id="toggleLoginPwd" tabindex="-1">
+                                        <i class="bi bi-eye" id="eyeIconLogin"></i>
+                                    </button>
+                                </div>
                                 @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
                             </div>
 
-                            <div class="form-check mb-4">
-                                @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input", id = "chkRemember" })
-                                <label class="form-check-label small" for="chkRemember">Ghi nhớ email đăng nhập</label>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input", id = "chkRemember" })
+                                    <label class="form-check-label small" for="chkRemember">Ghi nhớ email đăng nhập</label>
+                                </div>
+                                <a href="@Url.Action("ForgotPassword", "Account")" class="small text-muted text-decoration-none">Quên mật khẩu?</a>
                             </div>
 
                             <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-dark btn-lg rounded-pill fw-bold">Đăng nhập</button>
+                                <button type="submit" class="btn btn-dark btn-lg rounded-pill fw-bold" id="loginSubmitBtn">Đăng nhập</button>
                             </div>
 
                             <div class="text-center small">
@@ -60,3 +69,45 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    // Toggle mật khẩu
+    document.getElementById('toggleLoginPwd').addEventListener('click', function () {
+        var pwd = document.getElementById('loginPassword');
+        var icon = document.getElementById('eyeIconLogin');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            pwd.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    });
+
+    // Client-side validation
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+        var email = document.getElementById('loginEmail').value.trim();
+        var pwd = document.getElementById('loginPassword').value;
+        var valid = true;
+
+        if (!email || !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+            document.getElementById('loginEmail').classList.add('is-invalid');
+            valid = false;
+        } else {
+            document.getElementById('loginEmail').classList.remove('is-invalid');
+            document.getElementById('loginEmail').classList.add('is-valid');
+        }
+
+        if (!pwd) {
+            document.getElementById('loginPassword').classList.add('is-invalid');
+            valid = false;
+        } else {
+            document.getElementById('loginPassword').classList.remove('is-invalid');
+            document.getElementById('loginPassword').classList.add('is-valid');
+        }
+
+        if (!valid) e.preventDefault();
+    });
+</script>
+}

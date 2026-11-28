@@ -10,17 +10,103 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewBag.Title - CLOTHINGSHOP.</title>
+    <title>@ViewBag.Title - AURELIA.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Urbanist:wght@600;700;800&display=swap" rel="stylesheet" />
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link href="~/Content/Site.css" rel="stylesheet" />
+    <style>
+        .navbar-brand-aurelia {
+            white-space: nowrap;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+        .brand-wordmark {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: 0.08em;
+            color: #111111;
+            line-height: 1;
+        }
+        .brand-sub {
+            font-family: 'Urbanist', sans-serif;
+            font-size: 0.55rem;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            color: #6c757d;
+            margin-top: 3px;
+            line-height: 1;
+        }
+        .header-actions-group {
+            flex-wrap: nowrap;
+            flex-shrink: 0;
+        }
+        .header-actions-group .btn {
+            white-space: nowrap;
+        }
+        #searchWrapper {
+            width: 175px;
+            flex-shrink: 1;
+        }
+        @@media (min-width: 1200px) {
+            #searchWrapper {
+                width: 210px;
+            }
+        }
+        @@media (min-width: 992px) {
+            #mainNavbar .navbar-nav {
+                flex-wrap: nowrap;
+            }
+            #mainNavbar .navbar-nav .nav-link {
+                white-space: nowrap;
+                color: #111111;
+                font-size: 0.92rem;
+                padding-left: 0.65rem;
+                padding-right: 0.65rem;
+            }
+            #mainNavbar .navbar-nav .nav-item.dropdown {
+                position: relative;
+            }
+
+                #mainNavbar .navbar-nav .nav-item.dropdown > .dropdown-menu {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    margin-top: 0;
+                    border: 0;
+                    border-radius: 12px;
+                    padding: 8px;
+                    min-width: 200px;
+                }
+
+                    #mainNavbar .navbar-nav .nav-item.dropdown:hover > .dropdown-menu,
+                    #mainNavbar .navbar-nav .nav-item.dropdown > .dropdown-menu.show {
+                        display: block !important;
+                    }
+
+                #mainNavbar .navbar-nav .nav-item.dropdown .dropdown-item {
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    white-space: nowrap;
+                }
+        }
+        @@media (min-width: 1200px) {
+            #mainNavbar .navbar-nav .nav-link {
+                padding-left: 0.85rem;
+                padding-right: 0.85rem;
+            }
+        }
+    </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <!-- Top Promo Strip -->
-    <div class="bg-dark text-white py-2 small">
+    <div class="bg-obsidian text-white py-2 small">
         <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-warning text-dark rounded-pill fw-bold px-2">NEW DROP</span>
+                <span class="badge badge-lime rounded-pill fw-bold px-2">NEW DROP</span>
                 <span>Freeship đơn từ <strong>500K</strong> &bull; Nhập mã <strong class="text-warning">SALE10</strong> giảm ngay 10%</span>
             </div>
             <div class="d-none d-md-flex align-items-center gap-3 text-white-50">
@@ -30,12 +116,21 @@
         </div>
     </div>
 
-    <!-- Main Navbar (Bootstrap 5 + Menu 2 cấp động) -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top py-3">
+    <!-- Main Glass Navbar (Bootstrap 5 + Menu 2 cấp động) -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-glass border-bottom sticky-top py-3">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-4 text-uppercase d-flex align-items-center gap-1" href="@Url.Action("Index", "Home")">
-                <span class="bg-dark text-white px-2 py-1 rounded-3 fs-6 lh-1">CS</span>
-                <span>CLOTHINGSHOP<span class="text-danger">.</span></span>
+            <a class="navbar-brand navbar-brand-aurelia d-flex align-items-center gap-2" href="@Url.Action("Index", "Home")">
+                <!-- AURELIA Minimalist Fashion Hanger SVG -->
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="36" height="36" rx="8" fill="#111111" />
+                    <path d="M18 10.5C18 9.12 19.12 8 20.5 8C21.88 8 23 9.12 23 10.5C23 11.74 22.05 12.76 20.82 12.95L18 13.8V15.4" stroke="#F8F7F4" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M18 15.4L8.5 21.8C7.85 22.24 8.16 23.25 8.95 23.25H27.05C27.84 23.25 28.15 22.24 27.5 21.8L18 15.4Z" stroke="#F8F7F4" stroke-width="1.65" stroke-linejoin="round" />
+                    <path d="M14.5 26.75H21.5" stroke="#F8F7F4" stroke-width="1.35" stroke-linecap="round" opacity="0.7" />
+                </svg>
+                <span class="d-flex flex-column">
+                    <span class="brand-wordmark">AURELIA<span style="color:#E11D48;">.</span></span>
+                    <span class="brand-sub">ATELIER &bull; SAIGON</span>
+                </span>
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
@@ -43,35 +138,39 @@
             </button>
 
             <div class="collapse navbar-collapse" id="mainNavbar">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-1">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link fw-semibold px-3" href="@Url.Action("Index", "Home")">Trang chủ</a>
+                        <a class="nav-link fw-semibold" href="@Url.Action("Index", "Home")">Trang chủ</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link fw-semibold px-3" href="@Url.Action("Index", "Product")">Cửa hàng</a>
+                        <a class="nav-link fw-semibold" href="@Url.Action("Index", "Product")">Cửa hàng</a>
                     </li>
                     @Html.Action("CategoryMenu", "Menu", new { mode = "desktop" })
                     <li class="nav-item">
-                        <a class="nav-link fw-bold text-danger px-3" href="@Url.Action("Index", "Product", new { onSale = true })">
+                        <a class="nav-link fw-bold" style="color:#E11D48 !important;" href="@Url.Action("Index", "Product", new { onSale = true })">
                             <i class="bi bi-fire me-1"></i>Sale
                         </a>
                     </li>
                 </ul>
 
-                <!-- Tìm kiếm bằng Form GET thuần (KHÔNG AJAX) -->
-                <form class="d-flex me-lg-3 my-2 my-lg-0" method="get" action="@Url.Action("Index", "Product")">
-                    <div class="input-group input-group-sm">
-                        <input type="text" name="keyword" value="@currentKeyword"
-                               class="form-control rounded-start-pill bg-light border-end-0 ps-3"
-                               placeholder="Tìm áo, quần, phụ kiện..." />
-                        <button class="btn btn-light border border-start-0 rounded-end-pill pe-3" type="submit" title="Tìm kiếm">
-                            <i class="bi bi-search text-dark"></i>
-                        </button>
-                    </div>
-                </form>
+                <!-- Search Bar với Autocomplete -->
+                <div class="position-relative me-lg-2 my-2 my-lg-0" id="searchWrapper">
+                    <form class="d-flex" method="get" action="@Url.Action("Index", "Product")" id="headerSearchForm" autocomplete="off">
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="keyword" id="headerSearchInput" value="@currentKeyword"
+                                   class="form-control rounded-start-pill bg-light border-end-0 ps-3"
+                                   placeholder="Tìm áo, quần, phụ kiện..." />
+                            <button class="btn btn-light border border-start-0 rounded-end-pill pe-3" type="submit" title="Tìm kiếm">
+                                <i class="bi bi-search text-dark"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <!-- Dropdown gợi ý autocomplete -->
+                    <div id="searchSuggestions" class="position-absolute bg-white border rounded-3 shadow-sm w-100 mt-1" style="display:none;z-index:9999;top:100%;left:0;max-height:360px;overflow-y:auto;"></div>
+                </div>
 
                 <!-- Yêu thích, Giỏ hàng & Tài khoản -->
-                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0 header-actions-group">
                     <a href="@Url.Action("Index", "Favorite")" class="btn btn-outline-danger btn-sm rounded-pill px-3 position-relative fw-semibold" title="Sản phẩm yêu thích">
                         <i class="bi bi-heart-fill"></i>
                         @if (favCount > 0)
@@ -106,7 +205,7 @@
                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-4 p-2 mt-2">
                                 <li class="px-3 py-2">
                                     <div class="fw-bold small">@currentUser.FullName</div>
-                                    <span class="badge bg-secondary bg-opacity-25 text-dark rounded-pill">@currentUser.Role</span>
+                                    <span class="badge bg-dark-subtle text-dark rounded-pill">@currentUser.Role</span>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 @if (currentUser.CanAccessAdmin)
@@ -173,15 +272,26 @@
     </main>
 
     <!-- Editorial Footer -->
-    <footer class="bg-dark text-light pt-5 pb-4 mt-5">
+    <footer class="bg-obsidian text-light pt-5 pb-4 mt-5">
         <div class="container">
             <div class="row g-4 pb-4 border-bottom border-secondary border-opacity-25">
-                <div class="col-lg-4">
-                    <h4 class="fw-bold mb-3">CLOTHINGSHOP<span class="text-danger">.</span></h4>
+                <div class="col-lg-3">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect x="0.75" y="0.75" width="34.5" height="34.5" rx="7.25" fill="#111111" stroke="#F8F7F4" stroke-opacity="0.3" stroke-width="1.5" />
+                            <path d="M18 10.5C18 9.12 19.12 8 20.5 8C21.88 8 23 9.12 23 10.5C23 11.74 22.05 12.76 20.82 12.95L18 13.8V15.4" stroke="#F8F7F4" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M18 15.4L8.5 21.8C7.85 22.24 8.16 23.25 8.95 23.25H27.05C27.84 23.25 28.15 22.24 27.5 21.8L18 15.4Z" stroke="#F8F7F4" stroke-width="1.65" stroke-linejoin="round" />
+                            <path d="M14.5 26.75H21.5" stroke="#F8F7F4" stroke-width="1.35" stroke-linecap="round" opacity="0.7" />
+                        </svg>
+                        <div class="d-flex flex-column">
+                            <h4 class="brand-wordmark text-white mb-0">AURELIA<span style="color:#E11D48;">.</span></h4>
+                            <span class="brand-sub text-white-50">ATELIER &bull; SAIGON</span>
+                        </div>
+                    </div>
                     <p class="text-white-50 small mb-3">
                         Thương hiệu thời trang Gen-Z dành cho cả Nam và Nữ. Phom dáng hiện đại, chất liệu chọn lọc, cập nhật xu hướng streetwear &amp; minimal mỗi tuần.
                     </p>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 flex-wrap">
                         <span class="badge bg-secondary bg-opacity-25 text-white fw-normal px-3 py-2 rounded-pill">#Streetwear</span>
                         <span class="badge bg-secondary bg-opacity-25 text-white fw-normal px-3 py-2 rounded-pill">#Minimal</span>
                         <span class="badge bg-secondary bg-opacity-25 text-white fw-normal px-3 py-2 rounded-pill">#GenZStyle</span>
@@ -191,33 +301,106 @@
                     <h6 class="fw-bold text-uppercase small mb-3 text-white">Danh mục</h6>
                     @Html.Action("CategoryMenu", "Menu", new { mode = "footer" })
                 </div>
-                <div class="col-6 col-lg-3">
+                <div class="col-6 col-lg-2">
                     <h6 class="fw-bold text-uppercase small mb-3 text-white">Khám phá nhanh</h6>
                     <ul class="list-unstyled small">
                         <li class="mb-2"><a href="@Url.Action("Index", "Product", new { gender = "Nam" })" class="text-white-50 text-decoration-none">Thời trang Nam</a></li>
                         <li class="mb-2"><a href="@Url.Action("Index", "Product", new { gender = "Nữ" })" class="text-white-50 text-decoration-none">Thời trang Nữ</a></li>
-                        <li class="mb-2"><a href="@Url.Action("Index", "Product", new { isNew = true })" class="text-white-50 text-decoration-none">Hàng mới về (New Drop)</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Index", "Product", new { isNew = true })" class="text-white-50 text-decoration-none">Hàng mới về</a></li>
                         <li class="mb-2"><a href="@Url.Action("Index", "Product", new { onSale = true })" class="text-warning text-decoration-none fw-semibold">Săn Deal Khuyến Mãi</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-2">
                     <h6 class="fw-bold text-uppercase small mb-3 text-white">Cửa hàng &amp; Liên hệ</h6>
                     <ul class="list-unstyled small text-white-50">
                         <li class="mb-2"><i class="bi bi-geo-alt text-white me-2"></i>140 Lê Trọng Tấn, Tân Phú, TP.HCM</li>
-                        <li class="mb-2"><i class="bi bi-envelope text-white me-2"></i>support@clothingshop.vn</li>
+                        <li class="mb-2"><i class="bi bi-envelope text-white me-2"></i>support@aurelia.vn</li>
                         <li class="mb-2"><i class="bi bi-telephone text-white me-2"></i>1900 636 888 (8:00 - 21:00)</li>
                     </ul>
                 </div>
+                <!-- Bản đồ cửa hàng -->
+                <div class="col-lg-3">
+                    <h6 class="fw-bold text-uppercase small mb-3 text-white"><i class="bi bi-map me-1"></i>Tìm chúng tôi</h6>
+                    <div class="rounded-3 overflow-hidden border border-secondary border-opacity-25" style="height:160px;">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.264!2d106.629!3d10.779!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752936ed12a40f%3A0x2a1ba3a9a4f47a40!2s140%20L%C3%AA%20Tr%E1%BB%8Dng%20T%E1%BA%A5n%2C%20T%C3%A2n%20Ph%C3%BA%2C%20H%E1%BB%93%20Ch%C3%AD%20Minh!5e0!3m2!1svi!2svn!4v1700000000000"
+                            width="100%" height="100%" style="border:0;filter:grayscale(30%);" allowfullscreen="" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade" title="Bản đồ AURELIA"></iframe>
+                    </div>
+                    <p class="small text-white-50 mt-2 mb-0"><i class="bi bi-clock me-1"></i>T2–CN: 8:00 – 21:00</p>
+                </div>
             </div>
             <div class="d-flex flex-wrap justify-content-between align-items-center pt-4 small text-white-50">
-                <span>&copy; @DateTime.Now.Year CLOTHINGSHOP. Đồ án Lập trình Web ASP.NET MVC 5 &amp; ADO.NET.</span>
-                <span>Thiết kế thuần Bootstrap 5 &bull; Không dùng AJAX</span>
+                <span>&copy; @DateTime.Now.Year AURELIA. Bảo lưu mọi quyền.</span>
+                <span>AURELIA Atelier &bull; TP. Hồ Chí Minh</span>
             </div>
         </div>
     </footer>
 
     <script src="~/Scripts/jquery-3.7.0.min.js"></script>
     <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    @Html.Action("SearchProductData", "Menu")
+    <script>
+        // Search Autocomplete lọc thuần trên dữ liệu đã render sẵn từ Server (không dùng AJAX)
+        (function () {
+            var input = document.getElementById('headerSearchInput');
+            var box = document.getElementById('searchSuggestions');
+            if (!input || !box) return;
+            var allProducts = window.SEARCH_PRODUCTS || [];
+
+            function normalizeText(str) {
+                return (str || '')
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/đ/g, 'd');
+            }
+
+            function formatVnd(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '₫'; }
+
+            function showSuggestions(items) {
+                if (!items || items.length === 0) {
+                    box.innerHTML = '<div class="p-3 text-muted small text-center"><i class="bi bi-search me-1"></i>Không tìm thấy sản phẩm phù hợp</div>';
+                    box.style.display = 'block';
+                    return;
+                }
+                var html = items.map(function (p) {
+                    var priceHtml = p.discountPrice && p.discountPrice < p.price
+                        ? '<span class="fw-bold text-danger">' + formatVnd(p.discountPrice) + '</span> <s class="text-muted small">' + formatVnd(p.price) + '</s>'
+                        : '<span class="fw-bold">' + formatVnd(p.price) + '</span>';
+                    return '<a href="/Product/Details/' + p.id + '" class="d-flex align-items-center gap-3 px-3 py-2 text-decoration-none text-dark suggestion-item">' +
+                        '<img src="' + p.imageUrl + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.src=\'/Content/images/products/default.jpg\'" />' +
+                        '<div><div class="small fw-semibold lh-tight">' + p.name + '</div><div class="small mt-1">' + priceHtml + '</div></div>' +
+                        '</a>';
+                }).join('');
+                box.innerHTML = html;
+                box.style.display = 'block';
+            }
+
+            input.addEventListener('input', function () {
+                var term = input.value.trim();
+                if (term.length < 2) { box.style.display = 'none'; return; }
+                var q = normalizeText(term);
+                var matched = allProducts.filter(function (p) {
+                    return normalizeText(p.name).indexOf(q) !== -1;
+                }).slice(0, 8);
+                showSuggestions(matched);
+            });
+
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') box.style.display = 'none';
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!document.getElementById('searchWrapper').contains(e.target)) box.style.display = 'none';
+            });
+        })();
+    </script>
+    <style>
+        .suggestion-item:hover { background: #f8f9fa; }
+        body { font-family: 'Nunito', 'Be Vietnam Pro', sans-serif; }
+        .font-display { font-family: 'Urbanist', 'Space Grotesk', sans-serif; }
+    </style>
     <script>
                 document.addEventListener('DOMContentLoaded', function () {
                     var dropdownItems = document.querySelectorAll('#mainNavbar .navbar-nav .nav-item.dropdown');
